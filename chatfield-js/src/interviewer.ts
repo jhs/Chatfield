@@ -43,8 +43,16 @@ type InterviewStateType = typeof InterviewState.State
  * Merge two Interview instances
  */
 function mergeInterviews(a: Interview, b: Interview): Interview {
-  // For now, just return b (the newer state)
-  // TODO: Implement proper merging logic
+  // Ensure we have Interview instances with proper methods
+  if (a && !(a instanceof Interview) && (a as any)._chatfield) {
+    // Reconstruct Interview from plain object
+    a = Object.assign(new Interview(), a)
+  }
+  if (b && !(b instanceof Interview) && (b as any)._chatfield) {
+    // Reconstruct Interview from plain object
+    b = Object.assign(new Interview(), b)
+  }
+  
   if (a && b) {
     // Copy over any new field values from b to a
     for (const fieldName of Object.keys(b._chatfield.fields)) {
@@ -672,7 +680,12 @@ ${fields.join('\n\n')}
     const interview = state.interview
      // console.log(`Digest Conclude> ${interview?._name() || 'No interview'}`)
     
-    const llm = this.llmWithConclude
+    if (!interview) {
+       // console.log('No interview in digestConclude state')
+      return {}
+    }
+    
+    const llm = (this as any).llm_with_conclude
     const fieldsPrompt = this.makeFieldsPrompt(interview, 'conclude')
     const sysMsg = new SystemMessage(
       `You have successfully gathered enough information ` +
