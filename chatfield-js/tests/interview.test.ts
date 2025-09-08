@@ -55,18 +55,14 @@ describe('Interview', () => {
       expect(interview._done).toBe(false)
 
       // Set one field - still not done
-      interview._chatfield.fields.field1.value = {
-        value: 'test1',
-        context: 'N/A',
-        as_quote: 'test1'
+      interview._chatfield.fields.field1!.value = {
+        value: 'test1'
       }
       expect(interview._done).toBe(false)
 
       // Set both fields - now done
-      interview._chatfield.fields.field2.value = {
-        value: 'test2',
-        context: 'N/A',
-        as_quote: 'test2'
+      interview._chatfield.fields.field2!.value = {
+        value: 'test2'
       }
       expect(interview._done).toBe(true)
     })

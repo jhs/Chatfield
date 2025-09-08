@@ -60,17 +60,13 @@ def describe_interview():
             
             # Set one field - still not done
             instance._chatfield['fields']['field1']['value'] = {
-                'value': 'test1',
-                'context': 'N/A',
-                'as_quote': 'test1'
+                'value': 'test1'
             }
             assert instance._done is False
             
             # Set both fields - now done
             instance._chatfield['fields']['field2']['value'] = {
-                'value': 'test2',
-                'context': 'N/A',
-                'as_quote': 'test2'
+                'value': 'test2'
             }
             assert instance._done is True
         
