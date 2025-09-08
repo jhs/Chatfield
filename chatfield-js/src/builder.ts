@@ -267,7 +267,7 @@ export class FieldBuilder<
     const fieldKey = fieldName as unknown as Fields
     if (!(fieldKey in this.parent._chatfield.fields)) {
       (this.parent._chatfield.fields as any)[fieldKey] = {
-        desc: '',
+        desc: fieldName, // Use field name as default description
         specs: {
           must: [],
           reject: [],

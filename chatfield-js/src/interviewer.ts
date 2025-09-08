@@ -100,11 +100,11 @@ export class Interviewer {
     const theBob = this.interview._bob_role_name()
 
     // Create tool for updating interview fields
-    const toolDescription = `Record valid information stated by the ${theBob} about the ${this.interview._name()}`
+    const updateToolDescription = `Record valid information stated by the ${theBob} about the ${this.interview._name()}`
     
-    // Create a simple tool function without complex Zod schemas to avoid deep type issues
+    // Create update tool function
     const updateToolFunc = async (args: any) => {
-      console.log('Tool called with:', args)
+      console.log('Update tool called with:', args)
       
       try {
         // Process the tool input
@@ -122,17 +122,50 @@ export class Interviewer {
       }
     }
 
-    // Create the tool with simplified schema to avoid TypeScript deep instantiation issues
+    // Create conclude tool function
+    const concludeToolFunc = async (args: any) => {
+      console.log('Conclude tool called with:', args)
+      
+      try {
+        // Process the conclude fields
+        for (const [fieldName, fieldValue] of Object.entries(args)) {
+          if (fieldValue && typeof fieldValue === 'object') {
+            console.log(`Setting conclude field ${fieldName}:`, fieldValue)
+            if (this.interview._chatfield.fields[fieldName]) {
+              this.interview._chatfield.fields[fieldName].value = fieldValue as any
+            }
+          }
+        }
+        return 'Success'
+      } catch (error: any) {
+        return `Error: ${error.message}`
+      }
+    }
+
+    // Create the tools with simplified schema to avoid TypeScript deep instantiation issues
     const updateTool = {
       name: this.toolName,
-      description: toolDescription,
+      description: updateToolDescription,
       schema: z.record(z.any()), // Simplified schema
       func: updateToolFunc
     } as any
 
-    // Bind tools to LLM
+    const concludeTool = {
+      name: `conclude_${this.interview._name()}`,
+      description: `Record key required information about the ${this.interview._name()} by summarizing, synthesizing, or recalling the conversation so far with the ${theBob}`,
+      schema: z.record(z.any()), // Simplified schema
+      func: concludeToolFunc
+    } as any
+
+    // Create different LLM configurations
     this.llmWithTools = this.llm.bindTools ? this.llm.bindTools([updateTool]) as ChatOpenAI : this.llm
-    this.llm_with_both = this.llmWithTools  // Python compatibility
+    const llmWithConclude = this.llm.bindTools ? this.llm.bindTools([concludeTool]) as ChatOpenAI : this.llm
+    const llmWithBoth = this.llm.bindTools ? this.llm.bindTools([updateTool, concludeTool]) as ChatOpenAI : this.llm
+    
+    // Store for later use
+    this.llm_with_both = llmWithBoth  // Python compatibility
+    ;(this as any).llm_with_update = this.llmWithTools
+    ;(this as any).llm_with_conclude = llmWithConclude
 
     // Build the state graph
     const builder = new StateGraph(InterviewState)
@@ -140,12 +173,14 @@ export class Interviewer {
       .addNode('think', this.think.bind(this))
       .addNode('listen', this.listen.bind(this))
       .addNode('tools', this.toolsNode.bind(this))
+      .addNode('digest', this.digest.bind(this))
       .addNode('teardown', this.teardown.bind(this))
       .addEdge(START, 'initialize')
       .addEdge('initialize', 'think')
-      .addConditionalEdges('think', this.routeThink.bind(this))
+      .addConditionalEdges('think', this.routeFromThink.bind(this), ['tools', 'teardown', 'digest', 'listen'])
       .addEdge('listen', 'think')
-      .addEdge('tools', 'think')
+      .addConditionalEdges('tools', this.routeFromTools.bind(this), ['think', 'digest'])
+      .addConditionalEdges('digest', this.routeFromDigest.bind(this), ['tools', 'think'])
       .addEdge('teardown', END)
 
     // Compile the graph
@@ -283,6 +318,64 @@ export class Interviewer {
     }
     
     return 'listen'
+  }
+
+  private makeFieldsPrompt(interview: Interview, mode: 'normal' | 'conclude' = 'normal'): string {
+    const fields: string[] = []
+    const theBob = interview._bob_role_name()
+    
+    for (const fieldName of Object.keys(interview._chatfield.fields).reverse()) {
+      const field = interview._chatfield.fields[fieldName]
+      if (!field) continue
+      
+      // Skip fields based on mode
+      if (mode === 'normal' && field.specs?.conclude) {
+        continue // Skip conclude fields in normal mode
+      }
+      if (mode === 'conclude' && !field.specs?.conclude) {
+        continue // Skip normal fields in conclude mode
+      }
+      
+      let fieldLabel = fieldName
+      if (field.desc) {
+        fieldLabel += `: ${field.desc}`
+      }
+      
+      // Add specs if any
+      const specs: string[] = []
+      if (field.specs) {
+        // Handle confidential field specially
+        if (field.specs.confidential) {
+          specs.push(`    - **Confidential**: Do not inquire about this explicitly nor bring it up yourself. Continue your normal behavior. However, if the ${theBob} ever volunteers or implies it, you must record this information.`)
+        }
+        
+        // Handle regular array-based specs (must, reject, hint)
+        for (const [specType, rules] of Object.entries(field.specs)) {
+          // Skip confidential and conclude as they're handled separately
+          if (specType === 'confidential' || specType === 'conclude') {
+            continue
+          }
+          
+          // Only process if rules is an array
+          if (Array.isArray(rules)) {
+            for (const rule of rules) {
+              // The specType should be capitalized.
+              const specLabel = specType.charAt(0).toUpperCase() + specType.slice(1)
+              specs.push(`    - ${specLabel}: ${rule}`)
+            }
+          }
+        }
+      }
+      
+      const fieldPrompt = `- ${fieldLabel}`
+      if (specs.length > 0) {
+        fields.push(fieldPrompt + '\n' + specs.join('\n'))
+      } else {
+        fields.push(fieldPrompt)
+      }
+    }
+    
+    return fields.join('\n')
   }
 
   private makeSystemPrompt(state: InterviewStateType): string {
@@ -482,5 +575,224 @@ ${fields.join('\n\n')}
     }
     
     return interrupts[0] || null
+  }
+
+  // Node: Handle confidential and conclude fields
+  private async digest(state: State): Promise<Partial<State>> {
+    const interview = this.getStateInterview(state)
+    console.log(`Digest> ${interview._name()}`)
+    
+    // First digest undefined confidential fields. Then digest the conclude fields.
+    for (const [fieldName, chatfield] of Object.entries(interview._chatfield.fields)) {
+      if (!chatfield.specs.conclude) {
+        if (chatfield.specs.confidential) {
+          if (!chatfield.value) {
+            return this.digestConfidential(state)
+          }
+        }
+      }
+    }
+    return this.digestConclude(state)
+  }
+  
+  private async digestConfidential(state: State): Promise<Partial<State>> {
+    const interview = this.getStateInterview(state)
+    console.log(`Digest Confidential> ${interview._name()}`)
+    
+    const fieldsPrompt: string[] = []
+    const fieldDefinitions: Record<string, z.ZodTypeAny> = {}
+    
+    for (const [fieldName, chatfield] of Object.entries(interview._chatfield.fields)) {
+      if (chatfield.specs.conclude) {
+        continue
+      }
+      
+      if (chatfield.specs.confidential && !chatfield.value) {
+        // This confidential field must be marked "N/A"
+        fieldsPrompt.push(`- ${fieldName}: ${chatfield.desc}`)
+        const fieldDefinition = this.mkFieldDefinition(interview, fieldName, chatfield)
+        fieldDefinitions[fieldName] = fieldDefinition
+      } else {
+        // Force the LLM to pass null for values we don't need
+        fieldDefinitions[fieldName] = z.null().describe('Must be null because the field is already recorded')
+      }
+    }
+    
+    const fieldsPromptStr = fieldsPrompt.join('\n')
+    
+    // Build a special llm object bound to a tool which explicitly requires the proper arguments
+    const toolName = `update_${interview._id()}`
+    const toolDesc = (
+      `Record those confidential fields about the ${interview._name()} ` +
+      `from the ${interview._bob_role_name()} ` +
+      `which have no relevant information so far.`
+    )
+    
+    const confidentialTool = z.object(fieldDefinitions).describe(toolDesc)
+    const llm = this.llm.bindTools([{
+      name: toolName,
+      description: toolDesc,
+      schema: confidentialTool
+    }])
+    
+    const sysMsg = new SystemMessage(
+      `You have successfully recorded good ${interview._name()} fields. ` +
+      `Now, before messaging ${interview._bob_role_name()} again, ` +
+      `you must perform one more followup update to record ` +
+      `that there is no relevant information for ` +
+      `the not-yet-defined confidential fields, listed below to remind you. ` +
+      `Use the update tool call to record that there is no forthcoming information ` +
+      `for these fields. ` +
+      `After a successful tool call, you may resume conversation with the ${interview._bob_role_name()} again.` +
+      `\n\n` +
+      `## Confidential Fields needed for ${interview._name()}\n` +
+      `\n` +
+      `${fieldsPromptStr}`
+    )
+    
+    const allMessages = [...state.messages, sysMsg]
+    const llmResponseMessage = await llm.invoke(allMessages)
+    
+    // LangGraph wants only net-new messages. Its reducer will merge them.
+    const newMessages = [sysMsg, llmResponseMessage]
+    return { messages: newMessages }
+  }
+  
+  private async digestConclude(state: State): Promise<Partial<State>> {
+    const interview = this.getStateInterview(state)
+    console.log(`Digest Conclude> ${interview._name()}`)
+    
+    const llm = this.llmWithConclude
+    const fieldsPrompt = this.makeFieldsPrompt(interview, 'conclude')
+    const sysMsg = new SystemMessage(
+      `You have successfully gathered enough information ` +
+      `to draw conclusions and record key information from this conversation. ` +
+      `You must now record all conclusion fields, defined below.` +
+      `\n\n` +
+      `## Conclusion Fields needed for ${interview._name()}\n` +
+      `\n` +
+      `${fieldsPrompt}`
+    )
+    
+    const allMessages = [...state.messages, sysMsg]
+    const llmResponseMessage = await llm.invoke(allMessages)
+    
+    // LangGraph wants only net-new messages. Its reducer will merge them.
+    const newMessages = [sysMsg, llmResponseMessage]
+    return { messages: newMessages }
+  }
+  
+  private mkFieldDefinition(interview: Interview, fieldName: string, chatfield: any): z.ZodTypeAny {
+    const castsDefinitions = this.mkCastsDefinitions(chatfield)
+    
+    // Build the Zod schema for this field
+    const fieldSchema = z.object({
+      value: z.string().describe(`The most typical valid representation of a ${interview._name()} ${fieldName}`),
+      ...castsDefinitions
+    }).describe(chatfield.desc)
+    
+    return fieldSchema
+  }
+  
+  private mkCastsDefinitions(chatfield: any): Record<string, z.ZodTypeAny> {
+    const castsDefinitions: Record<string, z.ZodTypeAny> = {}
+    
+    const okPrimitiveTypes: Record<string, (prompt: string) => z.ZodTypeAny> = {
+      'int': (prompt) => z.number().int().describe(prompt),
+      'float': (prompt) => z.number().describe(prompt),
+      'str': (prompt) => z.string().describe(prompt),
+      'bool': (prompt) => z.boolean().describe(prompt),
+      'list': (prompt) => z.array(z.any()).describe(prompt),
+      'set': (prompt) => z.array(z.any()).describe(prompt),
+      'dict': (prompt) => z.record(z.string(), z.any()).describe(prompt),
+      'choice': (prompt) => z.string().describe(prompt) // Will be handled specially
+    }
+    
+    const casts = chatfield.casts || {}
+    for (const [castName, castInfo] of Object.entries(casts)) {
+      const info = castInfo as any
+      const castType = info.type
+      const castPrompt = info.prompt
+      
+      if (castType === 'choice') {
+        // Handle choice types specially
+        const castShortName = castName.replace(/^choose_.*_/, '')
+        const prompt = castPrompt.replace('{name}', castShortName)
+        const choices = info.choices as string[]
+        
+        let schema: z.ZodTypeAny = z.enum(choices as [string, ...string[]])
+        
+        if (info.multi) {
+          const minLength = info.null ? 0 : 1
+          const maxLength = choices.length
+          schema = z.array(schema).min(minLength).max(maxLength)
+        }
+        
+        if (info.null) {
+          schema = schema.nullable()
+        }
+        
+        castsDefinitions[castName] = schema.describe(prompt)
+      } else {
+        const schemaFn = okPrimitiveTypes[castType]
+        if (!schemaFn) {
+          throw new Error(`Cast ${castName} bad type: ${castType}; must be one of ${Object.keys(okPrimitiveTypes).join(', ')}`)
+        }
+        castsDefinitions[castName] = schemaFn(castPrompt)
+      }
+    }
+    
+    return castsDefinitions
+  }
+
+  // Routing methods
+  private routeFromThink(state: State): string {
+    const interview = this.getStateInterview(state)
+    console.log(`Route from think: ${interview.constructor.name}`)
+    
+    // Check if the LLM wants to use tools
+    const lastMessage = state.messages[state.messages.length - 1]
+    if (lastMessage && 'tool_calls' in lastMessage && (lastMessage as any).tool_calls?.length > 0) {
+      return 'tools'
+    }
+    
+    // Check if the interview is done
+    if (interview._done) {
+      return 'teardown'
+    }
+    
+    // Check if we should go to digest phase
+    if (interview._enough && !interview._done) {
+      return 'digest'
+    }
+    
+    return 'listen'
+  }
+  
+  private routeFromTools(state: State): string {
+    const interview = this.getStateInterview(state)
+    console.log(`Route from tools: ${interview._name()}`)
+    
+    // Check if we have enough non-confidential/conclude fields to go to digest
+    if (interview._enough && !interview._done) {
+      console.log('Route: tools -> digest')
+      return 'digest'
+    }
+    
+    return 'think'
+  }
+  
+  private routeFromDigest(state: State): string {
+    const interview = this.getStateInterview(state)
+    console.log(`Route from digest: ${interview._name()}`)
+    
+    // Check if the LLM wants to use tools (for confidential/conclude fields)
+    const lastMessage = state.messages[state.messages.length - 1]
+    if (lastMessage && 'tool_calls' in lastMessage && (lastMessage as any).tool_calls?.length > 0) {
+      console.log('Route: digest -> tools')
+      return 'tools'
+    }
+    
+    return 'think'
   }
 }
