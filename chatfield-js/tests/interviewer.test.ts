@@ -12,9 +12,19 @@ class MockLLMBackend {
   temperature: number = 0.0
   modelName: string = 'openai:gpt-4o'
   tools: any[] = []
+  boundTools: any[] = []
   
-  bind_tools(tools: any[]) {
+  bind(args: any) {
+    // Support bind method for LangChain compatibility
+    if (args.tools) {
+      this.boundTools = args.tools
+    }
+    return this
+  }
+  
+  bindTools(tools: any[]) {
     this.tools = tools
+    this.boundTools = tools
     return this
   }
   
@@ -27,26 +37,16 @@ class MockLLMBackend {
   }
 }
 
-// Mock chat model initialization
-jest.mock('../src/interviewer', () => {
-  const actual = jest.requireActual('../src/interviewer')
-  return {
-    ...actual,
-    init_chat_model: jest.fn((model: string, temperature: number) => {
-      return new MockLLMBackend()
-    })
-  }
-})
-
 describe('Interviewer', () => {
   describe('initialization', () => {
     it('creates with interview instance', () => {
+      const mockLlm = new MockLLMBackend()
       const interview = chatfield()
         .type('SimpleInterview')
         .field('name').desc('Your name')
         .field('email').desc('Your email')
         .build()
-      const interviewer = new Interviewer(interview)
+      const interviewer = new Interviewer(interview, { llm: mockLlm })
       
       expect(interviewer.interview).toBe(interview)
       expect(interviewer.config.configurable.thread_id).toBeDefined()
@@ -55,37 +55,40 @@ describe('Interviewer', () => {
     })
     
     it('generates unique thread id', () => {
+      const mockLlm = new MockLLMBackend()
       const interview = chatfield()
         .type('SimpleInterview')
         .field('name').desc('Your name')
         .build()
-      const interviewer = new Interviewer(interview, { threadId: 'custom-123' })
+      const interviewer = new Interviewer(interview, { threadId: 'custom-123', llm: mockLlm })
       
       expect(interviewer.config.configurable.thread_id).toBe('custom-123')
     })
     
     it('configures llm model', () => {
+      const mockLlm = new MockLLMBackend()
       const interview = chatfield()
         .type('SimpleInterview')
         .field('name').desc('Your name')
         .build()
-      const interviewer = new Interviewer(interview)
+      const interviewer = new Interviewer(interview, { llm: mockLlm })
       
-      // Should initialize with GPT-4o by default
+      // Should use the provided mock LLM
       expect(interviewer.llm).toBeDefined()
-      expect(interviewer.llm instanceof MockLLMBackend).toBe(true)
+      expect(interviewer.llm).toBe(mockLlm)
     })
   })
 
   describe('system prompt', () => {
     it('generates basic prompt', () => {
+      const mockLlm = new MockLLMBackend()
       const interview = chatfield()
         .type('SimpleInterview')
         .desc('Customer feedback form')
         .field('rating').desc('Overall satisfaction rating')
         .field('comments').desc('Additional comments')
         .build()
-      const interviewer = new Interviewer(interview)
+      const interviewer = new Interviewer(interview, { llm: mockLlm })
       
       const prompt = interviewer.mk_system_prompt({ interview })
       
@@ -97,6 +100,7 @@ describe('Interviewer', () => {
     })
     
     it('includes custom roles', () => {
+      const mockLlm = new MockLLMBackend()
       const interview = chatfield()
         .type('SupportInterview')
         .desc('Support ticket')
@@ -108,7 +112,7 @@ describe('Interviewer', () => {
           .trait('Had a bad experience')
         .field('issue').desc('What went wrong')
         .build()
-      const interviewer = new Interviewer(interview)
+      const interviewer = new Interviewer(interview, { llm: mockLlm })
       
       const prompt = interviewer.mk_system_prompt({ interview })
       
@@ -119,6 +123,7 @@ describe('Interviewer', () => {
     })
     
     it('includes validation rules', () => {
+      const mockLlm = new MockLLMBackend()
       const interview = chatfield()
         .type('ValidatedInterview')
         .field('feedback')
@@ -127,7 +132,7 @@ describe('Interviewer', () => {
           .reject('profanity')
           .hint('Be constructive')
         .build()
-      const interviewer = new Interviewer(interview)
+      const interviewer = new Interviewer(interview, { llm: mockLlm })
       
       const prompt = interviewer.mk_system_prompt({ interview })
       
@@ -139,19 +144,21 @@ describe('Interviewer', () => {
 
   describe('tool generation', () => {
     it('creates tool for each field', () => {
+      const mockLlm = new MockLLMBackend()
       const interview = chatfield()
         .type('SimpleInterview')
         .field('field1').desc('Field 1')
         .field('field2').desc('Field 2')
         .build()
-      const interviewer = new Interviewer(interview)
+      const interviewer = new Interviewer(interview, { llm: mockLlm })
       
       // Tool should be bound to LLM
       expect(interviewer.llm_with_both).toBeDefined()
-      expect(interviewer.llm_with_both).toHaveProperty('bind_tools')
+      expect(interviewer.llm_with_both).toHaveProperty('bindTools')
     })
     
     it('includes transformations in tool schema', () => {
+      const mockLlm = new MockLLMBackend()
       const interview = chatfield()
         .type('TypedInterview')
         .field('number')
@@ -160,7 +167,7 @@ describe('Interviewer', () => {
           .as_bool()
           .as_lang('fr')
         .build()
-      const interviewer = new Interviewer(interview)
+      const interviewer = new Interviewer(interview, { llm: mockLlm })
       
       // Tool args should include transformations
       // This is complex to test without running the actual tool
@@ -170,11 +177,12 @@ describe('Interviewer', () => {
 
   describe('conversation flow', () => {
     it('updates field values', () => {
+      const mockLlm = new MockLLMBackend()
       const interview = chatfield()
         .type('SimpleInterview')
         .field('name').desc('Your name')
         .build()
-      const interviewer = new Interviewer(interview)
+      const interviewer = new Interviewer(interview, { llm: mockLlm })
       
       // Manually update field as if tool was called
       interviewer.process_tool_input(interview, {
@@ -191,12 +199,13 @@ describe('Interviewer', () => {
     })
     
     it('detects completion', () => {
+      const mockLlm = new MockLLMBackend()
       const interview = chatfield()
         .type('SimpleInterview')
         .field('field1').desc('Field 1')
         .field('field2').desc('Field 2')
         .build()
-      const interviewer = new Interviewer(interview)
+      const interviewer = new Interviewer(interview, { llm: mockLlm })
       
       // Initially not done
       expect(interview._done).toBe(false)
@@ -214,6 +223,7 @@ describe('Interviewer', () => {
     })
     
     it('handles transformations', () => {
+      const mockLlm = new MockLLMBackend()
       const interview = chatfield()
         .type('TypedInterview')
         .field('number')
@@ -221,7 +231,7 @@ describe('Interviewer', () => {
           .as_int()
           .as_lang('fr')
         .build()
-      const interviewer = new Interviewer(interview)
+      const interviewer = new Interviewer(interview, { llm: mockLlm })
       
       // Process tool input with transformations
       interviewer.process_tool_input(interview, {
@@ -244,11 +254,12 @@ describe('Interviewer', () => {
 
   describe('edge cases', () => {
     it('handles empty interview', () => {
+      const mockLlm = new MockLLMBackend()
       const interview = chatfield()
         .type('EmptyInterview')
         .desc('Empty interview')
         .build()
-      const interviewer = new Interviewer(interview)
+      const interviewer = new Interviewer(interview, { llm: mockLlm })
       
       // Should handle empty interview gracefully
       expect(interview._done).toBe(true)
@@ -288,6 +299,8 @@ describe('Interviewer', () => {
     })
     
     it('maintains thread isolation', () => {
+      const mockLlm1 = new MockLLMBackend()
+      const mockLlm2 = new MockLLMBackend()
       const interview1 = chatfield()
         .type('SimpleInterview')
         .field('name').desc('Your name')
@@ -297,8 +310,8 @@ describe('Interviewer', () => {
         .field('name').desc('Your name')
         .build()
       
-      const interviewer1 = new Interviewer(interview1, {threadId: 'thread-1'})
-      const interviewer2 = new Interviewer(interview2, {threadId: 'thread-2'})
+      const interviewer1 = new Interviewer(interview1, {threadId: 'thread-1', llm: mockLlm1})
+      const interviewer2 = new Interviewer(interview2, {threadId: 'thread-2', llm: mockLlm2})
       
       expect(interviewer1.config.configurable.thread_id).toBe('thread-1')
       expect(interviewer2.config.configurable.thread_id).toBe('thread-2')
