@@ -30,7 +30,7 @@ class FauxModel {
     }
 
     this.currentIndex++;
-    console.log(`Return response: ${response.content}`);
+    // console.log(`Return response: ${response.content}`);
     return response
   }
   
