@@ -16,7 +16,7 @@ describe('Interview', () => {
         .build()
 
       // Should use field name as description
-      expect(interview._chatfield.fields.test_field.desc).toBe('test_field')
+      expect(interview._chatfield.fields.test_field!.desc).toBe('test_field')
     })
   })
 
@@ -179,7 +179,7 @@ describe('Interview', () => {
       const dump = interview.model_dump()
 
       // Modify original and ensure dump is independent
-      interview._chatfield.fields.name.value = { value: 'test' }
+      interview._chatfield.fields.name!.value = { value: 'test' }
       expect(dump.fields.name.value).toBeNull() // Should still be null
     })
   })
@@ -193,7 +193,7 @@ describe('Interview', () => {
         .build()
 
       // Set one field
-      interview._chatfield.fields.name.value = {
+      interview._chatfield.fields.name!.value = {
         value: 'Alice',
         context: 'User provided name',
         as_quote: 'My name is Alice'
