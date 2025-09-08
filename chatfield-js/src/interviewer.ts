@@ -304,11 +304,30 @@ export class Interviewer {
       // Add specs if any
       const specs: string[] = []
       if (field.specs) {
+        // Handle confidential field specially
+        if (field.specs.confidential) {
+          specs.push(`    - **Confidential**: Do not inquire about this explicitly nor bring it up yourself. Continue your normal behavior. However, if the ${theBob} ever volunteers or implies it, you must record this information.`)
+        }
+        
+        // Skip conclude fields in normal prompt generation
+        if (field.specs.conclude) {
+          continue // Skip this field entirely for now (will be handled in conclude phase)
+        }
+        
+        // Handle regular array-based specs (must, reject, hint)
         for (const [specType, rules] of Object.entries(field.specs)) {
-          for (const rule of rules) {
-            // The specType should be capitalized.
-            const specLabel = specType.charAt(0).toUpperCase() + specType.slice(1)
-            specs.push(`    - ${specLabel}: ${rule}`)
+          // Skip confidential and conclude as they're handled above
+          if (specType === 'confidential' || specType === 'conclude') {
+            continue
+          }
+          
+          // Only process if rules is an array
+          if (Array.isArray(rules)) {
+            for (const rule of rules) {
+              // The specType should be capitalized.
+              const specLabel = specType.charAt(0).toUpperCase() + specType.slice(1)
+              specs.push(`    - ${specLabel}: ${rule}`)
+            }
           }
         }
       }

@@ -142,9 +142,9 @@ describe('Conversations', () => {
       
       // Verify the order was completed correctly
       expect(order._done).toBe(true);
-      expect(order.starter).toBe('Garden salad');
-      expect(order.main_course).toBe('Veggie pasta');
-      expect(order.dessert).toBe('Fruit sorbet');
+      expect(String(order.starter)).toBe('Garden salad');
+      expect(String(order.main_course)).toBe('Veggie pasta');
+      expect(String(order.dessert)).toBe('Fruit sorbet');
       
       // Check that vegan trait was activated
       const traits = order._chatfield.roles.bob.possible_traits || {};
@@ -205,9 +205,9 @@ describe('Conversations', () => {
       
       // Verify completion
       expect(order._done).toBe(true);
-      expect(order.starter).toBe('Sir Digby Chicken Caesar');
-      expect(order.main_course).toBe('Grilled salmon');
-      expect(order.dessert).toBe('Chocolate mousse');
+      expect(String(order.starter)).toBe('Sir Digby Chicken Caesar');
+      expect(String(order.main_course)).toBe('Grilled salmon');
+      expect(String(order.dessert)).toBe('Chocolate mousse');
     });
   });
 
@@ -281,12 +281,12 @@ describe('Conversations', () => {
       
       // Verify data collection
       expect(interview.experience).toBeTruthy();
-      expect(interview.experience.toLowerCase()).toContain('finance');
-      expect(interview.experience.toLowerCase()).toContain('python');
+      expect(String(interview.experience).toLowerCase()).toContain('finance');
+      expect(String(interview.experience).toLowerCase()).toContain('python');
       
       // Check confidential field
       expect(interview.has_mentored).toBeTruthy();
-      expect(interview.has_mentored.as_bool).toBe(true);
+      expect(interview.has_mentored?.as_bool).toBe(true);
       
       // Check career-changer trait
       const traits = interview._chatfield.roles.bob.possible_traits || {};
@@ -343,13 +343,13 @@ describe('Conversations', () => {
       // Verify experience was captured
       expect(interview.experience).toBeTruthy();
       expect(
-        interview.experience.includes('e-commerce') || 
-        interview.experience.includes('platform')
+        String(interview.experience).includes('e-commerce') || 
+        String(interview.experience).includes('platform')
       ).toBe(true);
       
       // Check mentoring detection
       expect(interview.has_mentored).toBeTruthy();
-      expect(interview.has_mentored.as_bool).toBe(true);
+      expect(interview.has_mentored?.as_bool).toBe(true);
     });
   });
 
@@ -414,10 +414,10 @@ describe('Conversations', () => {
       
       // Verify number was collected with transformations
       expect(interview._done).toBe(true);
-      expect(interview.number).toBe('42');
-      expect((interview.number as any).as_int).toBe(42);
-      expect((interview.number as any).as_bool_even).toBe(true);
-      expect((interview.number as any).as_one_parity).toBe('even');
+      expect(String(interview.number)).toBe('42');
+      expect(interview.number?.as_int).toBe(42);
+      expect(interview.number?.as_bool_even).toBe(true);
+      expect(interview.number?.as_one_parity).toBe('even');
     });
     
     test('handles odd number transformations', async () => {
@@ -459,10 +459,10 @@ describe('Conversations', () => {
       
       // Verify odd number transformations
       expect(interview._done).toBe(true);
-      expect(interview.number).toBe('17');
-      expect((interview.number as any).as_int).toBe(17);
-      expect((interview.number as any).as_bool_even).toBe(false);
-      expect((interview.number as any).as_one_parity).toBe('odd');
+      expect(String(interview.number)).toBe('17');
+      expect(interview.number?.as_int).toBe(17);
+      expect(interview.number?.as_bool_even).toBe(false);
+      expect(interview.number?.as_one_parity).toBe('odd');
     });
   });
 
@@ -521,8 +521,8 @@ describe('Conversations', () => {
       
       // Verify completion
       expect(interview._done).toBe(true);
-      expect(interview.name).toBe('John Doe');
-      expect(interview.email).toBe('john.doe@example.com');
+      expect(String(interview.name)).toBe('John Doe');
+      expect(String(interview.email)).toBe('john.doe@example.com');
     });
     
     test('collects boolean field', async () => {
@@ -571,7 +571,7 @@ describe('Conversations', () => {
       
       // Verify boolean was collected
       expect(interview._done).toBe(true);
-      expect((interview.likes_coffee as any).as_bool).toBe(true);
+      expect(interview.likes_coffee?.as_bool).toBe(true);
     });
   });
 });
