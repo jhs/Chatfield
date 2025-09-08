@@ -53,8 +53,8 @@ export {
   // as_any, as_one, as_maybe, as_multi
 } from './decorators'
 
-// Metadata classes
-export { InterviewMeta, FieldMeta } from './interview'
+// Metadata classes  
+export { FieldMeta } from './interview'
 
 // Types
 export type {

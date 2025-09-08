@@ -3,6 +3,31 @@
  */
 
 /**
+ * Generic type for tracking field transformations at compile time
+ */
+export type FieldTransformations<T extends Record<string, any> = {}> = T
+
+/**
+ * Base field value type - always a string with tracked transformations
+ */
+export type FieldValue<Transforms extends Record<string, any> = {}> = string & Transforms & {
+  as_quote?: string
+  as_context?: string
+  _chatfield?: any
+  _pretty?: () => string
+}
+
+/**
+ * Field configuration with transformation tracking
+ */
+export type FieldConfig<Transforms = {}> = {
+  desc: string
+  specs: FieldSpecs
+  casts: Transforms
+  value: any
+}
+
+/**
  * Field specification with all validation rules
  */
 export interface FieldSpecs {

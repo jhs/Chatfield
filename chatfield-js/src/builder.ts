@@ -4,6 +4,7 @@
  */
 
 import { Interview } from './interview'
+import { createFieldProxy } from './field-proxy'
 import type {
   FieldMeta,
   FieldSpecs,
@@ -12,7 +13,8 @@ import type {
   TraitBuilder,
   CastBuilder,
   ChoiceBuilder,
-  CastInfo
+  CastInfo,
+  FieldValue
 } from './builder-types'
 
 /**
@@ -228,20 +230,30 @@ export class RoleBuilder<Fields extends string = never> {
 
 /**
  * Builder for field configuration with all decorators.
- * Tracks the field name in the type system.
+ * Tracks the field name and transformations in the type system.
  */
-export class FieldBuilder<Fields extends string, CurrentField extends string> {
+export class FieldBuilder<
+  Fields extends string, 
+  CurrentField extends string,
+  CurrentTransforms extends Record<string, any> = {}
+> {
   parent: ChatfieldBuilder<Fields>
   fieldName: CurrentField
   _chatfieldField: FieldMeta
 
-  // Cast builders
+  // Cast builders - these will be replaced with typed methods
   as_int: CastBuilder<this>
   as_float: CastBuilder<this>
   as_bool: CastBuilder<this>
   as_percent: CastBuilder<this>
   as_lang: CastBuilder<this>
   as_str: CastBuilder<this>
+  as_list: CastBuilder<this>
+  as_set: CastBuilder<this>
+  as_dict: CastBuilder<this>
+  as_obj: CastBuilder<this>
+  as_context: CastBuilder<this>
+  as_quote: CastBuilder<this>
   as_one: ChoiceBuilder<this>
   as_maybe: ChoiceBuilder<this>
   as_multi: ChoiceBuilder<this>
@@ -272,15 +284,23 @@ export class FieldBuilder<Fields extends string, CurrentField extends string> {
     this.parent._currentField = fieldName as string
     
     // Initialize cast builders
-    // Optional sub-name casts (can be called with 0, 1, or 2 args)
+    // Basic type casts (no sub-attributes)
     this.as_int = createCastBuilder(this, 'as_int', Number, 'parse as integer', false)
     this.as_float = createCastBuilder(this, 'as_float', Number, 'parse as float', false)
     this.as_bool = createCastBuilder(this, 'as_bool', Boolean, 'parse as boolean', false)
     this.as_percent = createCastBuilder(this, 'as_percent', Number, 'parse as percentage (0-100)', false)
+    this.as_list = createCastBuilder(this, 'as_list', Array, 'parse as list/array', false)
+    this.as_set = createCastBuilder(this, 'as_set', Set, 'parse as unique set', false)
+    this.as_dict = createCastBuilder(this, 'as_dict', Object, 'parse as key-value dictionary', false)
+    this.as_obj = this.as_dict  // Alias
+    this.as_context = createCastBuilder(this, 'as_context', String, 'capture conversational context', false)
+    this.as_quote = createCastBuilder(this, 'as_quote', String, 'capture direct user quote', false)
+    
+    // Sub-attribute casts
+    this.as_str = createCastBuilder(this, 'as_str', String, 'format as {name}', false)
+    
     // Mandatory sub-name cast (requires at least 1 arg)
     this.as_lang = createCastBuilder(this, 'as_lang', String, 'translate to {name}', true)
-    // Add as_str for custom transformations
-    this.as_str = createCastBuilder(this, 'as_str', String, 'format as {name}', false)
     
     // Initialize choice builders
     this.as_one = createChoiceBuilder(this, 'as_one', false, false)
@@ -422,15 +442,55 @@ export class ChatfieldBuilder<Fields extends string = never> {
       this._chatfield.roles,
       this._chatfield.fields
     )
-    return interview as TypedInterview<Fields>
+    
+    // Wrap the interview in a Proxy to intercept field access
+    const proxiedInterview = new Proxy(interview, {
+      get(target: Interview, prop: string | symbol, receiver: any) {
+        // Check if this is a field name
+        if (typeof prop === 'string' && prop in target._chatfield.fields) {
+          const field = target._chatfield.fields[prop]
+          if (field && field.value && field.value.value) {
+            // Return a FieldProxy for the field value
+            return createFieldProxy(field.value.value, field)
+          }
+          return null
+        }
+        
+        // Otherwise, return the original property
+        return Reflect.get(target, prop, receiver)
+      }
+    })
+    
+    return proxiedInterview as TypedInterview<Fields>
   }
 }
 
 /**
- * Type-safe Interview with known field names
+ * Type-safe Interview with known field names and transformations
+ * For now, we'll use a simplified approach where all fields have all possible transformations
  */
 export type TypedInterview<Fields extends string> = Interview & {
-  [K in Fields]: string  // Each field is accessible as a string property
+  [K in Fields]: FieldValue<{
+    as_int?: number
+    as_float?: number
+    as_bool?: boolean
+    as_percent?: number
+    as_list?: any[]
+    as_set?: Set<any>
+    as_dict?: Record<string, any>
+    as_obj?: Record<string, any>
+    as_context?: string
+    as_quote?: string
+    [key: `as_lang_${string}`]: string
+    [key: `as_str_${string}`]: string
+    [key: `as_bool_${string}`]: boolean
+    [key: `as_int_${string}`]: number
+    [key: `as_set_${string}`]: Set<any>
+    [key: `as_one_${string}`]: string
+    [key: `as_maybe_${string}`]: string | null
+    [key: `as_multi_${string}`]: Set<string>
+    [key: `as_any_${string}`]: Set<string>
+  }>
 }
 
 /**

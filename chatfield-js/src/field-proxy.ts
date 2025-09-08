@@ -11,12 +11,20 @@ export interface FieldTransformations {
   value: string
   context?: string
   as_quote?: string
+  as_context?: string
   as_int?: number
   as_float?: number
   as_bool?: boolean
   as_percent?: number
+  as_list?: any[]
+  as_set?: Set<any>
+  as_dict?: Record<string, any>
+  as_obj?: Record<string, any>
   // Dynamic language transformations: as_lang_fr, as_lang_es, etc.
   // Dynamic choice transformations: as_one_priority, as_multi_skills, etc.
+  // Dynamic string transformations: as_str_uppercase, as_str_longhand, etc.
+  // Dynamic boolean transformations: as_bool_even, as_bool_prime, etc.
+  // Dynamic set transformations: as_set_factors, etc.
 }
 
 export interface FieldMetadata {
@@ -196,20 +204,7 @@ export function createFieldProxy(value: string, metadata: FieldMetadata): any {
     // Support property descriptor queries
     getOwnPropertyDescriptor(target: any, prop: string | symbol) {
       if (typeof prop === 'string') {
-        // Check numeric indices
-        if (!isNaN(Number(prop))) {
-          const index = Number(prop)
-          if (index >= 0 && index < value.length) {
-            return {
-              value: value[index],
-              writable: false,
-              enumerable: true,
-              configurable: true
-            }
-          }
-        }
-        
-        // Check transformations
+        // Check transformations first
         const transformations = metadata.value
         if (transformations && prop in transformations && prop !== 'value') {
           return {
@@ -218,6 +213,11 @@ export function createFieldProxy(value: string, metadata: FieldMetadata): any {
             enumerable: true,
             configurable: true
           }
+        }
+        
+        // For numeric indices, let the default behavior handle it
+        if (!isNaN(Number(prop))) {
+          return Reflect.getOwnPropertyDescriptor(target, prop)
         }
       }
       

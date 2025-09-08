@@ -15,7 +15,7 @@ describe('FieldProxy', () => {
         .build()
 
       // Set field value
-      instance._chatfield.fields.name.value = {
+      instance._chatfield.fields.name!.value = {
         value: 'John Doe',
         context: 'User provided their name',
         as_quote: 'John Doe'
@@ -24,8 +24,9 @@ describe('FieldProxy', () => {
       const name = instance.name
 
       // Should act as string
-      expect(name).toBe('John Doe')
       expect(String(name)).toBe('John Doe')
+      expect(name.toString()).toBe('John Doe')
+      expect(name.valueOf()).toBe('John Doe')
       expect(name.length).toBe(8)
     })
 
@@ -35,7 +36,7 @@ describe('FieldProxy', () => {
         .field('name').desc('Your name')
         .build()
 
-      instance._chatfield.fields.name.value = {
+      instance._chatfield.fields.name!.value = {
         value: 'John Doe',
         context: 'User provided their name',
         as_quote: 'John Doe'
@@ -61,7 +62,7 @@ describe('FieldProxy', () => {
           .as_int()
         .build()
 
-      instance._chatfield.fields.age.value = {
+      instance._chatfield.fields.age!.value = {
         value: '42',
         context: 'User said forty-two',
         as_quote: 'forty-two',
@@ -69,7 +70,7 @@ describe('FieldProxy', () => {
       }
 
       const age = instance.age
-      expect(age).toBe('42')
+      expect(String(age)).toBe('42')
       expect(age.as_int).toBe(42)
     })
 
@@ -81,7 +82,7 @@ describe('FieldProxy', () => {
           .as_float()
         .build()
 
-      instance._chatfield.fields.height.value = {
+      instance._chatfield.fields.height!.value = {
         value: '5.9',
         context: 'User provided height',
         as_quote: 'five point nine',
@@ -89,7 +90,7 @@ describe('FieldProxy', () => {
       }
 
       const height = instance.height
-      expect(height).toBe('5.9')
+      expect(String(height)).toBe('5.9')
       expect(height.as_float).toBe(5.9)
     })
 
@@ -101,7 +102,7 @@ describe('FieldProxy', () => {
           .as_bool()
         .build()
 
-      instance._chatfield.fields.active.value = {
+      instance._chatfield.fields.active!.value = {
         value: 'yes',
         context: 'User confirmed',
         as_quote: 'yes, I am active',
@@ -109,7 +110,7 @@ describe('FieldProxy', () => {
       }
 
       const active = instance.active
-      expect(active).toBe('yes')
+      expect(String(active)).toBe('yes')
       expect(active.as_bool).toBe(true)
     })
 
@@ -122,7 +123,7 @@ describe('FieldProxy', () => {
           .as_lang('es')
         .build()
 
-      instance._chatfield.fields.greeting.value = {
+      instance._chatfield.fields.greeting!.value = {
         value: 'hello',
         context: 'User greeted',
         as_quote: 'hello there',
@@ -131,7 +132,7 @@ describe('FieldProxy', () => {
       }
 
       const greeting = instance.greeting
-      expect(greeting).toBe('hello')
+      expect(String(greeting)).toBe('hello')
       expect(greeting.as_lang_fr).toBe('bonjour')
       expect(greeting.as_lang_es).toBe('hola')
     })
@@ -142,14 +143,14 @@ describe('FieldProxy', () => {
         .field('name').desc('Your name')
         .build()
 
-      instance._chatfield.fields.name.value = {
+      instance._chatfield.fields.name!.value = {
         value: 'John',
         context: 'User introduction',
         as_quote: 'My name is John'
       }
 
       const name = instance.name
-      expect(name).toBe('John')
+      expect(String(name)).toBe('John')
       expect(name.as_quote).toBe('My name is John')
     })
   })
@@ -161,7 +162,7 @@ describe('FieldProxy', () => {
         .field('name').desc('Your name')
         .build()
 
-      instance._chatfield.fields.name.value = {
+      instance._chatfield.fields.name!.value = {
         value: 'test',
         context: 'N/A',
         as_quote: 'test'
@@ -200,7 +201,7 @@ describe('FieldProxy', () => {
           .as_lang('fr')
         .build()
 
-      instance._chatfield.fields.number.value = {
+      instance._chatfield.fields.number!.value = {
         value: '42',
         context: 'User provided number',
         as_quote: 'forty-two',
@@ -212,7 +213,7 @@ describe('FieldProxy', () => {
       const number = instance.number
 
       // Original string value preserved
-      expect(number).toBe('42')
+      expect(String(number)).toBe('42')
       expect(String(number)).toBe('42')
 
       // Transformations available as properties
