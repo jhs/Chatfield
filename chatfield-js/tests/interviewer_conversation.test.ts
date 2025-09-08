@@ -15,8 +15,9 @@ dotenv.config({ path: envFile })
 
 describe('InterviewerConversation', () => {
   describe('go method', () => {
-    // Skip test that requires real API key
-    test.skip('starts conversation with greeting', async () => {
+    const testFn = process.env.OPENAI_API_KEY ? test : test.skip
+    
+    testFn('starts conversation with greeting', async () => {
       const interview = chatfield()
         .type('SimpleInterview')
         .field('name').desc('Your name')
