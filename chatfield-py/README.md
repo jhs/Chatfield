@@ -161,6 +161,8 @@ feature_request = (chatfield()
     .field("description")
         .desc("Detailed description")
         .hint("Describe the issue in detail")
+        .as_context()  # Capture conversational context
+        .as_quote()    # Capture direct user quote
     
     .build())
 
@@ -173,7 +175,45 @@ feature_request.affected_users.as_bool_even     # True
 feature_request.affected_users.as_bool_critical # True
 feature_request.affected_users.as_str_uppercase # "TWO HUNDRED"
 feature_request.affected_users.as_set_factors   # {2, 5}
+
+# For the description field with context and quote:
+feature_request.description                     # "The system crashes when..."
+feature_request.description.as_context          # "User was discussing login issues"
+feature_request.description.as_quote            # "It just crashes every time I try to log in with my email"
 ```
+
+## Context and Quote Capture
+
+Capture conversational metadata alongside field values:
+
+```python
+from chatfield import chatfield
+
+support_ticket = (chatfield()
+    .type("Support Ticket")
+    .desc("Customer support request")
+    
+    .field("issue")
+        .desc("What problem are you experiencing?")
+        .as_context()  # Captures conversational context
+        .as_quote()    # Captures exact user wording
+    
+    .field("impact")
+        .desc("How is this affecting your work?")
+        .as_quote()    # Only capture the direct quote
+    
+    .build())
+
+# After collection:
+support_ticket.issue                # "Cannot access dashboard"
+support_ticket.issue.as_context     # "User mentioned they recently changed password"
+support_ticket.issue.as_quote       # "I can't get into my dashboard at all, it just spins forever"
+
+support_ticket.impact               # "Critical - blocking all work"
+support_ticket.impact.as_quote      # "We literally can't do anything until this is fixed!"
+```
+
+The `.as_context()` decorator captures relevant conversational context that led to the field value, while `.as_quote()` preserves the exact words used by the user, including formatting like ellipses, multiple paragraphs, and clarifying brackets.
 
 ## Choice Cardinality
 

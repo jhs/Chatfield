@@ -23,6 +23,8 @@ from .decorators import (
     as_lang,
     as_list,
     as_float,
+    as_quote,
+    as_context,
     as_percent,
 
     as_any,

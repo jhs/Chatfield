@@ -32,6 +32,17 @@ def tool_call(tool_name, **kwargs):
 def describe_conversations():
     """Tests for full conversation flows."""
     
+    # TODO: Add tests for as_context and as_quote decorators
+    # These tests should verify that:
+    # 1. Fields decorated with @as_context capture conversational context
+    # 2. Fields decorated with @as_quote capture direct quotes from users
+    # 3. Both decorators work together on the same field
+    # 4. The LLM properly populates these casts in the tool calls
+    # Example test cases:
+    # - Test that as_context returns "N/A" when no context is relevant
+    # - Test that as_quote preserves exact wording with proper formatting
+    # - Test that multiple paragraphs, elipses, and [sic] are handled correctly
+    
     def describe_restaurant_order():
         """Tests for restaurant order conversation flow."""
         

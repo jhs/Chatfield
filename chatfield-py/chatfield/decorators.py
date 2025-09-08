@@ -220,6 +220,10 @@ as_list = FieldCastDecorator('as_list', list, 'interpret as a list or array of i
 as_obj = FieldCastDecorator('as_obj', dict, 'represent as zero or more key-value pairs')
 as_dict = as_obj
 
+# Context and quote decorators - these capture metadata about how the field was provided
+as_context = FieldCastDecorator('as_context', str, 'the conversational context leading up to providing this field, either as a brief summary prose, or else "N/A" if no context is relevant or helpful')
+as_quote = FieldCastDecorator('as_quote', str, 'a direct quote of the exact words used, with multiple paragraphs, elipses, [clarifying square brackets], or [sic] if necessary')
+
 # TODO: I though if the language matches the standard name like "fr" or "fr_CA" then tell the LLM that.
 as_lang = FieldCastDecorator('as_lang', str, 'represent as words and translate into to the language: {name}', sub_only=True)
 

@@ -185,29 +185,13 @@ class Interviewer:
                 cast_definition = (cast_type, Field(description=cast_prompt, title=cast_title))
                 casts_definitions[cast_name] = cast_definition
 
-            conv_desc = (
-                f'The conversational context leading up to the {theBob} providing the {field_name},'
-                f' either as a brief summary prose, or else "N/A" if no context is relevant or helpful'
-            )
-
-            quote_desc = (
-                f"A direct quote of the {theBob}'s exact words"
-                # f' "within quotes like this",'
-                f' and if necessary:'
-                f' multiple paragraphs, elipses,'
-                f' [clarifying square brackets], or [sic]'
-            )
-
             field_definition = create_model(
                 field_name,
                 # title = field_docstring,
                 __doc__= field_metadata.get('desc', field_name),
 
-                # These are always defined and returned by the LLM.
-                # TODO: I think only value should be here. The others should move to the other casts.
+                # The base value is always defined and returned by the LLM.
                 value    = (str, Field(title=f'Natural Value', description=f'The most typical valid representation of a {interview._name()} {field_name}')),
-                # context  = (str, Field(title=f'Context about {interview._name()} {field_name}', description=conv_desc)),
-                # as_quote = (str, Field(title=f'Directly quote {theBob}', description=quote_desc)),
 
                 # These come in via decorators to cast the value in fun ways.
                 **casts_definitions,
