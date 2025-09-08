@@ -104,13 +104,13 @@ export class Interviewer {
     
     // Create update tool function
     const updateToolFunc = async (args: any) => {
-      console.log('Update tool called with:', args)
+       // console.log('Update tool called with:', args)
       
       try {
         // Process the tool input
         for (const [fieldName, fieldValue] of Object.entries(args)) {
           if (fieldValue && typeof fieldValue === 'object') {
-            console.log(`Setting field ${fieldName}:`, fieldValue)
+             // console.log(`Setting field ${fieldName}:`, fieldValue)
             if (this.interview._chatfield.fields[fieldName]) {
               this.interview._chatfield.fields[fieldName].value = fieldValue as any
             }
@@ -124,13 +124,13 @@ export class Interviewer {
 
     // Create conclude tool function
     const concludeToolFunc = async (args: any) => {
-      console.log('Conclude tool called with:', args)
+       // console.log('Conclude tool called with:', args)
       
       try {
         // Process the conclude fields
         for (const [fieldName, fieldValue] of Object.entries(args)) {
           if (fieldValue && typeof fieldValue === 'object') {
-            console.log(`Setting conclude field ${fieldName}:`, fieldValue)
+             // console.log(`Setting conclude field ${fieldName}:`, fieldValue)
             if (this.interview._chatfield.fields[fieldName]) {
               this.interview._chatfield.fields[fieldName].value = fieldValue as any
             }
@@ -188,18 +188,18 @@ export class Interviewer {
   }
 
   private async initialize(state: InterviewStateType) {
-    console.log('Initialize:', this.interview._name())
+     // console.log('Initialize:', this.interview._name())
     return {}
   }
 
   private async think(state: InterviewStateType) {
-    console.log('Think:', this.interview._name())
+     // console.log('Think:', this.interview._name())
     
     const newMessages: BaseMessage[] = []
     
     // Add system message if this is the start
     if (!state.messages || state.messages.length === 0) {
-      console.log('Starting conversation in thread:', this.config.configurable.thread_id)
+       // console.log('Starting conversation in thread:', this.config.configurable.thread_id)
       const systemPrompt = this.makeSystemPrompt(state)
       newMessages.push(new SystemMessage(systemPrompt))
     }
@@ -224,7 +224,7 @@ export class Interviewer {
   }
 
   private async listen(state: InterviewStateType) {
-    console.log('Listen:', this.interview._name())
+     // console.log('Listen:', this.interview._name())
     
     // Copy state back to interview
     if (state.interview) {
@@ -241,7 +241,7 @@ export class Interviewer {
     const feedback = lastMessage.content as string
     const update = interrupt(feedback)
     
-    console.log('Interrupt result:', update)
+     // console.log('Interrupt result:', update)
     const userInput = (update as any).user_input
     const userMsg = new HumanMessage(userInput)
     
@@ -249,7 +249,7 @@ export class Interviewer {
   }
 
   private async toolsNode(state: InterviewStateType) {
-    console.log('Tools node')
+     // console.log('Tools node')
     
     // Get the last message (should have tool calls)
     const lastMessage = state.messages[state.messages.length - 1] as AIMessage
@@ -261,7 +261,7 @@ export class Interviewer {
       try {
         for (const [fieldName, fieldValue] of Object.entries(toolCall?.args || {})) {
           if (fieldValue && typeof fieldValue === 'object') {
-            console.log(`Setting field ${fieldName}:`, fieldValue)
+             // console.log(`Setting field ${fieldName}:`, fieldValue)
             if (this.interview._chatfield.fields[fieldName]) {
               this.interview._chatfield.fields[fieldName].value = fieldValue
             }
@@ -291,7 +291,7 @@ export class Interviewer {
   }
 
   private async teardown(state: InterviewStateType) {
-    console.log('Teardown:', this.interview._name())
+     // console.log('Teardown:', this.interview._name())
     
     // Copy final state back to interview
     if (state.interview) {
@@ -302,18 +302,18 @@ export class Interviewer {
   }
 
   private routeThink(state: InterviewStateType): string {
-    console.log('Route think edge')
+     // console.log('Route think edge')
     
     // Check if last message has tool calls
     const lastMessage = state.messages[state.messages.length - 1]
     if (lastMessage instanceof AIMessage && lastMessage.tool_calls && lastMessage.tool_calls.length > 0) {
-      console.log(`Route: think -> tools`)
+       // console.log(`Route: think -> tools`)
       return 'tools'
     }
     
     // Check if interview is done
     if (this.interview._done) {
-      console.log('Route: think -> teardown')
+       // console.log('Route: think -> teardown')
       return 'teardown'
     }
     
@@ -526,13 +526,13 @@ ${fields.join('\n\n')}
    * Process one conversation turn
    */
   async go(userInput?: string | null): Promise<string | null> {
-    console.log('Go: User input:', userInput)
+     // console.log('Go: User input:', userInput)
     
     const currentState = await this.graph.getState(this.config)
     
     let graphInput: any
     if (currentState.values && currentState.values.messages && currentState.values.messages.length > 0) {
-      console.log('Continue conversation:', this.config.configurable.thread_id)
+       // console.log('Continue conversation:', this.config.configurable.thread_id)
       graphInput = {
         __command__: {
           update: {},
@@ -540,7 +540,7 @@ ${fields.join('\n\n')}
         }
       }
     } else {
-      console.log('New conversation:', this.config.configurable.thread_id)
+       // console.log('New conversation:', this.config.configurable.thread_id)
       const messages = userInput ? [new HumanMessage(userInput)] : []
       graphInput = {
         messages,
@@ -554,7 +554,7 @@ ${fields.join('\n\n')}
     const stream = await this.graph.stream(graphInput, this.config)
     
     for await (const event of stream) {
-      console.log('Event:', Object.keys(event))
+       // console.log('Event:', Object.keys(event))
       
       // Check for interrupts
       for (const [nodeName, nodeOutput] of Object.entries(event)) {
@@ -578,9 +578,14 @@ ${fields.join('\n\n')}
   }
 
   // Node: Handle confidential and conclude fields
-  private async digest(state: State): Promise<Partial<State>> {
-    const interview = this.getStateInterview(state)
-    console.log(`Digest> ${interview._name()}`)
+  private async digest(state: InterviewStateType): Promise<Partial<InterviewStateType>> {
+    const interview = state.interview
+     // console.log(`Digest> ${interview?._name() || 'No interview'}`)
+    
+    if (!interview) {
+       // console.log('No interview in digest state')
+      return {}
+    }
     
     // First digest undefined confidential fields. Then digest the conclude fields.
     for (const [fieldName, chatfield] of Object.entries(interview._chatfield.fields)) {
@@ -595,9 +600,14 @@ ${fields.join('\n\n')}
     return this.digestConclude(state)
   }
   
-  private async digestConfidential(state: State): Promise<Partial<State>> {
-    const interview = this.getStateInterview(state)
-    console.log(`Digest Confidential> ${interview._name()}`)
+  private async digestConfidential(state: InterviewStateType): Promise<Partial<InterviewStateType>> {
+    const interview = state.interview
+     // console.log(`Digest Confidential> ${interview?._name() || 'No interview'}`)
+    
+    if (!interview) {
+       // console.log('No interview in digestConfidential state')
+      return {}
+    }
     
     const fieldsPrompt: string[] = []
     const fieldDefinitions: Record<string, z.ZodTypeAny> = {}
@@ -658,9 +668,9 @@ ${fields.join('\n\n')}
     return { messages: newMessages }
   }
   
-  private async digestConclude(state: State): Promise<Partial<State>> {
-    const interview = this.getStateInterview(state)
-    console.log(`Digest Conclude> ${interview._name()}`)
+  private async digestConclude(state: InterviewStateType): Promise<Partial<InterviewStateType>> {
+    const interview = state.interview
+     // console.log(`Digest Conclude> ${interview?._name() || 'No interview'}`)
     
     const llm = this.llmWithConclude
     const fieldsPrompt = this.makeFieldsPrompt(interview, 'conclude')
@@ -746,9 +756,9 @@ ${fields.join('\n\n')}
   }
 
   // Routing methods
-  private routeFromThink(state: State): string {
-    const interview = this.getStateInterview(state)
-    console.log(`Route from think: ${interview.constructor.name}`)
+  private routeFromThink(state: InterviewStateType): string {
+    const interview = state.interview
+     // console.log(`Route from think: ${interview?.constructor?.name || 'No interview'}`)
     
     // Check if the LLM wants to use tools
     const lastMessage = state.messages[state.messages.length - 1]
@@ -769,27 +779,27 @@ ${fields.join('\n\n')}
     return 'listen'
   }
   
-  private routeFromTools(state: State): string {
-    const interview = this.getStateInterview(state)
-    console.log(`Route from tools: ${interview._name()}`)
+  private routeFromTools(state: InterviewStateType): string {
+    const interview = state.interview
+     // console.log(`Route from tools: ${interview?._name() || 'No interview'}`)
     
     // Check if we have enough non-confidential/conclude fields to go to digest
-    if (interview._enough && !interview._done) {
-      console.log('Route: tools -> digest')
+    if (interview?._enough && !interview?._done) {
+       // console.log('Route: tools -> digest')
       return 'digest'
     }
     
     return 'think'
   }
   
-  private routeFromDigest(state: State): string {
-    const interview = this.getStateInterview(state)
-    console.log(`Route from digest: ${interview._name()}`)
+  private routeFromDigest(state: InterviewStateType): string {
+    const interview = state.interview
+     // console.log(`Route from digest: ${interview?._name() || 'No interview'}`)
     
     // Check if the LLM wants to use tools (for confidential/conclude fields)
     const lastMessage = state.messages[state.messages.length - 1]
     if (lastMessage && 'tool_calls' in lastMessage && (lastMessage as any).tool_calls?.length > 0) {
-      console.log('Route: digest -> tools')
+       // console.log('Route: digest -> tools')
       return 'tools'
     }
     
