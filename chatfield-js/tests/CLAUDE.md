@@ -186,25 +186,35 @@ Each TypeScript test file corresponds to a Python test file with matching test d
 class MockLLMBackend {
   temperature = 0.0
   modelName = 'openai:gpt-4o'
+  tools: any[] = []
+  boundTools: any[] = []
   
   async invoke(messages: any[]) {
     return { content: 'Mock response' }
   }
   
-  bind_tools(tools: any[]) {
+  bind(args: any) {
+    // Support bind method for LangChain compatibility
+    if (args.tools) {
+      this.boundTools = args.tools
+    }
+    return this
+  }
+  
+  bindTools(tools: any[]) {
     this.tools = tools
+    this.boundTools = tools
+    return this
+  }
+  
+  withStructuredOutput(schema: any) {
     return this
   }
 }
 
-// Mock module imports
-jest.mock('../src/interviewer', () => {
-  const actual = jest.requireActual('../src/interviewer')
-  return {
-    ...actual,
-    init_chat_model: jest.fn(() => new MockLLMBackend())
-  }
-})
+// Pass mock LLM directly to Interviewer constructor
+const mockLlm = new MockLLMBackend()
+const interviewer = new Interviewer(interview, { llm: mockLlm })
 
 // Mock responses for testing
 const mockResponses = {
