@@ -75,6 +75,91 @@ def describe_interview():
             empty = chatfield().build()
             assert empty._done is True
     
+    def describe_enough_state():
+        """Tests for _enough property (non-confidential/conclude fields complete)."""
+        
+        def it_starts_with_enough_as_false_when_normal_fields_exist():
+            """Starts with _enough as False when normal fields exist."""
+            instance = (chatfield()
+                .type("TestInterview")
+                .field("field1").desc("Normal field 1")
+                .field("field2").desc("Normal field 2")
+                .build())
+            
+            assert instance._enough is False
+        
+        def it_becomes_enough_when_normal_fields_collected():
+            """Becomes enough when all non-confidential/conclude fields collected."""
+            instance = (chatfield()
+                .type("TestInterview")
+                .field("normal1").desc("Normal field 1")
+                .field("normal2").desc("Normal field 2")
+                .field("secret").desc("Secret info").confidential()
+                .field("rating").desc("Final rating").conclude()
+                .build())
+            
+            # Initially not enough
+            assert instance._enough is False
+            assert instance._done is False
+            
+            # Set one normal field - still not enough
+            instance._chatfield['fields']['normal1']['value'] = {
+                'value': 'test1'
+            }
+            assert instance._enough is False
+            assert instance._done is False
+            
+            # Set both normal fields - now enough (but not done)
+            instance._chatfield['fields']['normal2']['value'] = {
+                'value': 'test2'
+            }
+            assert instance._enough is True
+            assert instance._done is False  # Still have confidential/conclude fields
+            
+            # Set confidential field - still enough, still not done
+            instance._chatfield['fields']['secret']['value'] = {
+                'value': 'secret info'
+            }
+            assert instance._enough is True
+            assert instance._done is False
+            
+            # Set conclude field - now done
+            instance._chatfield['fields']['rating']['value'] = {
+                'value': '5 stars'
+            }
+            assert instance._enough is True
+            assert instance._done is True
+        
+        def it_is_enough_with_only_confidential_fields():
+            """Is enough when only confidential fields exist."""
+            instance = (chatfield()
+                .type("TestInterview")
+                .field("secret1").desc("Secret 1").confidential()
+                .field("secret2").desc("Secret 2").confidential()
+                .build())
+            
+            # With only confidential fields, _enough is True
+            assert instance._enough is True
+            assert instance._done is False
+        
+        def it_is_enough_with_only_conclude_fields():
+            """Is enough when only conclude fields exist."""
+            instance = (chatfield()
+                .type("TestInterview")
+                .field("rating1").desc("Rating 1").conclude()
+                .field("rating2").desc("Rating 2").conclude()
+                .build())
+            
+            # With only conclude fields, _enough is True
+            assert instance._enough is True
+            assert instance._done is False
+        
+        def it_marks_empty_interview_as_enough():
+            """Marks empty interview as enough by default."""
+            empty = chatfield().build()
+            assert empty._enough is True
+            assert empty._done is True
+    
     def describe_serialization():
         """Tests for interview serialization."""
         

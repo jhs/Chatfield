@@ -134,11 +134,20 @@ export class Interview {
 
   /**
    * Check if enough fields have been collected (can be customized)
+   * Returns true when all non-confidential, non-conclude fields are populated
    */
   get _enough(): boolean {
-    // Default implementation - can be overridden
-    const filledCount = Object.values(this._chatfield.fields).filter(f => f.value !== null).length
-    return filledCount >= Math.ceil(Object.keys(this._chatfield.fields).length * 0.7) // 70% threshold
+    // Check if all non-confidential, non-conclude fields have been collected
+    for (const [fieldName, chatfield] of Object.entries(this._chatfield.fields)) {
+      const specs = chatfield.specs
+      if (!specs.confidential && !specs.conclude) {
+        // This is a "normal" field
+        if (chatfield.value === null) {
+          return false
+        }
+      }
+    }
+    return true
   }
 
   /**

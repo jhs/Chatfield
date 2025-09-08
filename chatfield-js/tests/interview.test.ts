@@ -73,6 +73,90 @@ describe('Interview', () => {
     })
   })
 
+  describe('enough state', () => {
+    it('starts with enough as false when normal fields exist', () => {
+      const interview = chatfield()
+        .type('TestInterview')
+        .field('field1').desc('Normal field 1')
+        .field('field2').desc('Normal field 2')
+        .build()
+      
+      expect(interview._enough).toBe(false)
+    })
+
+    it('becomes enough when normal fields collected', () => {
+      const interview = chatfield()
+        .type('TestInterview')
+        .field('normal1').desc('Normal field 1')
+        .field('normal2').desc('Normal field 2')
+        .field('secret').desc('Secret info').confidential()
+        .field('rating').desc('Final rating').conclude()
+        .build()
+      
+      // Initially not enough
+      expect(interview._enough).toBe(false)
+      expect(interview._done).toBe(false)
+      
+      // Set one normal field - still not enough
+      interview._chatfield.fields.normal1!.value = {
+        value: 'test1'
+      }
+      expect(interview._enough).toBe(false)
+      expect(interview._done).toBe(false)
+      
+      // Set both normal fields - now enough (but not done)
+      interview._chatfield.fields.normal2!.value = {
+        value: 'test2'
+      }
+      expect(interview._enough).toBe(true)
+      expect(interview._done).toBe(false) // Still have confidential/conclude fields
+      
+      // Set confidential field - still enough, still not done
+      interview._chatfield.fields.secret!.value = {
+        value: 'secret info'
+      }
+      expect(interview._enough).toBe(true)
+      expect(interview._done).toBe(false)
+      
+      // Set conclude field - now done
+      interview._chatfield.fields.rating!.value = {
+        value: '5 stars'
+      }
+      expect(interview._enough).toBe(true)
+      expect(interview._done).toBe(true)
+    })
+
+    it('is enough with only confidential fields', () => {
+      const interview = chatfield()
+        .type('TestInterview')
+        .field('secret1').desc('Secret 1').confidential()
+        .field('secret2').desc('Secret 2').confidential()
+        .build()
+      
+      // With only confidential fields, _enough is True
+      expect(interview._enough).toBe(true)
+      expect(interview._done).toBe(false)
+    })
+
+    it('is enough with only conclude fields', () => {
+      const interview = chatfield()
+        .type('TestInterview')
+        .field('rating1').desc('Rating 1').conclude()
+        .field('rating2').desc('Rating 2').conclude()
+        .build()
+      
+      // With only conclude fields, _enough is True
+      expect(interview._enough).toBe(true)
+      expect(interview._done).toBe(false)
+    })
+
+    it('marks empty interview as enough', () => {
+      const empty = chatfield().build()
+      expect(empty._enough).toBe(true)
+      expect(empty._done).toBe(true)
+    })
+  })
+
   describe('serialization', () => {
     it('serializes to dict with model_dump', () => {
       const interview = chatfield()
