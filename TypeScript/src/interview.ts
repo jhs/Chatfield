@@ -61,6 +61,15 @@ export class Interview {
   }
 
   /**
+   * Get the ID for this interview type (Python compatibility)
+   * Returns a sanitized version of the type name
+   */
+  _id(): string {
+    // Convert type name to lowercase and replace spaces/special chars with underscores
+    return this._chatfield.type.toLowerCase().replace(/[^a-z0-9]+/g, '_')
+  }
+
+  /**
    * Get list of field names
    */
   _fields(): string[] {
