@@ -8,8 +8,10 @@ import {
   MemorySaver,
   START,
   END,
+  Command,
   Annotation,
-  interrupt
+  addMessages,
+  interrupt,
 } from '@langchain/langgraph'
 import { 
   BaseMessage, 
@@ -29,7 +31,7 @@ import { Interview } from './interview'
  */
 const InterviewState = Annotation.Root({
   messages: Annotation<BaseMessage[]>({
-    reducer: (x, y) => [...x, ...y],
+    reducer: addMessages,
     default: () => []
   }),
   interview: Annotation<Interview>({
@@ -249,7 +251,7 @@ export class Interviewer {
     const feedback = lastMessage.content as string
     const update = interrupt(feedback)
     
-     // console.log('Interrupt result:', update)
+    console.log('Interrupt result:', update)
     const userInput = (update as any).user_input
     const userMsg = new HumanMessage(userInput)
     
@@ -541,19 +543,11 @@ ${fields.join('\n\n')}
     let graphInput: any
     if (currentState.values && currentState.values.messages && currentState.values.messages.length > 0) {
        // console.log('Continue conversation:', this.config.configurable.thread_id)
-      graphInput = {
-        __command__: {
-          update: {},
-          resume: { user_input: userInput }
-        }
-      }
+      graphInput = new Command({update:{}, resume:{user_input: userInput}})
     } else {
        // console.log('New conversation:', this.config.configurable.thread_id)
       const messages = userInput ? [new HumanMessage(userInput)] : []
-      graphInput = {
-        messages,
-        interview: this.interview
-      }
+      graphInput = { messages, interview: this.interview }
     }
     
     const interrupts: string[] = []
