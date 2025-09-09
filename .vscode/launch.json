@@ -176,6 +176,26 @@
             "console": "integratedTerminal",
             "internalConsoleOptions": "neverOpen",
             "envFile": "${workspaceFolder}/.env"
+        },
+        {
+            "name": "TypeScript: Debug Current File",
+            "type": "node",
+            "request": "launch",
+            "runtimeExecutable": "npx",
+            "runtimeArgs": [
+                "tsx",
+                "--inspect"
+            ],
+            "args": [
+                "${file}"
+            ],
+            "cwd": "${workspaceFolder}/TypeScript",
+            "console": "integratedTerminal",
+            "internalConsoleOptions": "neverOpen",
+            "envFile": "${workspaceFolder}/.env",
+            "skipFiles": [
+                "<node_internals>/**"
+            ]
         }
     ],
     "inputs": [
