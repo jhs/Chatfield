@@ -20,6 +20,7 @@ import {
   SystemMessage,
   ToolMessage 
 } from '@langchain/core/messages'
+import { ToolNode, toolsCondition } from '@langchain/langgraph/prebuilt'
 import { ChatOpenAI } from '@langchain/openai'
 import { tool } from '@langchain/core/tools'
 import { z } from 'zod'
@@ -76,10 +77,13 @@ export class Interviewer {
   graph: any  // Made public for test access
   config: any  // Made public for test access
   llm: ChatOpenAI  // Made public for test access
-  llm_with_both!: ChatOpenAI  // Added for Python compatibility
+  llm_with_update!: ChatOpenAI  // Python compatibility
+  llm_with_conclude!: ChatOpenAI  // Python compatibility
+  llm_with_both!: ChatOpenAI  // Python compatibility
   checkpointer: MemorySaver  // Made public for test access
-  private llmWithTools!: ChatOpenAI
-  private toolName: string
+  private updateWrapper: any  // The update tool
+  private concludeWrapper: any  // The conclude tool
+  private toolNode: ToolNode  // The ToolNode for processing tools
 
   constructor(interview: Interview, options?: { threadId?: string; llm?: any, llmId?: any }) {
     this.interview = interview
@@ -101,7 +105,6 @@ export class Interviewer {
     }
 
     // Setup tools and graph
-    this.toolName = `update_${this.interview._name()}`
     this.setupGraph()
   }
 
@@ -109,85 +112,110 @@ export class Interviewer {
     const theAlice = this.interview._alice_role_name()
     const theBob = this.interview._bob_role_name()
 
-    // Create tool for updating interview fields
-    const updateToolDescription = `Record valid information stated by the ${theBob} about the ${this.interview._name()}`
+    // Build tool schemas for each field
+    const toolCallArgsSchema: Record<string, any> = {}
+    const concludeArgsSchema: Record<string, any> = {}
+
+    const interviewFieldNames = Object.keys(this.interview._chatfield.fields)
     
-    // Create update tool function
-    const updateToolFunc = async (args: any) => {
-       // console.log('Update tool called with:', args)
+    for (const fieldName of interviewFieldNames) {
+      const fieldMetadata = this.interview._chatfield.fields[fieldName]
+      const isConclude = fieldMetadata.specs?.conclude
+
+      // Build field schema with value and all casts
+      const fieldSchema = this.buildFieldSchema(fieldName, fieldMetadata)
       
-      try {
-        // Process the tool input
-        for (const [fieldName, fieldValue] of Object.entries(args)) {
-          if (fieldValue && typeof fieldValue === 'object') {
-             // console.log(`Setting field ${fieldName}:`, fieldValue)
-            if (this.interview._chatfield.fields[fieldName]) {
-              this.interview._chatfield.fields[fieldName].value = fieldValue as any
-            }
-          }
-        }
-        return 'Success'
-      } catch (error: any) {
-        return `Error: ${error.message}`
+      if (isConclude) {
+        concludeArgsSchema[fieldName] = fieldSchema  // Mandatory for conclude
+      } else {
+        toolCallArgsSchema[fieldName] = fieldSchema.optional()  // Optional for update
       }
     }
 
-    // Create conclude tool function
-    const concludeToolFunc = async (args: any) => {
-       // console.log('Conclude tool called with:', args)
+    // Create update tool using @langchain/core/tools pattern
+    const updateToolName = `update_${this.interview._id()}`
+    const updateToolDesc = `Record valid information shared by the ${theBob} about the ${this.interview._name()}`
+    
+    // Build the full schema with all fields
+    const updateSchema = z.object(toolCallArgsSchema)
+    
+    // Create wrapper function that calls run_tool - matching Python pattern
+    const updateWrapperFunc = async (input: any, config: any) => {
+      // In Python, this gets state and tool_call_id injected
+      // In JS, we need to handle this differently since ToolNode will call this
+      const toolCallId = config?.runId || uuidv4()
+      
+      // We need access to state, but ToolNode doesn't provide it directly
+      // So we'll process directly here and let ToolNode handle state updates
+      console.log(`Tool> ${toolCallId}> ${JSON.stringify(input)}`)
       
       try {
-        // Process the conclude fields
-        for (const [fieldName, fieldValue] of Object.entries(args)) {
-          if (fieldValue && typeof fieldValue === 'object') {
-             // console.log(`Setting conclude field ${fieldName}:`, fieldValue)
-            if (this.interview._chatfield.fields[fieldName]) {
-              this.interview._chatfield.fields[fieldName].value = fieldValue as any
-            }
-          }
-        }
+        this.process_tool_input(this.interview, input)
         return 'Success'
       } catch (error: any) {
-        return `Error: ${error.message}`
+        const errorMsg = `Error: ${error.message}\n\n${error.stack || ''}`
+        return errorMsg
       }
     }
-
-    // Create the tools with simplified schema to avoid TypeScript deep instantiation issues
-    const updateTool = {
-      name: this.toolName,
-      description: updateToolDescription,
-      schema: z.record(z.any()), // Simplified schema
-      func: updateToolFunc
-    } as any
-
-    const concludeTool = {
-      name: `conclude_${this.interview._name()}`,
-      description: `Record key required information about the ${this.interview._name()} by summarizing, synthesizing, or recalling the conversation so far with the ${theBob}`,
-      schema: z.record(z.any()), // Simplified schema
-      func: concludeToolFunc
-    } as any
-
-    // Create different LLM configurations
-    this.llmWithTools = this.llm.bindTools ? this.llm.bindTools([updateTool]) as ChatOpenAI : this.llm
-    const llmWithConclude = this.llm.bindTools ? this.llm.bindTools([concludeTool]) as ChatOpenAI : this.llm
-    const llmWithBoth = this.llm.bindTools ? this.llm.bindTools([updateTool, concludeTool]) as ChatOpenAI : this.llm
     
-    // Store for later use
-    this.llm_with_both = llmWithBoth  // Python compatibility
-    ;(this as any).llm_with_update = this.llmWithTools
-    ;(this as any).llm_with_conclude = llmWithConclude
+    this.updateWrapper = tool(
+      updateWrapperFunc,
+      {
+        name: updateToolName,
+        description: updateToolDesc,
+        schema: updateSchema
+      }
+    )
 
-    // Build the state graph
+    // Create conclude tool
+    const concludeToolName = `conclude_${this.interview._id()}`
+    const concludeToolDesc = `Record key required information about the ${this.interview._name()} by summarizing, synthesizing, or recalling the conversation so far with the ${theBob}`
+    
+    const concludeSchema = z.object(concludeArgsSchema)
+    
+    // Create wrapper function that calls run_tool - matching Python pattern
+    const concludeWrapperFunc = async (input: any, config: any) => {
+      const toolCallId = config?.runId || uuidv4()
+      
+      console.log(`Tool> ${toolCallId}> ${JSON.stringify(input)}`)
+      
+      try {
+        this.process_tool_input(this.interview, input)
+        return 'Success'
+      } catch (error: any) {
+        const errorMsg = `Error: ${error.message}\n\n${error.stack || ''}`
+        return errorMsg
+      }
+    }
+    
+    this.concludeWrapper = tool(
+      concludeWrapperFunc,
+      {
+        name: concludeToolName,
+        description: concludeToolDesc,
+        schema: concludeSchema
+      }
+    )
+
+    // Bind tools to LLM - matching Python's approach
+    this.llm_with_update = this.llm.bindTools ? this.llm.bindTools([this.updateWrapper]) as ChatOpenAI : this.llm
+    this.llm_with_conclude = this.llm.bindTools ? this.llm.bindTools([this.concludeWrapper]) as ChatOpenAI : this.llm
+    this.llm_with_both = this.llm.bindTools ? this.llm.bindTools([this.updateWrapper, this.concludeWrapper]) as ChatOpenAI : this.llm
+    
+    // Create ToolNode with both tools
+    this.toolNode = new ToolNode([this.updateWrapper, this.concludeWrapper])
+
+    // Build the state graph - matching Python structure
     const builder = new StateGraph(InterviewState)
       .addNode('initialize', this.initialize.bind(this))
       .addNode('think', this.think.bind(this))
       .addNode('listen', this.listen.bind(this))
-      .addNode('tools', this.toolsNode.bind(this))
+      .addNode('tools', this.toolNode)  // Use the ToolNode directly
       .addNode('digest', this.digest.bind(this))
       .addNode('teardown', this.teardown.bind(this))
       .addEdge(START, 'initialize')
       .addEdge('initialize', 'think')
-      .addConditionalEdges('think', this.routeFromThink.bind(this), ['tools', 'teardown', 'digest', 'listen'])
+      .addConditionalEdges('think', this.routeFromThink.bind(this))
       .addEdge('listen', 'think')
       .addConditionalEdges('tools', this.routeFromTools.bind(this), ['think', 'digest'])
       .addConditionalEdges('digest', this.routeFromDigest.bind(this), ['tools', 'think'])
@@ -198,115 +226,134 @@ export class Interviewer {
   }
 
   private async initialize(state: InterviewStateType) {
-     // console.log('Initialize:', this.interview._name())
-    return {}
+    console.log(`Initialize> ${this.interview._name()}`)
+    // Populate the state with the real interview object
+    return { interview: this.interview }
   }
 
   private async think(state: InterviewStateType) {
-     // console.log('Think:', this.interview._name())
+    console.log(`Think> ${this.getStateInterview(state)._name()}`)
     
-    const newMessages: BaseMessage[] = []
+    let newSystemMessage: BaseMessage | null = null
     
     // Add system message if this is the start
-    if (!state.messages || state.messages.length === 0) {
-       // console.log('Starting conversation in thread:', this.config.configurable.thread_id)
+    const priorSystemMessages = (state.messages || []).filter(msg => msg instanceof SystemMessage)
+    if (priorSystemMessages.length === 0) {
+      console.log(`Start conversation in thread: ${this.config.configurable.thread_id}`)
       const systemPrompt = this.makeSystemPrompt(state)
-      newMessages.push(new SystemMessage(systemPrompt))
+      newSystemMessage = new SystemMessage(systemPrompt)
     }
 
-    // Determine which LLM to use (with or without tools)
-    let llm = this.llmWithTools
-    const latestMessage = newMessages[newMessages.length - 1] || 
-                         (state.messages && state.messages[state.messages.length - 1])
+    // Determine which LLM to use - matching Python logic
+    let llm = null
+    const latestMessage = state.messages && state.messages.length > 0 ? 
+                         state.messages[state.messages.length - 1] : null
     
     if (latestMessage instanceof SystemMessage) {
       llm = this.llm // No tools after system message
     } else if (latestMessage instanceof ToolMessage && latestMessage.content === 'Success') {
       llm = this.llm // No tools after successful tool response
     }
+    
+    llm = llm || this.llm_with_update  // Default to update tools
 
-    // Invoke LLM
-    const allMessages = [...(state.messages || []), ...newMessages]
+    // Build messages for LLM
+    const newSystemMessages = newSystemMessage ? [newSystemMessage] : []
+    const allMessages = [...newSystemMessages, ...(state.messages || [])]
     const response = await llm.invoke(allMessages)
-    newMessages.push(response)
-
+    
+    // Return net-new messages
+    const newMessages = [...newSystemMessages, response]
     return { messages: newMessages }
   }
 
   private async listen(state: InterviewStateType) {
-     // console.log('Listen:', this.interview._name())
+    const interview = this.getStateInterview(state)
+    console.log(`Listen> ${interview._name()}`)
     
-    // Copy state back to interview
-    if (state.interview) {
-      this.interview._copy_from(state.interview)
-    }
+    // Copy state back to interview for interrupt
+    this.interview._copy_from(interview)
 
     // Get the last AI message
-    const lastMessage = state.messages[state.messages.length - 1]
-    if (!(lastMessage instanceof AIMessage)) {
-      throw new Error('Expected last message to be AIMessage')
+    const msg = state.messages && state.messages.length > 0 ? 
+                state.messages[state.messages.length - 1] : null
+    if (!(msg instanceof AIMessage)) {
+      throw new Error(`Expected last message to be an AIMessage, got ${msg?.constructor.name}: ${msg}`)
     }
 
     // Interrupt to get user input
-    const feedback = lastMessage.content as string
+    const feedback = (msg.content as string).trim()
     const update = interrupt(feedback)
     
-    console.log('Interrupt result:', update)
+    console.log(`Interrupt result: ${JSON.stringify(update)}`)
     const userInput = (update as any).user_input
     const userMsg = new HumanMessage(userInput)
     
     return { messages: [userMsg] }
   }
 
-  private async toolsNode(state: InterviewStateType) {
-     // console.log('Tools node')
-    
-    // Get the last message (should have tool calls)
-    const lastMessage = state.messages[state.messages.length - 1] as AIMessage
-    
-    if (lastMessage.tool_calls && lastMessage.tool_calls.length > 0) {
-      const toolCall = lastMessage.tool_calls[0]
-      
-      // Process the tool call
-      try {
-        for (const [fieldName, fieldValue] of Object.entries(toolCall?.args || {})) {
-          if (fieldValue && typeof fieldValue === 'object') {
-             // console.log(`Setting field ${fieldName}:`, fieldValue)
-            if (this.interview._chatfield.fields[fieldName]) {
-              this.interview._chatfield.fields[fieldName].value = fieldValue
-            }
-          }
-        }
-        
-        const toolMessage = new ToolMessage({
-          content: 'Success',
-          tool_call_id: toolCall?.id || ''
-        })
-        
-        return { 
-          messages: [toolMessage],
-          interview: this.interview
-        }
-      } catch (error: any) {
-        const toolMessage = new ToolMessage({
-          content: `Error: ${error.message}`,
-          tool_call_id: toolCall?.id || ''
-        })
-        
-        return { messages: [toolMessage] }
+  // Helper to get state interview safely - matching Python's _get_state_interview
+  private getStateInterview(state: InterviewStateType): Interview {
+    const interview = state.interview
+    if (!interview || !(interview instanceof Interview)) {
+      if (!interview) {
+        throw new Error(`Expected state["interview"] to be an Interview instance, got undefined`)
       }
+      throw new Error(`Expected state["interview"] to be an Interview instance, got ${typeof interview}: ${interview}`)
     }
     
-    return {}
+    if (!interview._chatfield.fields || Object.keys(interview._chatfield.fields).length === 0) {
+      // No fields defined is okay only for uninitialized interview
+      if (interview._chatfield.type === null && interview._chatfield.desc === null) {
+        // Uninitialized, which is okay
+      } else {
+        throw new Error(`Expected state["interview"] to have fields, got empty: ${interview}`)
+      }
+    }
+    return interview
+  }
+
+  // Node: run_tool - matching Python's implementation
+  private async run_tool(state: InterviewStateType, toolCallId: string, kwargs: Record<string, any>): Promise<Command> {
+    console.log(`Tool> ${toolCallId}> ${JSON.stringify(kwargs)}`)
+    
+    const interview = this.getStateInterview(state)
+    const preInterviewModel = interview.model_dump()
+    
+    let toolMsg: string
+    try {
+      this.process_tool_input(interview, kwargs)
+      toolMsg = 'Success'
+    } catch (error: any) {
+      toolMsg = `Error: ${error.message}\n\n${error.stack || ''}`
+    }
+    
+    const postInterviewModel = interview.model_dump()
+    
+    // Prepare the return value
+    const stateUpdate: any = {}
+    
+    // Append a ToolMessage
+    const toolMessage = new ToolMessage({
+      content: toolMsg,
+      tool_call_id: toolCallId
+    })
+    stateUpdate.messages = [toolMessage]
+    
+    // Check if anything changed
+    if (JSON.stringify(preInterviewModel) !== JSON.stringify(postInterviewModel)) {
+      stateUpdate.interview = interview
+    }
+    
+    return new Command({ update: stateUpdate })
   }
 
   private async teardown(state: InterviewStateType) {
-     // console.log('Teardown:', this.interview._name())
+    const interview = this.getStateInterview(state)
+    console.log(`Teardown> ${interview._name()}`)
     
-    // Copy final state back to interview
-    if (state.interview) {
-      this.interview._copy_from(state.interview)
-    }
+    // Copy final state back to the original interview object
+    this.interview._copy_from(interview)
     
     return {}
   }
@@ -493,43 +540,47 @@ ${fields.join('\n\n')}
   }
 
   /**
-   * Process tool input and update interview state (Python compatibility)
+   * Process tool input and update interview state - matching Python's implementation
    */
-  process_tool_input(interview: Interview, toolArgs: Record<string, any>) {
-    // Process the tool input
-    for (const [fieldName, fieldValue] of Object.entries(toolArgs)) {
-      if (fieldValue && typeof fieldValue === 'object') {
-        // Handle transformation renaming (choose_exactly_one_as_* -> as_one_as_*)
-        const processedValue = { ...fieldValue }
-        
-        // Rename transformation keys
-        for (const [key, value] of Object.entries(fieldValue)) {
-          if (key.startsWith('choose_exactly_one_')) {
-            const newKey = key.replace('choose_exactly_one_', 'as_one_')
-            processedValue[newKey] = value
-            delete processedValue[key]
-          } else if (key.startsWith('choose_zero_or_one_')) {
-            const newKey = key.replace('choose_zero_or_one_', 'as_maybe_')
-            processedValue[newKey] = value
-            delete processedValue[key]
-          } else if (key.startsWith('choose_one_or_more_')) {
-            const newKey = key.replace('choose_one_or_more_', 'as_multi_')
-            processedValue[newKey] = value
-            delete processedValue[key]
-          } else if (key.startsWith('choose_zero_or_more_')) {
-            const newKey = key.replace('choose_zero_or_more_', 'as_any_')
-            processedValue[newKey] = value
-            delete processedValue[key]
-          }
-        }
-        
-        if (interview._chatfield.fields[fieldName]) {
-          interview._chatfield.fields[fieldName].value = processedValue
-        }
-      }
-    }
+  process_tool_input(interview: Interview, kwargs: Record<string, any>) {
+    const definedArgs = Object.keys(kwargs).filter(k => kwargs[k] !== null && kwargs[k] !== undefined)
+    console.log(`Tool input for ${definedArgs.length} fields: ${definedArgs.join(', ')}`)
     
-    // _done is computed automatically based on field values
+    const toolArgs = kwargs  // Rename for clarity below
+    for (const [fieldName, llmFieldValue] of Object.entries(toolArgs)) {
+      if (llmFieldValue === null || llmFieldValue === undefined) {
+        continue
+      }
+
+      // Handle both objects with model_dump and plain objects (for testing)
+      let llmValues: any
+      if (typeof llmFieldValue === 'object' && 'model_dump' in llmFieldValue) {
+        llmValues = (llmFieldValue as any).model_dump()
+      } else {
+        llmValues = llmFieldValue
+      }
+      
+      console.log(`LLM found a valid field: ${fieldName} = ${JSON.stringify(llmValues)}`)
+      const chatfield = interview._get_chat_field(fieldName)
+      
+      if (chatfield?.value) {
+        // Field already has a value - could do something sophisticated
+        // For now, just overwrite like Python does
+      }
+      
+      // Process all values and rename choice keys
+      const allValues: Record<string, any> = {}
+      for (const [key, val] of Object.entries(llmValues)) {
+        let newKey = key
+        newKey = newKey.replace(/^choose_exactly_one_/, 'as_one_')
+        newKey = newKey.replace(/^choose_zero_or_one_/, 'as_maybe_')
+        newKey = newKey.replace(/^choose_one_or_more_/, 'as_multi_')
+        newKey = newKey.replace(/^choose_zero_or_more_/, 'as_any_')
+        allValues[newKey] = val
+      }
+      
+      chatfield.value = allValues
+    }
   }
 
   /**
@@ -699,6 +750,78 @@ ${fields.join('\n\n')}
     return { messages: newMessages }
   }
   
+  // Build field schema for a single field - matching Python's approach
+  private buildFieldSchema(fieldName: string, fieldMetadata: any): z.ZodTypeAny {
+    const castsDefinitions: Record<string, z.ZodTypeAny> = {}
+    
+    // Always include the base value field
+    castsDefinitions.value = z.string().describe(
+      `The most typical valid representation of a ${this.interview._name()} ${fieldName}`
+    )
+    
+    // Add all casts
+    const casts = fieldMetadata.casts || {}
+    for (const [castName, castInfo] of Object.entries(casts)) {
+      const info = castInfo as any
+      const castType = info.type
+      const castPrompt = info.prompt
+      
+      let schema: z.ZodTypeAny
+      
+      switch (castType) {
+        case 'int':
+          schema = z.number().int().describe(castPrompt)
+          break
+        case 'float':
+          schema = z.number().describe(castPrompt)
+          break
+        case 'str':
+          schema = z.string().describe(castPrompt)
+          break
+        case 'bool':
+          schema = z.boolean().describe(castPrompt)
+          break
+        case 'list':
+          schema = z.array(z.any()).describe(castPrompt)
+          break
+        case 'set':
+          schema = z.array(z.any()).describe(castPrompt)
+          break
+        case 'dict':
+          schema = z.record(z.string(), z.any()).describe(castPrompt)
+          break
+        case 'choice': {
+          // Handle choice types with cardinality
+          const castShortName = castName.replace(/^choose_.*_/, '')
+          const prompt = castPrompt.replace('{name}', castShortName)
+          const choices = info.choices as string[]
+          
+          let choiceSchema: z.ZodTypeAny = z.enum(choices as [string, ...string[]])
+          
+          if (info.multi) {
+            const minLength = info.null ? 0 : 1
+            const maxLength = choices.length
+            choiceSchema = z.array(choiceSchema).min(minLength).max(maxLength)
+          }
+          
+          if (info.null) {
+            choiceSchema = choiceSchema.nullable()
+          }
+          
+          schema = choiceSchema.describe(prompt)
+          break
+        }
+        default:
+          throw new Error(`Cast ${castName} bad type: ${castType}; must be one of int, float, str, bool, list, set, dict, choice`)
+      }
+      
+      castsDefinitions[castName] = schema
+    }
+    
+    // Return the full field schema
+    return z.object(castsDefinitions).describe(fieldMetadata.desc || fieldName)
+  }
+
   private mkFieldDefinition(interview: Interview, fieldName: string, chatfield: any): z.ZodTypeAny {
     const castsDefinitions = this.mkCastsDefinitions(chatfield)
     
@@ -762,24 +885,24 @@ ${fields.join('\n\n')}
     return castsDefinitions
   }
 
-  // Routing methods
+  // Routing methods - matching Python's route_from_think
   private routeFromThink(state: InterviewStateType): string {
-    const interview = state.interview
-     // console.log(`Route from think: ${interview?.constructor?.name || 'No interview'}`)
+    console.log(`Route from think: ${this.getStateInterview(state)._name()}`)
     
-    // Check if the LLM wants to use tools
-    const lastMessage = state.messages[state.messages.length - 1]
-    if (lastMessage && 'tool_calls' in lastMessage && (lastMessage as any).tool_calls?.length > 0) {
+    // Use toolsCondition to check for tool calls
+    const result = toolsCondition(state as any)
+    if (result === 'tools') {
       return 'tools'
     }
     
-    // Check if the interview is done
+    const interview = this.getStateInterview(state)
     if (interview._done) {
       return 'teardown'
     }
     
     // Check if we should go to digest phase
-    if (interview._enough && !interview._done) {
+    if (interview._enough) {
+      console.log(`Route: think -> digest`)
       return 'digest'
     }
     
@@ -787,12 +910,11 @@ ${fields.join('\n\n')}
   }
   
   private routeFromTools(state: InterviewStateType): string {
-    const interview = state.interview
-     // console.log(`Route from tools: ${interview?._name() || 'No interview'}`)
+    const interview = this.getStateInterview(state)
+    console.log(`Route from tools: ${interview._name()}`)
     
-    // Check if we have enough non-confidential/conclude fields to go to digest
-    if (interview?._enough && !interview?._done) {
-       // console.log('Route: tools -> digest')
+    if (interview._enough && !interview._done) {
+      console.log(`Route: tools -> digest`)
       return 'digest'
     }
     
@@ -800,13 +922,13 @@ ${fields.join('\n\n')}
   }
   
   private routeFromDigest(state: InterviewStateType): string {
-    const interview = state.interview
-     // console.log(`Route from digest: ${interview?._name() || 'No interview'}`)
+    const interview = this.getStateInterview(state)
+    console.log(`Route from digest: ${interview._name()}`)
     
-    // Check if the LLM wants to use tools (for confidential/conclude fields)
-    const lastMessage = state.messages[state.messages.length - 1]
-    if (lastMessage && 'tool_calls' in lastMessage && (lastMessage as any).tool_calls?.length > 0) {
-       // console.log('Route: digest -> tools')
+    // Use toolsCondition to check for tool calls
+    const result = toolsCondition(state as any)
+    if (result === 'tools') {
+      console.log(`Route: digest -> tools`)
       return 'tools'
     }
     
