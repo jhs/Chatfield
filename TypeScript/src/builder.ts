@@ -87,8 +87,22 @@ function createCastBuilder<TParent extends FieldBuilder<any, any>>(
     }
     
     // Store the cast
+    // Special handling for int vs float distinction
+    let typeStr: string
+    if (primitiveType === Number && baseName === 'as_int') {
+      typeStr = 'int'
+    } else if (primitiveType === Number && baseName === 'as_float') {
+      typeStr = 'float'
+    } else if (primitiveType === Number && baseName === 'as_percent') {
+      typeStr = 'float'  // Percents are floats (0.0-1.0)
+    } else if (typeof primitiveType === 'function') {
+      typeStr = primitiveType.name.toLowerCase()
+    } else {
+      typeStr = String(primitiveType)
+    }
+    
     const castInfo: CastInfo = {
-      type: typeof primitiveType === 'function' ? primitiveType.name.toLowerCase() : String(primitiveType),
+      type: typeStr,
       prompt: finalPrompt
     }
     parent._chatfieldField.casts[castName] = castInfo

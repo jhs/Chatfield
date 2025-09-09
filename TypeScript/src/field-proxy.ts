@@ -98,7 +98,15 @@ export function createFieldProxy(value: string, metadata: FieldMetadata): any {
       // Check for transformation properties from metadata
       const transformations = metadata.value
       if (transformations && prop in transformations && prop !== 'value') {
-        return transformations[prop]
+        const value = transformations[prop]
+        
+        // Special handling for numeric types to distinguish int vs float
+        if (prop === 'as_int' && typeof value === 'number') {
+          // Ensure integer by rounding (Python's int() behavior)
+          return Math.floor(value)
+        }
+        
+        return value
       }
       
       // Handle _chatfield metadata access
