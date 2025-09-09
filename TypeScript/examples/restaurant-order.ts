@@ -17,10 +17,15 @@
  *   npx ts-node examples/restaurant-order.ts --auto
  */
 
+import * as path from 'path'
+import * as dotenv from 'dotenv'
 import { chatfield } from '../src/builders/gatherer-builder'
 import { Interviewer } from '../src/core/interviewer'
 import * as readline from 'readline'
 import * as process from 'process'
+
+// Load environment variables from top-level .env file
+dotenv.config({ path: path.resolve(__dirname, '../../.env') })
 
 /**
  * Create a restaurant order interview instance
@@ -205,13 +210,6 @@ function displayResults(order: any): void {
  * Main entry point
  */
 async function main() {
-  // Load environment variables if .env exists
-  try {
-    require('dotenv').config()
-  } catch {
-    // .env file is optional
-  }
-  
   // Check for OpenAI API key
   if (!process.env.OPENAI_API_KEY) {
     console.error("Error: OPENAI_API_KEY environment variable is required")

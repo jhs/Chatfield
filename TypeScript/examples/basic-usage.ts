@@ -2,8 +2,13 @@
  * Basic usage examples for Chatfield
  */
 
+import * as path from 'path'
+import * as dotenv from 'dotenv'
 import { chatfield, simpleGatherer } from '../src'
 import { OpenAIBackend, MockLLMBackend } from '../src'
+
+// Load environment variables from top-level .env file
+dotenv.config({ path: path.resolve(__dirname, '../../.env') })
 
 // Example 1: Simple contact form
 const ContactForm = chatfield()
@@ -141,6 +146,13 @@ const QuickSurvey = simpleGatherer({
 
 // Usage examples
 async function demonstrateUsage() {
+  // Check for API key
+  if (!process.env.OPENAI_API_KEY) {
+    console.error("Error: OPENAI_API_KEY not found in environment")
+    console.error("Please set your OpenAI API key in .env file")
+    process.exit(1)
+  }
+  
   // Use with OpenAI (requires API key)
   const openaiBackend = new OpenAIBackend({ 
     apiKey: process.env.OPENAI_API_KEY 

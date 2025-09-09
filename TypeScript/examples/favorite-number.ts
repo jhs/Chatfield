@@ -17,14 +17,15 @@
  *     npx tsx examples/favorite-number.ts --auto
  */
 
+import * as path from 'path';
 import * as dotenv from 'dotenv';
 import { parseArgs } from 'util';
 import { chatfield } from '../src/builder';
 import { Interviewer } from '../src/interviewer';
 import type { Gatherer } from '../src/types';
 
-// Load environment variables
-dotenv.config();
+// Load environment variables from top-level .env file
+dotenv.config({ path: path.resolve(__dirname, '../../.env') });
 
 function createNumberInterview(): Gatherer {
     /**Create an interview about favorite numbers with many transformations.**/
