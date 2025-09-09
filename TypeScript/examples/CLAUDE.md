@@ -9,7 +9,7 @@ This directory contains demonstration examples of the Chatfield TypeScript/JavaS
 ## Project Structure
 
 ```
-chatfield-js/examples/
+TypeScript/examples/
 ├── basic-usage.ts       # Simple examples with builder API
 ├── decorator-usage.ts   # Decorator-based API demonstration
 ├── schema-based.ts      # Zod schema integration example
@@ -86,8 +86,8 @@ node dist/examples/basic-usage.js
 ### Environment Setup
 
 ```bash
-# Navigate to chatfield-js directory
-cd chatfield-js
+# Navigate to TypeScript directory
+cd TypeScript
 
 # Install dependencies
 npm install

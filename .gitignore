@@ -63,7 +63,7 @@ coverage/
 .nyc_output/
 
 # Build outputs
-chatfield-js/dist/
+TypeScript/dist/
 chatfield/dist/
 # Claude Code local settings
 settings.local.json

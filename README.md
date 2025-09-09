@@ -824,14 +824,14 @@ completion = metrics.completion.as_percent  # 0.75 (float between 0.0-1.0)
 
 This repository contains two parallel implementations:
 
-### `/chatfield-py` - Python Implementation
+### `/Python` - Python Implementation
 - Decorator-based API with LangGraph orchestration
 - Builder pattern as alternative API
 - OpenAI integration with extensible LLM support
 - Rich validation and transformation system
 - Full async support and type hints
 
-### `/chatfield-js` - TypeScript/JavaScript Implementation  
+### `/TypeScript` - TypeScript/JavaScript Implementation  
 - NPM package `@chatfield/core`
 - Primary builder pattern API
 - React hooks and components
@@ -842,22 +842,22 @@ This repository contains two parallel implementations:
 
 ### Python
 ```bash
-cd chatfield-py
+cd Python
 pip install .
 ```
 
 ### TypeScript/JavaScript
 ```bash
-cd chatfield-js
+cd TypeScript
 npm install
 ```
 
 ## Documentation
 
-- [Python Documentation](./chatfield-py/README.md) - Full API reference and advanced features
-- [TypeScript/JavaScript Documentation](./chatfield-js/README.md) - React integration and builder patterns
-- [Python Examples](./chatfield-py/examples/) - Working examples with all features
-- [TypeScript Examples](./chatfield-js/examples/) - Framework integration examples
+- [Python Documentation](./Python/README.md) - Full API reference and advanced features
+- [TypeScript/JavaScript Documentation](./TypeScript/README.md) - React integration and builder patterns
+- [Python Examples](./Python/examples/) - Working examples with all features
+- [TypeScript Examples](./TypeScript/examples/) - Framework integration examples
 
 ## Development
 
@@ -874,10 +874,10 @@ We welcome contributions to either implementation! Please see the individual pro
 
 ```bash
 # Python tests
-cd chatfield-py && python -m pytest
+cd Python && python -m pytest
 
 # JavaScript tests  
-cd chatfield-js && npm test
+cd TypeScript && npm test
 ```
 
 ## License
@@ -894,8 +894,8 @@ export OPENAI_API_KEY=your-api-key
 
 ## Learn More
 
-- **Python Details**: See [chatfield-py/CLAUDE.md](./chatfield-py/CLAUDE.md) for implementation details
-- **TypeScript Details**: See [chatfield-js/CLAUDE.md](./chatfield-js/CLAUDE.md) for implementation details
+- **Python Details**: See [Python/CLAUDE.md](./Python/CLAUDE.md) for implementation details
+- **TypeScript Details**: See [TypeScript/CLAUDE.md](./TypeScript/CLAUDE.md) for implementation details
 
 ## Status
 

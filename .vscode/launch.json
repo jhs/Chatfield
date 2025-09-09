@@ -109,9 +109,9 @@
                 "-svx",
                 "-k", "it_adapts_to_vegan_preferences"
             ],
-            "cwd": "${workspaceFolder}/chatfield-py",
+            "cwd": "${workspaceFolder}/Python",
             // "env": {
-            //     "PYTHONPATH": "${workspaceFolder}/chatfield-py"
+            //     "PYTHONPATH": "${workspaceFolder}/Python"
             // },
             "envFile": "${workspaceFolder}/.env",
             "console": "integratedTerminal",
@@ -123,10 +123,10 @@
             "request": "launch",
             "runtimeArgs": [
                 "--inspect-brk",
-                "${workspaceFolder}/chatfield-js/node_modules/.bin/jest",
+                "${workspaceFolder}/TypeScript/node_modules/.bin/jest",
                 "--runInBand"
             ],
-            "cwd": "${workspaceFolder}/chatfield-js",
+            "cwd": "${workspaceFolder}/TypeScript",
             "console": "integratedTerminal",
             "internalConsoleOptions": "neverOpen",
             "envFile": "${workspaceFolder}/.env"
@@ -137,11 +137,11 @@
             "request": "launch",
             "runtimeArgs": [
                 "--inspect-brk",
-                "${workspaceFolder}/chatfield-js/node_modules/.bin/jest",
+                "${workspaceFolder}/TypeScript/node_modules/.bin/jest",
                 "--runInBand",
                 "${relativeFile}"
             ],
-            "cwd": "${workspaceFolder}/chatfield-js",
+            "cwd": "${workspaceFolder}/TypeScript",
             "console": "integratedTerminal",
             "internalConsoleOptions": "neverOpen",
             "envFile": "${workspaceFolder}/.env"
@@ -152,11 +152,11 @@
             "request": "launch",
             "runtimeArgs": [
                 "--inspect-brk",
-                "${workspaceFolder}/chatfield-js/node_modules/.bin/jest",
+                "${workspaceFolder}/TypeScript/node_modules/.bin/jest",
                 "--runInBand",
                 "conversations.test.ts"
             ],
-            "cwd": "${workspaceFolder}/chatfield-js",
+            "cwd": "${workspaceFolder}/TypeScript",
             "console": "integratedTerminal",
             "internalConsoleOptions": "neverOpen",
             "envFile": "${workspaceFolder}/.env"
@@ -167,12 +167,12 @@
             "request": "launch",
             "runtimeArgs": [
                 "--inspect-brk",
-                "${workspaceFolder}/chatfield-js/node_modules/.bin/jest",
+                "${workspaceFolder}/TypeScript/node_modules/.bin/jest",
                 "--runInBand",
                 "-t",
                 "${input:testName}"
             ],
-            "cwd": "${workspaceFolder}/chatfield-js",
+            "cwd": "${workspaceFolder}/TypeScript",
             "console": "integratedTerminal",
             "internalConsoleOptions": "neverOpen",
             "envFile": "${workspaceFolder}/.env"

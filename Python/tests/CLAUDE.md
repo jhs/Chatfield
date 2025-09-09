@@ -9,7 +9,7 @@ This directory contains the comprehensive test suite for the Chatfield Python li
 ## Project Structure
 
 ```
-chatfield-py/tests/
+Python/tests/
 ├── __init__.py                      # Test package initialization
 ├── test_interview.py                # Core Interview class tests
 ├── test_interviewer.py              # Interviewer orchestration tests

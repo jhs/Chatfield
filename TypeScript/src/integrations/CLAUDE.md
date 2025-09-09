@@ -9,7 +9,7 @@ This directory contains integration modules that connect the Chatfield TypeScrip
 ## Project Structure
 
 ```
-chatfield-js/src/integrations/
+TypeScript/src/integrations/
 ├── react.ts      # React hooks and components for Chatfield
 └── CLAUDE.md     # This documentation file
 ```

@@ -64,7 +64,7 @@ This file provides guidance to Claude Code when working with code in this [direc
 
 You will maintain appropriate context at each level:
 - **Root Level**: Project overview, cross-implementation concerns, general setup
-- **Implementation Level** (chatfield-py/, chatfield-js/): Language-specific details, build processes
+- **Implementation Level** (Python/, TypeScript/): Language-specific details, build processes
 - **Source Level** (src/, chatfield/): Code organization, core components
 - **Test Level**: Testing strategies, test file patterns, mocking approaches
 - **Example Level**: How to run examples, common use cases

@@ -1,6 +1,6 @@
 ---
 name: cross-language-sync
-description: Use this agent when code changes have been made in one language implementation (Python in chatfield-py/ or TypeScript in chatfield-js/) and you need to replicate those changes in the other language to maintain feature parity. This includes new features, bug fixes, refactoring, or API changes. Examples:\n\n<example>\nContext: The user has just added a new decorator @validate to the Python implementation.\nuser: "I've added a new @validate decorator to chatfield-py/chatfield/decorators.py that validates field values against a regex pattern"\nassistant: "I'll use the cross-language-sync agent to implement the equivalent functionality in TypeScript"\n<commentary>\nSince new functionality was added to Python, use the cross-language-sync agent to add the equivalent .validate() method to the TypeScript builder API.\n</commentary>\n</example>\n\n<example>\nContext: The user has fixed a bug in the TypeScript implementation.\nuser: "I just fixed a bug in chatfield-js/src/backends/llm-backend.ts where retry logic wasn't working properly"\nassistant: "Let me use the cross-language-sync agent to apply the same fix to the Python implementation"\n<commentary>\nSince a bug was fixed in TypeScript, use the cross-language-sync agent to ensure the Python implementation has the same fix applied.\n</commentary>\n</example>\n\n<example>\nContext: The user has refactored the Interview class in Python.\nuser: "I've refactored the Interview class in chatfield-py/chatfield/interview.py to use a more efficient field discovery mechanism"\nassistant: "I'll use the cross-language-sync agent to apply the same refactoring pattern to the TypeScript Gatherer class"\n<commentary>\nSince structural improvements were made to Python, use the cross-language-sync agent to apply equivalent improvements to TypeScript.\n</commentary>\n</example>
+description: Use this agent when code changes have been made in one language implementation (Python in Python/ or TypeScript in TypeScript/) and you need to replicate those changes in the other language to maintain feature parity. This includes new features, bug fixes, refactoring, or API changes. Examples:\n\n<example>\nContext: The user has just added a new decorator @validate to the Python implementation.\nuser: "I've added a new @validate decorator to Python/chatfield/decorators.py that validates field values against a regex pattern"\nassistant: "I'll use the cross-language-sync agent to implement the equivalent functionality in TypeScript"\n<commentary>\nSince new functionality was added to Python, use the cross-language-sync agent to add the equivalent .validate() method to the TypeScript builder API.\n</commentary>\n</example>\n\n<example>\nContext: The user has fixed a bug in the TypeScript implementation.\nuser: "I just fixed a bug in TypeScript/src/backends/llm-backend.ts where retry logic wasn't working properly"\nassistant: "Let me use the cross-language-sync agent to apply the same fix to the Python implementation"\n<commentary>\nSince a bug was fixed in TypeScript, use the cross-language-sync agent to ensure the Python implementation has the same fix applied.\n</commentary>\n</example>\n\n<example>\nContext: The user has refactored the Interview class in Python.\nuser: "I've refactored the Interview class in Python/chatfield/interview.py to use a more efficient field discovery mechanism"\nassistant: "I'll use the cross-language-sync agent to apply the same refactoring pattern to the TypeScript Gatherer class"\n<commentary>\nSince structural improvements were made to Python, use the cross-language-sync agent to apply equivalent improvements to TypeScript.\n</commentary>\n</example>
 model: sonnet
 color: green
 ---
@@ -52,11 +52,11 @@ You are a cross-language synchronization expert specializing in maintaining feat
    - Update integration tests and examples
 
 6. **File Mapping Guide**:
-   - `chatfield-py/chatfield/interview.py` ↔ `chatfield-js/src/core/gatherer.ts`
-   - `chatfield-py/chatfield/interviewer.py` ↔ `chatfield-js/src/backends/llm-backend.ts`
-   - `chatfield-py/chatfield/decorators.py` ↔ `chatfield-js/src/builders/gatherer-builder.ts`
-   - `chatfield-py/chatfield/field_proxy.py` ↔ `chatfield-js/src/core/types.ts` (field transformations)
-   - `tests/test_*.py` ↔ `tests/*.test.ts`
+   - `Python/chatfield/interview.py` ↔ `TypeScript/src/core/gatherer.ts`
+   - `Python/chatfield/interviewer.py` ↔ `TypeScript/src/backends/llm-backend.ts`
+   - `Python/chatfield/decorators.py` ↔ `TypeScript/src/builders/gatherer-builder.ts`
+   - `Python/chatfield/field_proxy.py` ↔ `TypeScript/src/core/types.ts` (field transformations)
+   - `tesTypeScript/test_*.py` ↔ `tesTypeScript/*.test.ts`
    - `examples/*.py` ↔ `examples/*.ts`
 
 **Workflow Process**:

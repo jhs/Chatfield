@@ -22,7 +22,7 @@ Chatfield is a dual-implementation library that transforms data collection from 
 Chatfield/
 ├── Documentation/               # Project-wide documentation
 │   └── TEST_HARMONIZATION.md    # Test harmonization guide and progress tracking
-├── chatfield-py/                # Python implementation (v0.2.0)
+├── Python/                      # Python implementation (v0.2.0)
 │   ├── chatfield/               # Core Python package
 │   │   ├── __init__.py          # Main exports and public API
 │   │   ├── interview.py         # Base Interview class with field discovery
@@ -51,7 +51,7 @@ Chatfield/
 │   ├── pyproject.toml           # Python package configuration
 │   └── CLAUDE.md                # Python-specific implementation guide
 │
-└── chatfield-js/                # TypeScript/JavaScript implementation (v0.1.0)
+└── TypeScript/                  # TypeScript/JavaScript implementation (v0.1.0)
     ├── src/                     # TypeScript source code
     │   ├── index.ts             # Main exports and public API
     │   ├── interview.ts         # Base Interview class (mirrors Python)
@@ -93,11 +93,11 @@ Chatfield/
 
 ## Development Commands
 
-### Python Implementation (chatfield-py/)
+### Python Implementation (Python/)
 
 ```bash
 # Setup & Installation
-cd chatfield-py
+cd Python
 python -m venv .venv                                # Create virtual environment
 source .venv/bin/activate                           # Activate venv (Linux/Mac)
 pip install -e ".[dev]"                             # Install with dev dependencies
@@ -124,11 +124,11 @@ cd examples && python job_interview.py              # Run any example
 python -c "from chatfield import Interview"         # Quick import test
 ```
 
-### TypeScript/JavaScript Implementation (chatfield-js/)
+### TypeScript/JavaScript Implementation (TypeScript/)
 
 ```bash
 # Setup & Installation
-cd chatfield-js
+cd TypeScript
 npm install                                          # Install dependencies
 
 # Development & Build
@@ -277,12 +277,12 @@ interviewer = Interviewer(interview, api_key="your-api-key")
 ### Running Examples
 ```bash
 # Python
-cd chatfield-py/examples
+cd Python/examples
 python job_interview.py
 python restaurant_order.py
 
 # TypeScript
-cd chatfield-js
+cd TypeScript
 npx tsx examples/basic-usage.ts
 npx tsx examples/job-interview.ts
 ```
@@ -401,7 +401,7 @@ Both implementations use LangGraph for conversation orchestration:
 - Type checking: Basic mode with auto-imports
 
 ### Python Environment
-- Virtual environment: `.venv` in chatfield-py/
+- Virtual environment: `.venv` in Python/
 - Python version: 3.8+ required
 - Package mode: Editable install with `pip install -e .`
 

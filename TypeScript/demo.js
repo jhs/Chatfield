@@ -68,4 +68,4 @@ result = Form.gather()          const result = await Form.gather()
 `)
 
 console.log('\n✨ Success! TypeScript decorator API provides full parity with Python implementation.')
-console.log('📁 All code and examples available in /chatfield-js/ directory')
+console.log('📁 All code and examples available in /TypeScript/ directory')

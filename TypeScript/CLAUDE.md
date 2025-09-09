@@ -21,7 +21,7 @@ Chatfield JS/TS is the TypeScript/JavaScript implementation (v0.1.0) of conversa
 ## Project Structure
 
 ```
-chatfield-js/
+TypeScript/
 ├── src/                         # TypeScript source code
 │   ├── index.ts                 # Main exports and public API
 │   ├── interview.ts             # Base Interview class (mirrors Python)
@@ -261,7 +261,7 @@ Or use `.env` file in project directory.
 ## Synchronization with Python
 
 When implementing new features:
-1. **ALWAYS check the Python implementation first** in `chatfield-py/`
+1. **ALWAYS check the Python implementation first** in `Python/`
 2. Match file names, class names, and method names exactly
 3. Use identical test descriptions for corresponding tests
 4. Implement the same algorithms and validation logic

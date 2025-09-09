@@ -9,7 +9,7 @@ This directory contains the comprehensive test suite for the Chatfield TypeScrip
 ## Project Structure
 
 ```
-chatfield-js/tests/
+TypeScript/tests/
 ├── interview.test.ts                # Core Interview class tests
 ├── interviewer.test.ts              # Interviewer orchestration tests  
 ├── interviewer_conversation.test.ts # Conversation flow and state tests

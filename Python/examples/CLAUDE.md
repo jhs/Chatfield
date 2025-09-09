@@ -9,7 +9,7 @@ This directory contains demonstration examples of the Chatfield Python library, 
 ## Project Structure
 
 ```
-chatfield-py/examples/
+Python/examples/
 ├── favorite_number.py    # Comprehensive transformation demo (int, float, bool, languages, sets)
 ├── job_interview.py      # Professional use case with validation and hints
 ├── restaurant_order.py   # Interactive ordering system with context
@@ -67,8 +67,8 @@ python examples/restaurant_order.py --debug
 ### Environment Setup
 
 ```bash
-# Ensure you're in the chatfield-py directory
-cd chatfield-py
+# Ensure you're in the Python directory
+cd Python
 
 # Install the package in development mode
 pip install -e .
@@ -175,4 +175,4 @@ When creating new examples:
 - **ImportError**: Ensure chatfield package is installed: `pip install -e ..`
 - **API Key Error**: Set OPENAI_API_KEY environment variable or use .env file
 - **Rate Limit**: Add delays between API calls or reduce example complexity
-- **Path Issues**: Run examples from the chatfield-py directory
+- **Path Issues**: Run examples from the Python directory

@@ -19,7 +19,7 @@ Chatfield is a Python package (v0.2.0) that transforms data gathering from rigid
 ## Project Structure
 
 ```
-chatfield-py/
+Python/
 ├── chatfield/                   # Core Python package
 │   ├── __init__.py             # Main exports and public API
 │   ├── interview.py            # Interview base class with field discovery
