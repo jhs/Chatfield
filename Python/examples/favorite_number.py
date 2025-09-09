@@ -86,13 +86,6 @@ def create_number_interview():
             .desc("Why is this your favorite number?")
             .hint("Share what makes this number special to you")
         
-        .field("least_favorite")
-            .desc("What number do you like the least? (1-100)")
-            .must("a number between 1 and 100")
-            .as_int()
-            .as_str('longhand', "Written out in English words")
-            .as_bool('unlucky', "True if commonly considered unlucky")
-        
         .build())
 
 

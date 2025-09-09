@@ -4,8 +4,8 @@
  * =======================
  * 
  * This example demonstrates the extensive transformation system:
- * - Basic transformations (asInt, asFloat, asBool)
- * - Language transformations (asLang)
+ * - Basic transformations (as_int, as_float, as_bool)
+ * - Language transformations (as_lang)
  * - Set and list transformations (asSet, asList)
  * - Cardinality decorators (asOne, asMaybe, asMulti, asAny)
  * - Complex sub-attribute transformations
@@ -46,45 +46,38 @@ function createNumberInterview(): Gatherer {
             .hint("Think about a number that has special meaning to you")
             
             // Basic transformations
-            .asInt()
-            .asFloat("The number as a floating point value")
-            .asPercent("The number as a percentage of 100")
+            .as_int()
+            // .as_float("The number as a floating point value")
+            // .as_percent("The number as a percentage of 100")
             
-            // Language transformations
-            .asLang('fr', "French translation")
-            .asLang('de', "German translation")
-            .asLang('es', "Spanish translation")
-            .asLang('ja', "Japanese translation")
-            .asLang('th', "Thai translation")
+            // // Language transformations
+            // .as_lang('fr', "French translation")
+            // .as_lang('de', "German translation")
+            // .as_lang('es', "Spanish translation")
+            // .as_lang('ja', "Japanese translation")
+            // .as_lang('th', "Thai translation")
             
-            // Boolean transformations with sub-attributes
-            .asBool('even', "True if even, False if odd")
-            .asBool('prime', "True if prime number")
-            .asBool('perfect_square', "True if perfect square")
-            .asBool('power_of_two', "True if power of two")
+            // // Boolean transformations with sub-attributes
+            // .as_bool('even', "True if even, False if odd")
+            // .as_bool('prime', "True if prime number")
+            // .as_bool('perfect_square', "True if perfect square")
+            // .as_bool('power_of_two', "True if power of two")
             
-            // String transformation
-            .asStr('longhand', "Written out in English words")
+            // // String transformation
+            // .as_str('longhand', "Written out in English words")
             
-            // Set transformation
-            .asSet('factors', "All factors of the number")
+            // // Set transformation
+            // .as_set('factors', "All factors of the number")
             
-            // Cardinality decorators for properties
-            .asOne('size_category', "tiny (1-10)", "small (11-25)", "medium (26-50)", "large (51-75)", "huge (76-100)")
-            .asMaybe('special_property', "fibonacci", "perfect number", "triangular number")
-            .asMulti('math_properties', "even", "odd", "prime", "composite", "square", "cubic")
-            .asAny('cultural_significance', "lucky", "unlucky", "sacred", "mystical")
+            // // Cardinality decorators for properties
+            // .as_one('size_category', "tiny (1-10)", "small (11-25)", "medium (26-50)", "large (51-75)", "huge (76-100)")
+            // .as_maybe('special_property', "fibonacci", "perfect number", "triangular number")
+            // .as_multi('math_properties', "even", "odd", "prime", "composite", "square", "cubic")
+            // .as_any('cultural_significance', "lucky", "unlucky", "sacred", "mystical")
         
         .field("reason")
             .desc("Why is this your favorite number?")
             .hint("Share what makes this number special to you")
-        
-        .field("least_favorite")
-            .desc("What number do you like the least? (1-100)")
-            .must("a number between 1 and 100")
-            .asInt()
-            .asStr('longhand', "Written out in English words")
-            .asBool('unlucky', "True if commonly considered unlucky")
         
         .build();
 }
