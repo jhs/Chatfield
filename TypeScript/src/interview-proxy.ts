@@ -25,14 +25,20 @@ export function wrapInterviewWithProxy(interview: Interview): Interview {
   // Wrap the interview in a Proxy to intercept field access
   const proxiedInterview = new Proxy(interview, {
     get(target: Interview, prop: string | symbol, receiver: any) {
-      // Check if this is a field name
-      if (typeof prop === 'string' && prop in target._chatfield.fields) {
-        const field = target._chatfield.fields[prop]
-        if (field && field.value && field.value.value) {
-          // Return a FieldProxy for the field value
-          return createFieldProxy(field.value.value, field)
+      if (typeof prop === 'string') {
+        if (prop === '__proxiedInterview') {
+          return true // Special property to identify proxied interviews
         }
-        return null
+
+        // Check if this is a field name
+        if (prop in target._chatfield.fields) {
+          const field = target._chatfield.fields[prop]
+          if (field && field.value && field.value.value) {
+            // Return a FieldProxy for the field value
+            return createFieldProxy(field.value.value, field)
+          }
+          return null
+        }
       }
       
       // Otherwise, return the original property
