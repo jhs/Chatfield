@@ -34,11 +34,12 @@ import { wrapInterviewWithProxy } from './interview-proxy'
  */
 const InterviewState = Annotation.Root({
   messages: Annotation<BaseMessage[]>({
+    default: () => [],
     reducer: addMessages,
-    default: () => []
   }),
-  interview: Annotation<Interview>({
-    reducer: (a, b) => mergeInterviews(a, b)
+  interview: Annotation<Interview | null>({
+    default: () => null,
+    reducer: (a, b) => mergeInterviews(a, b),
   })
 })
 
@@ -97,41 +98,39 @@ function checkChatfieldChanges(aChatfield: any, bChatfield: any): boolean {
  * Merge two Interview instances
  * Matches Python's merge_interviews logic exactly
  */
-function mergeInterviews(a: Interview, b: Interview): Interview {
-  // Ensure we have Interview instances with proper methods
-  if (a && !(a instanceof Interview) && (a as any)._chatfield) {
-    // Reconstruct Interview from plain object
-    a = Object.assign(new Interview(), a)
-    // Wrap with proxy to enable field access
-    a = wrapInterviewWithProxy(a)
+function mergeInterviews(a: Interview | null, b: Interview | null): Interview {
+  if (!a && !b) {
+    // Unsure if this ever happens. Unsure if this ever matters.
+    return wrapInterviewWithProxy(new Interview())
   }
-  if (b && !(b instanceof Interview) && (b as any)._chatfield) {
-    // Reconstruct Interview from plain object
-    b = Object.assign(new Interview(), b)
-    // Wrap with proxy to enable field access
-    b = wrapInterviewWithProxy(b)
-  }
+
+  if (a) { a = wrapInterviewWithProxy(a) }
+  if (b) { b = wrapInterviewWithProxy(b) }
+
+  if (!a) { return b! }
+  if (!b) { return a! }
   
+  // Not sure if we even need this subclass logic anymore.
   // Match Python lines 28-31: Type checking
-  const aType = a?.constructor
-  const bType = b?.constructor
-  const aSubclass = b && a instanceof (bType as any) && aType !== bType
-  const bSubclass = a && b instanceof (aType as any) && aType !== bType
+  // const aType = a?.constructor
+  // const bType = b?.constructor
+  // const aSubclass = b && a instanceof (bType as any) && aType !== bType
+  // const bSubclass = a && b instanceof (aType as any) && aType !== bType
   
-  // Match Python lines 33-38: Subclass handling
-  if (aSubclass) {
-    // console.log('Reduce to subclass:', aType.name)
-    return a
-  }
-  if (bSubclass) {
-    // console.log('Reduce to subclass:', bType.name)
-    return b
-  }
+  // // Match Python lines 33-38: Subclass handling
+  // if (aSubclass) {
+  //   // console.log('Reduce to subclass:', aType.name)
+  //   return ensureProxy(a)
+  // }
+  // if (bSubclass) {
+  //   // console.log('Reduce to subclass:', bType.name)
+  //   return ensureProxy(b)
+  // }
   
-  // Match Python lines 39-41: Different types check
-  if (aType !== bType) {
-    throw new Error(`Cannot reduce ${aType?.name} and ${bType?.name}`)
-  }
+  // // Match Python lines 39-41: Different types check
+  // if (aType !== bType) {
+  //   throw new Error(`Cannot reduce ${aType?.name} and ${bType?.name}`)
+  // }
   
   // Match Python lines 43-48: Check for changes
   // Simple diff for _chatfield - if no changes, return a
