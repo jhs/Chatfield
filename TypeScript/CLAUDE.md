@@ -116,7 +116,7 @@ node dist/examples/basic-usage.js           # Run compiled example
 
 4. **FieldProxy** (`src/field-proxy.ts`)
    - String-like class for field values
-   - Provides transformation access (`.asInt`, `.asLangFr`, etc.)
+   - Provides transformation access (`.as_int`, `.as_lang_fr`, etc.)
    - Mirrors Python's FieldProxy behavior
 
 5. **Decorators** (`src/decorators.ts`)
@@ -172,10 +172,10 @@ const interview = chatfield()
   .field('position')
     .desc('Desired position')
     .must('include company name')
-    .asString()
+    .as_string()
   .field('experience')
     .desc('Years of experience')
-    .asInt()
+    .as_int()
     .must('be realistic')
   .build()
 ```

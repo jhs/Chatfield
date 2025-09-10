@@ -315,9 +315,9 @@ const Form = chatfield()
     .hint("Format: First Last")
   .field("email", "Email address")
     .must("be valid email format")
-    .asString()  // Explicit type
+    .as_string()  // Explicit type
   .field("age", "Your age")
-    .asInt()
+    .as_int()
     .must("be between 18 and 120")
   .build()
 
@@ -355,19 +355,19 @@ Both implementations use LLM-powered validation and transformation:
 - `@hint` / `.hint()`: Guidance shown to the user
 
 ### Transformation Decorators/Methods
-- `@as_int` / `.asInt()`: Parse to integer
-- `@as_float` / `.asFloat()`: Parse to float
-- `@as_bool` / `.asBool()`: Parse to boolean
-- `@as_list` / `.asList()`: Parse to list/array
-- `@as_json` / `.asJson()`: Parse as JSON object
-- `@as_percent` / `.asPercent()`: Parse to 0.0-1.0 range
-- `@as_lang.{code}` / `.asLang('code')`: Translate to language
+- `@as_int` / `.as_int()`: Parse to integer
+- `@as_float` / `.as_float()`: Parse to float
+- `@as_bool` / `.as_bool()`: Parse to boolean
+- `@as_list` / `.as_list()`: Parse to list/array
+- `@as_json` / `.as_json()`: Parse as JSON object
+- `@as_percent` / `.as_percent()`: Parse to 0.0-1.0 range
+- `@as_lang.{code}` / `.as_lang('code')`: Translate to language
 
 ### Choice Cardinality
-- `@as_one` / `.asOne()`: Choose exactly one option
-- `@as_maybe` / `.asMaybe()`: Choose zero or one option
-- `@as_multi` / `.asMulti()`: Choose one or more options
-- `@as_any` / `.asAny()`: Choose zero or more options
+- `@as_one` / `.as_one()`: Choose exactly one option
+- `@as_maybe` / `.as_maybe()`: Choose zero or one option
+- `@as_multi` / `.as_multi()`: Choose one or more options
+- `@as_any` / `.as_any()`: Choose zero or more options
 
 ## LangGraph Integration
 

@@ -130,7 +130,7 @@ interview = (chatfield()
         .must("validation rule")
         .reject("pattern to avoid")
         .hint("user guidance")
-        .asInt()  # Type transformation
+        .as_int()  # Type transformation
     .build())
 ```
 
@@ -425,10 +425,10 @@ interview = (chatfield()
     .field("position")
         .desc("Desired position")
         .must("include company name")
-        .asString()
+        .as_string()
     .field("experience")
         .desc("Years of experience")
-        .asInt()
+        .as_int()
         .must("be realistic")
     .build())
 ```

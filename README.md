@@ -194,20 +194,20 @@ skill_list = survey.skills.as_list # list
 // Convert responses to specific data types
 const survey = chatfield()
   .field('age', 'Your age')
-    .asInt()  // Converts "twenty-five" → 25
+    .as_int()  // Converts "twenty-five" → 25
   .field('salary', 'Expected salary')
-    .asFloat()  // Converts "85.5k" → 85500.0
+    .as_float()  // Converts "85.5k" → 85500.0
   .field('remote', 'Open to remote work?')
-    .asBool()  // Converts "yeah" → true
+    .as_bool()  // Converts "yeah" → true
   .field('skills', 'Your top skills')
-    .asList()  // Converts "Python, React, and SQL" → ["Python", "React", "SQL"]
+    .as_list()  // Converts "Python, React, and SQL" → ["Python", "React", "SQL"]
   .build()
 
 // Access transformed values after collection
-const ageInt = survey.age.asInt        // number
-const salary = survey.salary.asFloat   // number
-const isRemote = survey.remote.asBool  // boolean
-const skillList = survey.skills.asList // array
+const ageInt = survey.age.as_int        // number
+const salary = survey.salary.as_float   // number
+const isRemote = survey.remote.as_bool  // boolean
+const skillList = survey.skills.as_list // array
 ```
 
 ### 5. Advanced Transformations
@@ -240,22 +240,22 @@ growth = analytics.visitors.as_percent_growth      # 0.05
 // Multiple transformations on the same field
 const analytics = chatfield()
   .field('visitors', 'Monthly website visitors')
-    .asInt()  // Basic number
-    .asLang('es')  // Spanish translation
-    .asLang('fr')  // French translation
-    .asBool('highTraffic', 'True if > 10000')  // Custom boolean
-    .asStr('formatted', 'With commas like 1,234')  // Custom format
-    .asPercent('growth', 'As percentage of 1M target')  // Percentage
+    .as_int()  // Basic number
+    .as_lang('es')  // Spanish translation
+    .as_lang('fr')  // French translation
+    .as_bool('highTraffic', 'True if > 10000')  // Custom boolean
+    .as_str('formatted', 'With commas like 1,234')  // Custom format
+    .as_percent('growth', 'As percentage of 1M target')  // Percentage
   .build()
 
 // After user says "fifty thousand":
 const visitors = analytics.visitors                      // "50000"
-const visitorsInt = analytics.visitors.asInt             // 50000
-const visitorsEs = analytics.visitors.asLangEs           // "cincuenta mil"
-const visitorsFr = analytics.visitors.asLangFr           // "cinquante mille"
-const isHigh = analytics.visitors.asBoolHighTraffic      // true
-const formatted = analytics.visitors.asStrFormatted      // "50,000"
-const growth = analytics.visitors.asPercentGrowth        // 0.05
+const visitorsInt = analytics.visitors.as_int             // 50000
+const visitorsEs = analytics.visitors.as_lang_es           // "cincuenta mil"
+const visitorsFr = analytics.visitors.as_lang_fr           // "cinquante mille"
+const isHigh = analytics.visitors.as_bool_highTraffic      // true
+const formatted = analytics.visitors.as_str_formatted      // "50,000"
+const growth = analytics.visitors.as_percent_growth        // 0.05
 ```
 
 ### 6. Choice Cardinality (Selection Patterns)
@@ -298,30 +298,30 @@ interests = preferences.interests.as_any_topics  # {"ML", "Security"} or set()
 const preferences = chatfield()
   // Exactly one choice
   .field('department')
-    .asOne('dept', 'Engineering', 'Sales', 'Marketing', 'Support')
+    .as_one('dept', 'Engineering', 'Sales', 'Marketing', 'Support')
   
   // Zero or one choice (optional)
   .field('mentor')
-    .asMaybe('person', 'Alice', 'Bob', 'Charlie')
+    .as_maybe('person', 'Alice', 'Bob', 'Charlie')
     .desc('Would you like a mentor? (optional)')
   
   // One or more choices (at least one required)
   .field('languages')
-    .asMulti('langs', 'Python', 'JavaScript', 'Go', 'Rust', 'Java')
+    .as_multi('langs', 'Python', 'JavaScript', 'Go', 'Rust', 'Java')
     .desc('Programming languages you know')
   
   // Zero or more choices (completely optional)
   .field('interests')
-    .asAny('topics', 'ML', 'Web', 'Mobile', 'DevOps', 'Security')
+    .as_any('topics', 'ML', 'Web', 'Mobile', 'DevOps', 'Security')
     .desc('Technical interests (select any that apply)')
   
   .build()
 
 // After collection:
-const dept = preferences.department.asOneDept        // "Engineering" (exactly one)
-const mentor = preferences.mentor.asMaybePerson      // "Alice" or null
-const langs = preferences.languages.asMultiLangs     // Set {"Python", "JavaScript"}
-const interests = preferences.interests.asAnyTopics  // Set {"ML", "Security"} or Set {}
+const dept = preferences.department.as_one_dept        // "Engineering" (exactly one)
+const mentor = preferences.mentor.as_maybe_person      // "Alice" or null
+const langs = preferences.languages.as_multi_langs     // Set {"Python", "JavaScript"}
+const interests = preferences.interests.as_any_topics  // Set {"ML", "Security"} or Set {}
 ```
 
 ### 7. Special Field Types
@@ -355,19 +355,19 @@ interview = (chatfield()
 const interview = chatfield()
   // Regular fields collected during conversation
   .field('experience', 'Years of experience')
-    .asInt()
+    .as_int()
   
   // Confidential: tracked silently, never mentioned
   .field('showsLeadership')
     .desc('Demonstrates leadership qualities')
     .confidential()
-    .asBool()
+    .as_bool()
   
   // Conclusion: evaluated only after conversation ends
   .field('overallFit')
     .desc('Overall fit for the role')
     .conclude()
-    .asOne('rating', 'poor', 'fair', 'good', 'excellent')
+    .as_one('rating', 'poor', 'fair', 'good', 'excellent')
   
   .build()
 ```
@@ -401,11 +401,11 @@ budget_quote = research.budget.as_quote        # "around fifty thousand dollars"
 // Capture conversation context and exact quotes
 const research = chatfield()
   .field('problem', 'What problem are you solving?')
-    .asQuote()    // Captures exact words
-    .asContext()  // Captures conversation context
+    .as_quote()    // Captures exact words
+    .as_context()  // Captures conversation context
   
   .field('budget', "What's your budget?")
-    .asInt()
+    .as_int()
     .asQuote()    // "around fifty thousand dollars"
     .asContext()  // Surrounding discussion about constraints
   
@@ -414,7 +414,7 @@ const research = chatfield()
 // After collection:
 const problemQuote = research.problem.asQuote      // Exact user words
 const problemContext = research.problem.asContext  // Conversation leading to answer
-const budgetNumber = research.budget.asInt         // 50000
+const budgetNumber = research.budget.as_int         // 50000
 const budgetQuote = research.budget.asQuote        // "around fifty thousand dollars"
 ```
 
@@ -628,26 +628,26 @@ const jobApplication = chatfield()
   
   // Experience with transformations
   .field('yearsExperience', 'Years of professional experience')
-    .asInt()
+    .as_int()
     .must('be realistic (0-50 years)')
-    .asBool('senior', 'True if >= 5 years')
-    .asBool('lead', 'True if >= 8 years')
+    .as_bool('senior', 'True if >= 5 years')
+    .as_bool('lead', 'True if >= 8 years')
   
   // Skills with multi-selection
   .field('primaryLanguages')
     .desc('Primary programming languages')
-    .asMulti('langs', 'Python', 'JavaScript', 'Go', 'Java', 'C++', 'Rust')
+    .as_multi('langs', 'Python', 'JavaScript', 'Go', 'Java', 'C++', 'Rust')
     .must('select at least one')
   
   .field('frameworks')
     .desc('Frameworks you\'re proficient with')
-    .asAny('tools', 'React', 'Django', 'Flask', 'FastAPI', 'Node.js', 'Spring')
+    .as_any('tools', 'React', 'Django', 'Flask', 'FastAPI', 'Node.js', 'Spring')
   
   // Salary with transformations
   .field('salaryExpectation', 'Salary expectations')
     .hint('You can give a range')
-    .asInt()  // Converts to number
-    .asStr('formatted', 'Formatted as $XXX,XXX')
+    .as_int()  // Converts to number
+    .as_str('formatted', 'Formatted as $XXX,XXX')
   
   // Availability
   .field('startDate', 'When can you start?')
@@ -656,19 +656,19 @@ const jobApplication = chatfield()
   // Location preferences
   .field('workLocation')
     .desc('Preferred work arrangement')
-    .asOne('preference', 'Remote', 'Hybrid', 'Office')
+    .as_one('preference', 'Remote', 'Hybrid', 'Office')
   
   // Confidential assessments (never mentioned in conversation)
   .field('communicationQuality')
     .desc('Quality of communication during interview')
     .confidential()
-    .asOne('level', 'poor', 'adequate', 'good', 'excellent')
+    .as_one('level', 'poor', 'adequate', 'good', 'excellent')
   
   // Final evaluation (assessed after conversation)
   .field('recommendation')
     .desc('Hiring recommendation based on conversation')
     .conclude()
-    .asOne('decision', 'reject', 'maybe', 'interview', 'strong_yes')
+    .as_one('decision', 'reject', 'maybe', 'interview', 'strong_yes')
   
   .build()
 
@@ -688,10 +688,10 @@ while (!jobApplication._done) {
 
 // Access all collected data
 console.log(`Name: ${jobApplication.name}`)
-console.log(`Years: ${jobApplication.yearsExperience.asInt}`)
-console.log(`Is Senior: ${jobApplication.yearsExperience.asBoolSenior}`)
-console.log(`Languages: ${jobApplication.primaryLanguages.asMultiLangs}`)
-console.log(`Salary: ${jobApplication.salaryExpectation.asStrFormatted}`)
+console.log(`Years: ${jobApplication.yearsExperience.as_int}`)
+console.log(`Is Senior: ${jobApplication.yearsExperience.as_bool_senior}`)
+console.log(`Languages: ${jobApplication.primaryLanguages.as_multi_langs}`)
+console.log(`Salary: ${jobApplication.salaryExpectation.as_str_formatted}`)
 console.log(`Recommendation: ${jobApplication.recommendation}`)
 ```
 
