@@ -1,61 +1,69 @@
 {
     "version": "0.2.0",
     "configurations": [
-        /*
         {
-            "name": "Debug run_real_api.py",
+            "name": "Python: Debug Example (Job Interview)",
             "type": "debugpy",
             "request": "launch",
-            "module": "chatfield.run_real_api",
-            "cwd": "${workspaceFolder}/chatfield",
+            "program": "${workspaceFolder}/Python/examples/job_interview.py",
+            "cwd": "${workspaceFolder}/Python",
             "env": {
-                "PYTHONPATH": "${workspaceFolder}/chatfield"
+                "PYTHONPATH": "${workspaceFolder}/Python"
             },
-            "envFile": "${workspaceFolder}/chatfield/.env",
+            "envFile": "${workspaceFolder}/.env",
             "console": "integratedTerminal",
-            "justMyCode": false,
-            "stopOnEntry": false
+            "justMyCode": false
         },
-        */
-        
-        /*
         {
-            "name": "Debug run (Direct)",
+            "name": "Python: Debug Example (Restaurant Order)",
             "type": "debugpy",
             "request": "launch",
-            "program": "${workspaceFolder}/chatfield/run_real_api.py",
-            "cwd": "${workspaceFolder}/chatfield",
+            "program": "${workspaceFolder}/Python/examples/restaurant_order.py",
+            "cwd": "${workspaceFolder}/Python",
             "env": {
-                "PYTHONPATH": "${workspaceFolder}/chatfield"
+                "PYTHONPATH": "${workspaceFolder}/Python"
             },
-            "envFile": "${workspaceFolder}/chatfield/.env",
+            "envFile": "${workspaceFolder}/.env",
             "console": "integratedTerminal",
-            "justMyCode": false,
-            "stopOnEntry": false
+            "justMyCode": false
         },
-        */
-
-        // {
-        //     "name": "Debug run (Standalone)",
-        //     "type": "debugpy",
-        //     "request": "launch",
-        //     "program": "${workspaceFolder}/chatfield/restaurant_order.py", // Specify the script directly
-        //     // "program": "${file}", // Specify the script directly
-        //     "cwd": "${workspaceFolder}/chatfield",
-        //     "env": {
-        //         "PYTHONPATH": "${workspaceFolder}/chatfield"
-        //     },
-        //     "envFile": "${workspaceFolder}/.env",
-        //     "console": "integratedTerminal",
-        //     "justMyCode": false,
-        //     "stopOnEntry": false
-        // },
+        {
+            "name": "Python: Debug Example (Tech Request)",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/Python/examples/tech_request.py",
+            "cwd": "${workspaceFolder}/Python",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}/Python"
+            },
+            "envFile": "${workspaceFolder}/.env",
+            "console": "integratedTerminal",
+            "justMyCode": false
+        },
+        {
+            "name": "Python: Debug Example (Favorite Number)",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/Python/examples/favorite_number.py",
+            "cwd": "${workspaceFolder}/Python",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}/Python"
+            },
+            "envFile": "${workspaceFolder}/.env",
+            "console": "integratedTerminal",
+            "justMyCode": false
+        },
 
         {
             "name": "Python: Current File",
             "type": "debugpy",
             "request": "launch",
             "program": "${file}",
+            "cwd": "${workspaceFolder}/Python",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}/Python"
+            },
+            "envFile": "${workspaceFolder}/.env",
             "console": "integratedTerminal",
             "justMyCode": false
         },
@@ -64,6 +72,12 @@
             "type": "debugpy",
             "request": "launch",
             "module": "enter-your-module-name",
+            "cwd": "${workspaceFolder}/Python",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}/Python"
+            },
+            "envFile": "${workspaceFolder}/.env",
+            "console": "integratedTerminal",
             "justMyCode": false
         },
         {
@@ -89,13 +103,13 @@
             "module": "pytest",
             "args": [
                 "-v",
-                "${workspaceFolder}/chatfield/tests"
+                "${workspaceFolder}/Python/tests"
             ],
-            "cwd": "${workspaceFolder}/chatfield",
+            "cwd": "${workspaceFolder}/Python",
             "env": {
-                "PYTHONPATH": "${workspaceFolder}/chatfield"
+                "PYTHONPATH": "${workspaceFolder}/Python"
             },
-            "envFile": "${workspaceFolder}/chatfield/.env",
+            "envFile": "${workspaceFolder}/.env",
             "console": "integratedTerminal",
             "justMyCode": false
         },
@@ -105,14 +119,13 @@
             "request": "launch",
             "module": "pytest",
             "args": [
-                // "-v",
                 "-svx",
-                "-k", "it_adapts_to_vegan_preferences"
+                "-k", "${input:pytestPattern}"
             ],
             "cwd": "${workspaceFolder}/Python",
-            // "env": {
-            //     "PYTHONPATH": "${workspaceFolder}/Python"
-            // },
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}/Python"
+            },
             "envFile": "${workspaceFolder}/.env",
             "console": "integratedTerminal",
             "justMyCode": false
@@ -196,6 +209,74 @@
             "skipFiles": [
                 "<node_internals>/**"
             ]
+        },
+        {
+            "name": "TypeScript: Debug Example (Basic Usage)",
+            "type": "node",
+            "request": "launch",
+            "runtimeExecutable": "npx",
+            "runtimeArgs": [
+                "tsx",
+                "--inspect"
+            ],
+            "args": [
+                "${workspaceFolder}/TypeScript/examples/basic-usage.ts"
+            ],
+            "cwd": "${workspaceFolder}/TypeScript",
+            "console": "integratedTerminal",
+            "internalConsoleOptions": "neverOpen",
+            "envFile": "${workspaceFolder}/.env"
+        },
+        {
+            "name": "TypeScript: Debug Example (Job Interview)",
+            "type": "node",
+            "request": "launch",
+            "runtimeExecutable": "npx",
+            "runtimeArgs": [
+                "tsx",
+                "--inspect"
+            ],
+            "args": [
+                "${workspaceFolder}/TypeScript/examples/job-interview.ts"
+            ],
+            "cwd": "${workspaceFolder}/TypeScript",
+            "console": "integratedTerminal",
+            "internalConsoleOptions": "neverOpen",
+            "envFile": "${workspaceFolder}/.env"
+        },
+        {
+            "name": "TypeScript: Debug Example (Restaurant Order)",
+            "type": "node",
+            "request": "launch",
+            "runtimeExecutable": "npx",
+            "runtimeArgs": [
+                "tsx",
+                "--inspect"
+            ],
+            "args": [
+                "${workspaceFolder}/TypeScript/examples/restaurant-order.ts"
+            ],
+            "cwd": "${workspaceFolder}/TypeScript",
+            "console": "integratedTerminal",
+            "internalConsoleOptions": "neverOpen",
+            "envFile": "${workspaceFolder}/.env"
+        },
+        {
+            "name": "TypeScript: Debug minimal.ts",
+            "type": "node",
+            "request": "launch",
+            "runtimeExecutable": "npx",
+            "runtimeArgs": [
+                "tsx",
+                "--inspect"
+            ],
+            "args": [
+                "${workspaceFolder}/TypeScript/minimal.ts"
+            ],
+            "cwd": "${workspaceFolder}/TypeScript",
+            "console": "integratedTerminal",
+            "internalConsoleOptions": "neverOpen",
+            "envFile": "${workspaceFolder}/.env"
         }
     ],
     "inputs": [
@@ -203,6 +284,12 @@
             "id": "testName",
             "type": "promptString",
             "description": "Enter test name pattern to debug"
+        },
+        {
+            "id": "pytestPattern",
+            "type": "promptString",
+            "description": "Enter pytest pattern (e.g., test name or file::test)",
+            "default": "test_"
         }
     ]
 }
