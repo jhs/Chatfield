@@ -378,18 +378,19 @@ export class Interviewer {
       throw new Error(`Expected state["interview"] to be an Interview instance, got falsy`)
     }
 
-    let interview : Interview = this.getStateInterview(state)
+    let interview : Interview = state.interview
     if (interview.__proxiedInterview) {
       console.log(`Good - state interview is already proxied`)
     } else {
-      console.log(`Wrap interview object with Proxy for field access`)
-      interview = wrapInterviewWithProxy(interview)
+      if (! (interview instanceof Interview)) {
+        // I did not think this would be possible. But we can rebuild a proper Interview object
+        // from the ._chatfield property.
+        console.log(`State interview is a plain object - rebuilding Interview instance from _chatfield`)
+        const cf = interview._chatfield
+        interview = new Interview(cf.type, cf.desc, cf.roles, cf.fields)
+        interview = wrapInterviewWithProxy(interview)
+      }
     }
-//     if (!(interview instanceof Interview)) {
-//       // throw new Error(`Expected state["interview"] to be an Interview instance, got ${typeof interview}: ${interview}`)
-//       // interview = Object.assign(new Interview(), interview)
-//       interview = new Interview(interview._chatfield.type, interview._chatfield.desc)
-//     }
     
     if (!interview._chatfield.fields || Object.keys(interview._chatfield.fields).length === 0) {
       // No fields defined is okay only for uninitialized interview
