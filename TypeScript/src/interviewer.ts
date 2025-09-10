@@ -20,12 +20,14 @@ import {
   SystemMessage,
   ToolMessage 
 } from '@langchain/core/messages'
+// @ts-ignore - module resolution issue
 import { ToolNode, toolsCondition } from '@langchain/langgraph/prebuilt'
 import { ChatOpenAI } from '@langchain/openai'
 import { tool } from '@langchain/core/tools'
 import { z } from 'zod'
 import { v4 as uuidv4 } from 'uuid'
 import { Interview } from './interview'
+import { wrapInterviewWithProxy } from './interview-proxy'
 
 /**
  * State type for LangGraph conversation
@@ -100,10 +102,14 @@ function mergeInterviews(a: Interview, b: Interview): Interview {
   if (a && !(a instanceof Interview) && (a as any)._chatfield) {
     // Reconstruct Interview from plain object
     a = Object.assign(new Interview(), a)
+    // Wrap with proxy to enable field access
+    a = wrapInterviewWithProxy(a)
   }
   if (b && !(b instanceof Interview) && (b as any)._chatfield) {
     // Reconstruct Interview from plain object
     b = Object.assign(new Interview(), b)
+    // Wrap with proxy to enable field access
+    b = wrapInterviewWithProxy(b)
   }
   
   // Match Python lines 28-31: Type checking

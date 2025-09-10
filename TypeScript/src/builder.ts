@@ -4,7 +4,7 @@
  */
 
 import { Interview } from './interview'
-import { createFieldProxy } from './field-proxy'
+import { wrapInterviewWithProxy } from './interview-proxy'
 import type {
   FieldMeta,
   FieldSpecs,
@@ -457,23 +457,8 @@ export class ChatfieldBuilder<Fields extends string = never> {
       this._chatfield.fields
     )
     
-    // Wrap the interview in a Proxy to intercept field access
-    const proxiedInterview = new Proxy(interview, {
-      get(target: Interview, prop: string | symbol, receiver: any) {
-        // Check if this is a field name
-        if (typeof prop === 'string' && prop in target._chatfield.fields) {
-          const field = target._chatfield.fields[prop]
-          if (field && field.value && field.value.value) {
-            // Return a FieldProxy for the field value
-            return createFieldProxy(field.value.value, field)
-          }
-          return null
-        }
-        
-        // Otherwise, return the original property
-        return Reflect.get(target, prop, receiver)
-      }
-    })
+    // Wrap the interview with proxy for field access
+    const proxiedInterview = wrapInterviewWithProxy(interview)
     
     return proxiedInterview as TypedInterview<Fields>
   }
