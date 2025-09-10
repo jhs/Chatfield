@@ -673,7 +673,8 @@ ${fields.join('\n\n')}
     } else {
        // console.log('New conversation:', this.config.configurable.thread_id)
       const messages = userInput ? [new HumanMessage(userInput)] : []
-      graphInput = { messages, interview: this.interview }
+      // Match Python: Don't include interview in initial state - let initialize node populate it
+      graphInput = { messages }
     }
     
     const interrupts: string[] = []
