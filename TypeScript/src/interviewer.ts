@@ -374,13 +374,22 @@ export class Interviewer {
 
   // Helper to get state interview safely - matching Python's _get_state_interview
   private getStateInterview(state: InterviewStateType): Interview {
-    const interview = state.interview
-    if (!interview || !(interview instanceof Interview)) {
-      if (!interview) {
-        throw new Error(`Expected state["interview"] to be an Interview instance, got undefined`)
-      }
-      throw new Error(`Expected state["interview"] to be an Interview instance, got ${typeof interview}: ${interview}`)
+    if (! state.interview) {
+      throw new Error(`Expected state["interview"] to be an Interview instance, got falsy`)
     }
+
+    let interview : Interview = this.getStateInterview(state)
+    if (interview.__proxiedInterview) {
+      console.log(`Good - state interview is already proxied`)
+    } else {
+      console.log(`Wrap interview object with Proxy for field access`)
+      interview = wrapInterviewWithProxy(interview)
+    }
+//     if (!(interview instanceof Interview)) {
+//       // throw new Error(`Expected state["interview"] to be an Interview instance, got ${typeof interview}: ${interview}`)
+//       // interview = Object.assign(new Interview(), interview)
+//       interview = new Interview(interview._chatfield.type, interview._chatfield.desc)
+//     }
     
     if (!interview._chatfield.fields || Object.keys(interview._chatfield.fields).length === 0) {
       // No fields defined is okay only for uninitialized interview
@@ -516,7 +525,7 @@ export class Interviewer {
   }
 
   private makeSystemPrompt(state: InterviewStateType): string {
-    const interview = state.interview || this.interview
+    const interview = this.getStateInterview(state) || this.interview
     const collectionName = interview._name()
     const theAlice = interview._alice_role_name()
     const theBob = interview._bob_role_name()
@@ -616,7 +625,7 @@ ${fields.join('\n\n')}
    * Generate system prompt for the conversation (Python compatibility)
    */
   mk_system_prompt(state: { interview: Interview }): string {
-    return this.makeSystemPrompt({ interview: state.interview, messages: [] } as any)
+    return this.makeSystemPrompt({ interview: this.getStateInterview(state), messages: [] } as any)
   }
 
   /**
@@ -713,7 +722,7 @@ ${fields.join('\n\n')}
 
   // Node: Handle confidential and conclude fields
   private async digest(state: InterviewStateType): Promise<Partial<InterviewStateType>> {
-    const interview = state.interview
+    const interview = this.getStateInterview(state)
      // console.log(`Digest> ${interview?._name() || 'No interview'}`)
     
     if (!interview) {
@@ -735,7 +744,7 @@ ${fields.join('\n\n')}
   }
   
   private async digestConfidential(state: InterviewStateType): Promise<Partial<InterviewStateType>> {
-    const interview = state.interview
+    const interview = this.getStateInterview(state)
      // console.log(`Digest Confidential> ${interview?._name() || 'No interview'}`)
     
     if (!interview) {
@@ -803,7 +812,7 @@ ${fields.join('\n\n')}
   }
   
   private async digestConclude(state: InterviewStateType): Promise<Partial<InterviewStateType>> {
-    const interview = state.interview
+    const interview = this.getStateInterview(state)
      // console.log(`Digest Conclude> ${interview?._name() || 'No interview'}`)
     
     if (!interview) {
