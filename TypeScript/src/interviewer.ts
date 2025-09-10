@@ -43,7 +43,57 @@ const InterviewState = Annotation.Root({
 type InterviewStateType = typeof InterviewState.State
 
 /**
+ * Helper function to detect changes in _chatfield structure
+ * Simplified version of Python's DeepDiff check
+ */
+function checkChatfieldChanges(aChatfield: any, bChatfield: any): boolean {
+  // Check for field value changes
+  if (aChatfield?.fields && bChatfield?.fields) {
+    for (const fieldName in bChatfield.fields) {
+      const aField = aChatfield.fields[fieldName]
+      const bField = bChatfield.fields[fieldName]
+      
+      // Check if value has changed from null/undefined to something
+      if (aField?.value !== bField?.value) {
+        if (bField?.value != null) {
+          return true // Found a change
+        }
+      }
+    }
+  }
+  
+  // Check for role changes (alice/bob)
+  if (aChatfield?.roles && bChatfield?.roles) {
+    // Check alice role
+    if (aChatfield.roles.alice?.type !== bChatfield.roles.alice?.type && 
+        bChatfield.roles.alice?.type && 
+        aChatfield.roles.alice?.type === 'Agent') {
+      return true // alice role changed from default
+    }
+    
+    // Check bob role  
+    if (aChatfield.roles.bob?.type !== bChatfield.roles.bob?.type && 
+        bChatfield.roles.bob?.type &&
+        aChatfield.roles.bob?.type === 'User') {
+      return true // bob role changed from default
+    }
+    
+    // Check for trait changes
+    const aliceTraitsChanged = JSON.stringify(aChatfield.roles.alice?.traits) !== 
+                               JSON.stringify(bChatfield.roles.alice?.traits)
+    const bobTraitsChanged = JSON.stringify(aChatfield.roles.bob?.traits) !== 
+                            JSON.stringify(bChatfield.roles.bob?.traits)
+    if (aliceTraitsChanged || bobTraitsChanged) {
+      return true
+    }
+  }
+  
+  return false // No significant changes detected
+}
+
+/**
  * Merge two Interview instances
+ * Matches Python's merge_interviews logic exactly
  */
 function mergeInterviews(a: Interview, b: Interview): Interview {
   // Ensure we have Interview instances with proper methods
@@ -56,16 +106,41 @@ function mergeInterviews(a: Interview, b: Interview): Interview {
     b = Object.assign(new Interview(), b)
   }
   
-  if (a && b) {
-    // Copy over any new field values from b to a
-    for (const fieldName of Object.keys(b._chatfield.fields)) {
-      const bValue = b._chatfield.fields[fieldName]?.value
-      if (bValue !== undefined && bValue !== null && a._chatfield.fields[fieldName]) {
-        a._chatfield.fields[fieldName].value = bValue
-      }
-    }
+  // Match Python lines 28-31: Type checking
+  const aType = a?.constructor
+  const bType = b?.constructor
+  const aSubclass = b && a instanceof (bType as any) && aType !== bType
+  const bSubclass = a && b instanceof (aType as any) && aType !== bType
+  
+  // Match Python lines 33-38: Subclass handling
+  if (aSubclass) {
+    // console.log('Reduce to subclass:', aType.name)
     return a
   }
+  if (bSubclass) {
+    // console.log('Reduce to subclass:', bType.name)
+    return b
+  }
+  
+  // Match Python lines 39-41: Different types check
+  if (aType !== bType) {
+    throw new Error(`Cannot reduce ${aType?.name} and ${bType?.name}`)
+  }
+  
+  // Match Python lines 43-48: Check for changes
+  // Simple diff for _chatfield - if no changes, return a
+  if (a && b) {
+    const hasChanges = checkChatfieldChanges(a._chatfield, b._chatfield)
+    if (!hasChanges) {
+      // console.log('Identical instances')
+      return a
+    }
+    
+    // Match Python line 57: Assume B has all the latest information
+    // TODO: Python assumes B has latest info. If LangGraph doesn't guarantee ordering, this could be a bug
+    return b
+  }
+  
   return b || a
 }
 
