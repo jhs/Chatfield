@@ -110,28 +110,6 @@ function mergeInterviews(a: Interview | null, b: Interview | null): Interview {
   if (!a) { return b! }
   if (!b) { return a! }
   
-  // Not sure if we even need this subclass logic anymore.
-  // Match Python lines 28-31: Type checking
-  // const aType = a?.constructor
-  // const bType = b?.constructor
-  // const aSubclass = b && a instanceof (bType as any) && aType !== bType
-  // const bSubclass = a && b instanceof (aType as any) && aType !== bType
-  
-  // // Match Python lines 33-38: Subclass handling
-  // if (aSubclass) {
-  //   // console.log('Reduce to subclass:', aType.name)
-  //   return ensureProxy(a)
-  // }
-  // if (bSubclass) {
-  //   // console.log('Reduce to subclass:', bType.name)
-  //   return ensureProxy(b)
-  // }
-  
-  // // Match Python lines 39-41: Different types check
-  // if (aType !== bType) {
-  //   throw new Error(`Cannot reduce ${aType?.name} and ${bType?.name}`)
-  // }
-  
   // Match Python lines 43-48: Check for changes
   // Simple diff for _chatfield - if no changes, return a
   if (a && b) {
