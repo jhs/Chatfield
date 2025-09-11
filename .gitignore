@@ -69,3 +69,4 @@ chatfield/dist/
 settings.local.json
 
 /coverage.xml
+/.env.secret
