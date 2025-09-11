@@ -101,6 +101,7 @@ function checkChatfieldChanges(aChatfield: any, bChatfield: any): boolean {
 function mergeInterviews(a: Interview | null, b: Interview | null): Interview {
   if (!a && !b) {
     // Unsure if this ever happens. Unsure if this ever matters.
+    console.log(`WARN: Reducing two null Interview instances`)
     return wrapInterviewWithProxy(new Interview())
   }
 
@@ -363,7 +364,7 @@ export class Interviewer {
       if (! (interview instanceof Interview)) {
         // I did not think this would be possible. But we can rebuild a proper Interview object
         // from the ._chatfield property.
-        console.log(`State interview is a plain object - rebuilding Interview instance from _chatfield`)
+        // console.log(`State interview is a plain object - rebuilding Interview instance from _chatfield`)
         const cf = interview._chatfield
         interview = new Interview(cf.type, cf.desc, cf.roles, cf.fields)
         interview = wrapInterviewWithProxy(interview)
