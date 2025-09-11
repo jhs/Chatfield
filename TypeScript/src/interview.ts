@@ -138,7 +138,11 @@ export class Interview {
    * Check if all required fields have values
    */
   get _done(): boolean {
-    return Object.values(this._chatfield.fields).every(field => field.value !== null)
+    const fields = Object.values(this._chatfield.fields)
+    const is_populated = fields.map(field => field.value !== null)
+    const is_done = is_populated.every(v => v)
+    return is_done
+    // return Object.values(this._chatfield.fields).every(field => field.value !== null)
   }
 
   /**
