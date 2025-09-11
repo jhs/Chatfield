@@ -665,6 +665,10 @@ ${fields.join('\n\n')}
       graphInput = new Command({update:{}, resume:{user_input: userInput}})
     } else {
        // console.log('New conversation:', this.config.configurable.thread_id)
+      const threadId = this.config.configurable.thread_id
+      const traceUrl = `https://smith.langchain.com/o/92e94533-dd45-4b1d-bc4f-4fd9476bb1e4/projects/p/1991a1b2-6dad-4d39-8a19-bbc3be33a8b6/t/${threadId}`
+      console.log(`LangSmith trace: ${traceUrl}`)
+      
       const messages = userInput ? [new HumanMessage(userInput)] : []
       // Match Python: Don't include interview in initial state - let initialize node populate it
       graphInput = { messages }
