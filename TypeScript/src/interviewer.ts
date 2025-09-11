@@ -142,7 +142,8 @@ export class Interviewer {
   checkpointer: MemorySaver  // Made public for test access
   private updateWrapper: any  // The update tool
   private concludeWrapper: any  // The conclude tool
-  private toolNode: ToolNode  // The ToolNode for processing tools
+  // private toolNode: ToolNode  // The ToolNode for processing tools
+  private toolsByName: Record<string, any>  // Map of tool name to tool instance
 
   constructor(interview: Interview, options?: { threadId?: string; llm?: any, llmId?: any }) {
     this.interview = interview
@@ -198,11 +199,11 @@ export class Interviewer {
     // Build the full schema with all fields
     const updateSchema = z.object(toolCallArgsSchema)
     
-    // Create wrapper function that calls run_tool - matching Python pattern
-    const updateWrapperFunc = async (input: any, config: any) => {
+    const updateWrapperFunc = async (input: any, config: any, state:any) => {
       // In Python, this gets state and tool_call_id injected
       // In JS, we need to handle this differently since ToolNode will call this
       const toolCallId = config?.runId || uuidv4()
+      // return await this.run_tool(state, toolCallId, input)
       
       // We need access to state, but ToolNode doesn't provide it directly
       // So we'll process directly here and let ToolNode handle state updates
@@ -256,20 +257,26 @@ export class Interviewer {
       }
     )
 
+    this.toolsByName = {
+      [this.updateWrapper.name]: this.updateWrapper,
+      [this.concludeWrapper.name]: this.concludeWrapper,
+    }
+
     // Bind tools to LLM - matching Python's approach
     this.llm_with_update = this.llm.bindTools ? this.llm.bindTools([this.updateWrapper]) as ChatOpenAI : this.llm
     this.llm_with_conclude = this.llm.bindTools ? this.llm.bindTools([this.concludeWrapper]) as ChatOpenAI : this.llm
     this.llm_with_both = this.llm.bindTools ? this.llm.bindTools([this.updateWrapper, this.concludeWrapper]) as ChatOpenAI : this.llm
     
-    // Create ToolNode with both tools
-    this.toolNode = new ToolNode([this.updateWrapper, this.concludeWrapper])
+    // In Python, toolNode is simply using the built-in ToolNode wrapper. But to get to
+    // the state, I believe TypesScript must implement this as a standard node.
+    // this.toolNode = new ToolNode([this.updateWrapper, this.concludeWrapper])
 
     // Build the state graph - matching Python structure
     const builder = new StateGraph(InterviewState)
       .addNode('initialize', this.initialize.bind(this))
       .addNode('think', this.think.bind(this))
       .addNode('listen', this.listen.bind(this))
-      .addNode('tools', this.toolNode)  // Use the ToolNode directly
+      .addNode('tools', this.toolNode.bind(this)) // Different from Python
       .addNode('digest', this.digest.bind(this))
       .addNode('teardown', this.teardown.bind(this))
       .addEdge(START, 'initialize')
@@ -324,6 +331,34 @@ export class Interviewer {
     // Return net-new messages
     const newMessages = [...newSystemMessages, response]
     return { messages: newMessages }
+  }
+
+  private async toolNode(state: InterviewStateType) {
+    console.log(`toolNode> Yay`)
+    const { messages } = state;
+
+    const lastMessage = messages[messages.length - 1] as AIMessage;
+    const outputMessages: ToolMessage[] = [];
+    for (const toolCall of lastMessage.tool_calls!) {
+      try {
+        const toolToRun = this.toolsByName[toolCall.name];
+        const toolResult = await toolToRun.invoke(toolCall, state);
+        console.log(`Tool result: ${toolResult}`);
+        // outputMessages.push(toolResult);
+      } catch (error: any) {
+        // Return the error if the tool call fails
+        outputMessages.push(
+          new ToolMessage({
+            content: error.message,
+            name: toolCall.name,
+            tool_call_id: toolCall.id!,
+            additional_kwargs: { error }
+          })
+        );
+      }
+    }
+
+    return { messages: outputMessages };
   }
 
   private async listen(state: InterviewStateType) {
