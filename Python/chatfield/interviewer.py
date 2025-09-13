@@ -433,6 +433,7 @@ class Interviewer:
             'float': float,
             'str': str,
             'bool': bool,
+            # 'boolean': bool,
             'list': List[Any],
             'set': set,
             'dict': Dict[str, Any],
