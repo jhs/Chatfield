@@ -225,10 +225,6 @@ export class Interview {
   }
 }
 
-// For backwards compatibility
-export const Gatherer = Interview
-export const GathererInstance = Interview
-
 // Helper type
 export type CollectedData = Record<string, string>
 export type InterviewOptions = {
