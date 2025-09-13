@@ -376,7 +376,7 @@ export class Interviewer {
     }
 
     if (interview.__proxiedInterview) {
-      console.log(`Good proxy for interview from state`);
+      // console.log(`Good proxy for interview from state`);
     } else {
       interview = wrapInterviewWithProxy(interview)
     }
