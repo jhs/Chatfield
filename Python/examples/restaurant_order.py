@@ -159,10 +159,6 @@ def display_results(order):
         politeness_pct = order.politeness.as_percent * 100
         print(f"[Internal Note: Guest politeness: {politeness_pct:.0f}%]")
     
-    # Check if vegan trait was activated
-    if order._chatfield['roles']['bob'].get('possible_traits', {}).get('Vegan', {}).get('active'):
-        print("\n[Note: Guest is vegan - all selections are plant-based]")
-    
     print("=" * 60)
 
 
