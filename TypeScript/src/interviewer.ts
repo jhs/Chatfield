@@ -21,9 +21,9 @@ import {
   ToolMessage 
 } from '@langchain/core/messages'
 // @ts-ignore - module resolution issue
-import { ToolNode, toolsCondition } from '@langchain/langgraph/prebuilt'
+import { toolsCondition } from '@langchain/langgraph/prebuilt'
 import { ChatOpenAI } from '@langchain/openai'
-import { tool } from '@langchain/core/tools'
+import { tool as createLangChainTool } from '@langchain/core/tools'
 import { z } from 'zod'
 import { v4 as uuidv4 } from 'uuid'
 import { Interview } from './interview'
@@ -136,14 +136,7 @@ export class Interviewer {
   graph: any  // Made public for test access
   config: any  // Made public for test access
   llm: ChatOpenAI  // Made public for test access
-  llm_with_update!: ChatOpenAI  // Python compatibility
-  llm_with_conclude!: ChatOpenAI  // Python compatibility
-  llm_with_both!: ChatOpenAI  // Python compatibility
   checkpointer: MemorySaver  // Made public for test access
-  private updateWrapper: any  // The update tool
-  private concludeWrapper: any  // The conclude tool
-  // private toolNode: ToolNode  // The ToolNode for processing tools
-  private toolsByName: Record<string, any>  // Map of tool name to tool instance
 
   constructor(interview: Interview, options?: { threadId?: string; llm?: any, llmId?: any }) {
     this.interview = interview
@@ -169,114 +162,14 @@ export class Interviewer {
   }
 
   private setupGraph() {
-    const theAlice = this.interview._alice_role_name()
     const theBob = this.interview._bob_role_name()
-
-    // Build tool schemas for each field
-    const toolCallArgsSchema: Record<string, any> = {}
-    const concludeArgsSchema: Record<string, any> = {}
-
-    const interviewFieldNames = Object.keys(this.interview._chatfield.fields)
-    
-    for (const fieldName of interviewFieldNames) {
-      const fieldMetadata = this.interview._chatfield.fields[fieldName]
-      const isConclude = fieldMetadata.specs?.conclude
-
-      // Build field schema with value and all casts
-      const fieldSchema = this.buildFieldSchema(fieldName, fieldMetadata)
-      
-      if (isConclude) {
-        concludeArgsSchema[fieldName] = fieldSchema  // Mandatory for conclude
-      } else {
-        toolCallArgsSchema[fieldName] = fieldSchema.optional()  // Optional for update
-      }
-    }
-
-    // Create update tool using @langchain/core/tools pattern
-    const updateToolName = `update_${this.interview._id()}`
-    const updateToolDesc = `Record valid information shared by the ${theBob} about the ${this.interview._name()}`
-    
-    // Build the full schema with all fields
-    const updateSchema = z.object(toolCallArgsSchema)
-    
-    const updateWrapperFunc = async (input: any, config: any, state:any) => {
-      // In Python, this gets state and tool_call_id injected
-      // In JS, we need to handle this differently since ToolNode will call this
-      const toolCallId = config?.runId || uuidv4()
-      // return await this.run_tool(state, toolCallId, input)
-      
-      // We need access to state, but ToolNode doesn't provide it directly
-      // So we'll process directly here and let ToolNode handle state updates
-      console.log(`Tool> ${toolCallId}> ${JSON.stringify(input)}`)
-      
-      try {
-        this.process_tool_input(this.interview, input)
-        return 'Success'
-      } catch (error: any) {
-        const errorMsg = `Error: ${error.message}\n\n${error.stack || ''}`
-        return errorMsg
-      }
-    }
-    
-    this.updateWrapper = tool(
-      updateWrapperFunc,
-      {
-        name: updateToolName,
-        description: updateToolDesc,
-        schema: updateSchema
-      }
-    )
-
-    // Create conclude tool
-    const concludeToolName = `conclude_${this.interview._id()}`
-    const concludeToolDesc = `Record key required information about the ${this.interview._name()} by summarizing, synthesizing, or recalling the conversation so far with the ${theBob}`
-    
-    const concludeSchema = z.object(concludeArgsSchema)
-    
-    // Create wrapper function that calls run_tool - matching Python pattern
-    const concludeWrapperFunc = async (input: any, config: any) => {
-      const toolCallId = config?.runId || uuidv4()
-      
-      console.log(`Tool> ${toolCallId}> ${JSON.stringify(input)}`)
-      
-      try {
-        this.process_tool_input(this.interview, input)
-        return 'Success'
-      } catch (error: any) {
-        const errorMsg = `Error: ${error.message}\n\n${error.stack || ''}`
-        return errorMsg
-      }
-    }
-    
-    this.concludeWrapper = tool(
-      concludeWrapperFunc,
-      {
-        name: concludeToolName,
-        description: concludeToolDesc,
-        schema: concludeSchema
-      }
-    )
-
-    this.toolsByName = {
-      [this.updateWrapper.name]: this.updateWrapper,
-      [this.concludeWrapper.name]: this.concludeWrapper,
-    }
-
-    // Bind tools to LLM - matching Python's approach
-    this.llm_with_update = this.llm.bindTools ? this.llm.bindTools([this.updateWrapper]) as ChatOpenAI : this.llm
-    this.llm_with_conclude = this.llm.bindTools ? this.llm.bindTools([this.concludeWrapper]) as ChatOpenAI : this.llm
-    this.llm_with_both = this.llm.bindTools ? this.llm.bindTools([this.updateWrapper, this.concludeWrapper]) as ChatOpenAI : this.llm
-    
-    // In Python, toolNode is simply using the built-in ToolNode wrapper. But to get to
-    // the state, I believe TypesScript must implement this as a standard node.
-    // this.toolNode = new ToolNode([this.updateWrapper, this.concludeWrapper])
 
     // Build the state graph - matching Python structure
     const builder = new StateGraph(InterviewState)
       .addNode('initialize', this.initialize.bind(this))
       .addNode('think', this.think.bind(this))
       .addNode('listen', this.listen.bind(this))
-      .addNode('tools', this.toolNode.bind(this)) // Different from Python
+      .addNode('tools', this.tools.bind(this))
       .addNode('digest', this.digest.bind(this))
       .addNode('teardown', this.teardown.bind(this))
       .addEdge(START, 'initialize')
@@ -311,18 +204,22 @@ export class Interviewer {
     }
 
     // Determine which LLM to use - matching Python logic
-    let llm = null
-    const latestMessage = state.messages && state.messages.length > 0 ? 
-                         state.messages[state.messages.length - 1] : null
+    const latestMessage = state.messages && state.messages.length > 0
+                             ?  state.messages[state.messages.length - 1]
+                             : null;
     
+    let llm;
     if (latestMessage instanceof SystemMessage) {
-      llm = this.llm // No tools after system message
+      // No tools right after system message
+      llm = this.llm
     } else if (latestMessage instanceof ToolMessage && latestMessage.content === 'Success') {
-      llm = this.llm // No tools after successful tool response
+      // No tools right after a successful tool call.
+      llm = this.llm
+    } else {
+      const updateTool = this.llmUpdateTool(state)
+      llm = this.llm.bindTools([updateTool])
     }
     
-    llm = llm || this.llm_with_update  // Default to update tools
-
     // Build messages for LLM
     const newSystemMessages = newSystemMessage ? [newSystemMessage] : []
     const allMessages = [...newSystemMessages, ...(state.messages || [])]
@@ -333,32 +230,74 @@ export class Interviewer {
     return { messages: newMessages }
   }
 
-  private async toolNode(state: InterviewStateType) {
-    console.log(`toolNode> Yay`)
-    const { messages } = state;
+  private llmUpdateTool(state: InterviewStateType) {
+    // Return an llm-bindable tool with the correct definition, schema, etc.
 
-    const lastMessage = messages[messages.length - 1] as AIMessage;
-    const outputMessages: ToolMessage[] = [];
-    for (const toolCall of lastMessage.tool_calls!) {
-      try {
-        const toolToRun = this.toolsByName[toolCall.name];
-        const toolResult = await toolToRun.invoke(toolCall, state);
-        console.log(`Tool result: ${toolResult}`);
-        // outputMessages.push(toolResult);
-      } catch (error: any) {
-        // Return the error if the tool call fails
-        outputMessages.push(
-          new ToolMessage({
-            content: error.message,
-            name: toolCall.name,
-            tool_call_id: toolCall.id!,
-            additional_kwargs: { error }
-          })
-        );
+    // Build updater schema for each field.
+    // TODO: This could omit fields already set as an optimization.
+    const argsSchema: Record<string, any> = {}
+
+    const interviewFieldNames = Object.keys(this.interview._chatfield.fields)
+    for (const fieldName of interviewFieldNames) {
+      const fieldMetadata = this.interview._chatfield.fields[fieldName];
+      const isConclude = fieldMetadata?.specs?.conclude;
+      if (isConclude) {
+        console.log(`Skip conclude field ${fieldName} in update tool`);
+        continue;
       }
+
+      const fieldSchema = this.buildFieldSchema(fieldName, fieldMetadata)
+      argsSchema[fieldName] = fieldSchema.nullable().optional()  // Optional for update
     }
 
-    return { messages: outputMessages };
+    const interview = this.getStateInterview(state);
+    const toolName = `update_${interview._id()}`;
+    const toolDesc = `Record valid information shared by the ${interview._bob_role_name()} about the ${interview._name()}`;
+
+    // I think the wrapper function can no-op because the Tool node will do the real work.
+    const wrapperFunc = async (input: any, config:any) => {
+      console.log(`Wrapper func called with input and config`, input, config);
+      throw new Error(`Wrapper function should not be called. Did Langchain call this automatically?`);
+    }
+
+    const schema = z.object(argsSchema); // .describe(toolDesc);
+    const langchainTool = createLangChainTool(wrapperFunc, {name:toolName, description:toolDesc, schema:schema});
+    return langchainTool;
+  }
+
+  // Node
+  private async tools(state: InterviewStateType) {
+    console.log(`Tools> ${this.getStateInterview(state)._name()}`);
+    const outputMessages: ToolMessage[] = [];
+
+    // First dump the interview state before anything happens, in order to detect changes later.
+    const interview = this.getStateInterview(state);
+    const preData = interview.model_dump();
+
+    const { messages } = state;
+    const lastMessage = messages[messages.length - 1] as AIMessage;
+    const toolCallInvocations = lastMessage.tool_calls!;
+
+    for (const toolCallInvocation of toolCallInvocations) {
+      const kwargs = toolCallInvocation.args!;
+      const toolCallId = toolCallInvocation.id!;
+      const toolCallName = toolCallInvocation.name!;
+
+      const toolMessage = await this.runTool(interview, toolCallId, toolCallName, kwargs);
+      outputMessages.push(toolMessage);
+    }
+
+    const postData = interview.model_dump()
+    
+    const stateUpdate:any = {};
+    stateUpdate.messages = outputMessages;
+    
+    // Check if anything changed.
+    if (JSON.stringify(preData) !== JSON.stringify(postData)) {
+      stateUpdate.interview = interview
+    }
+
+    return stateUpdate;
   }
 
   private async listen(state: InterviewStateType) {
@@ -392,18 +331,20 @@ export class Interviewer {
       throw new Error(`Expected state["interview"] to be an Interview instance, got falsy`)
     }
 
-    let interview : Interview = state.interview
+    let interview : Interview = state.interview;
+
+    if (! (interview instanceof Interview)) {
+      // I did not think this would be possible. But we can rebuild a proper Interview object
+      // from the ._chatfield property.
+      // console.log(`State interview is a plain object - rebuilding Interview instance from _chatfield`)
+      const cf = interview._chatfield;
+      interview = new Interview(cf.type, cf.desc, cf.roles, cf.fields);
+    }
+
     if (interview.__proxiedInterview) {
-      console.log(`Good - state interview is already proxied`)
+      console.log(`Good proxy for interview from state`);
     } else {
-      if (! (interview instanceof Interview)) {
-        // I did not think this would be possible. But we can rebuild a proper Interview object
-        // from the ._chatfield property.
-        // console.log(`State interview is a plain object - rebuilding Interview instance from _chatfield`)
-        const cf = interview._chatfield
-        interview = new Interview(cf.type, cf.desc, cf.roles, cf.fields)
-        interview = wrapInterviewWithProxy(interview)
-      }
+      interview = wrapInterviewWithProxy(interview)
     }
     
     if (!interview._chatfield.fields || Object.keys(interview._chatfield.fields).length === 0) {
@@ -417,39 +358,30 @@ export class Interviewer {
     return interview
   }
 
-  // Node: run_tool - matching Python's implementation
-  private async run_tool(state: InterviewStateType, toolCallId: string, kwargs: Record<string, any>): Promise<Command> {
-    console.log(`Tool> ${toolCallId}> ${JSON.stringify(kwargs)}`)
+  private async runTool(interview: Interview, toolCallId: string, toolCallName:string, kwargs: Record<string, any>): Promise<ToolMessage> {
+    console.log(`Run tool: ${toolCallId}> ${JSON.stringify(kwargs)}`)
+    // TODO: This should really decide which tool to run. Currently it hard-codes processUpdateTool.
     
-    const interview = this.getStateInterview(state)
-    const preInterviewModel = interview.model_dump()
-    
-    let toolMsg: string
+    let toolError: any = null;
     try {
-      this.process_tool_input(interview, kwargs)
-      toolMsg = 'Success'
+      await this.processUpdateTool(interview, kwargs);
     } catch (error: any) {
-      toolMsg = `Error: ${error.message}\n\n${error.stack || ''}`
+      toolError = error;
     }
     
-    const postInterviewModel = interview.model_dump()
-    
-    // Prepare the return value
-    const stateUpdate: any = {}
-    
-    // Append a ToolMessage
+    let content: string = ( toolError )
+      ? `Error: ${toolError.message}\n\n${toolError.stack || ''}`
+      : `Success`;
+
     const toolMessage = new ToolMessage({
-      content: toolMsg,
-      tool_call_id: toolCallId
-    })
-    stateUpdate.messages = [toolMessage]
-    
-    // Check if anything changed
-    if (JSON.stringify(preInterviewModel) !== JSON.stringify(postInterviewModel)) {
-      stateUpdate.interview = interview
-    }
-    
-    return new Command({ update: stateUpdate })
+      content: content,
+
+      name: toolCallName,
+      tool_call_id: toolCallId,
+      additional_kwargs: { error: toolError },
+    });
+
+    return toolMessage;
   }
 
   private async teardown(state: InterviewStateType) {
@@ -646,7 +578,7 @@ ${fields.join('\n\n')}
   /**
    * Process tool input and update interview state - matching Python's implementation
    */
-  process_tool_input(interview: Interview, kwargs: Record<string, any>) {
+  async processUpdateTool(interview: Interview, kwargs: Record<string, any>) {
     const definedArgs = Object.keys(kwargs).filter(k => kwargs[k] !== null && kwargs[k] !== undefined)
     console.log(`Tool input for ${definedArgs.length} fields: ${definedArgs.join(', ')}`)
     
@@ -759,6 +691,7 @@ ${fields.join('\n\n')}
         }
       }
     }
+
     return this.digestConclude(state)
   }
   
@@ -920,6 +853,7 @@ ${fields.join('\n\n')}
           schema = choiceSchema.describe(prompt)
           break
         }
+
         default:
           throw new Error(`Cast ${castName} bad type: ${castType}; must be one of int, float, str, bool, list, set, dict, choice`)
       }
