@@ -19,8 +19,8 @@
 
 import * as path from 'path'
 import * as dotenv from 'dotenv'
-import { chatfield } from '../src/builders/gatherer-builder'
-import { Interviewer } from '../src/core/interviewer'
+import { chatfield } from '../src/builder'
+import { Interviewer } from '../src/interviewer'
 import * as readline from 'readline'
 import * as process from 'process'
 
@@ -37,35 +37,35 @@ function createRestaurantOrder() {
     
     .alice()
       .type("Server")
-      .trait.apply("Speaks in limmericks")
+      .trait("Speaks in limmericks")
     
     .bob()
       .type("Diner")
-      .trait.apply("First-time visitor")
+      .trait("First-time visitor")
       // .trait.possible("Vegan", "needs vegan, plant-based, non animal product")
     
     .field("starter")
       .desc("starter or appetizer")
-      .as_one.selection("Sir Digby Chicken Caesar", "Shrimp cocktail", "Garden salad")
+      .as_one("selection", "Sir Digby Chicken Caesar", "Shrimp cocktail", "Garden salad")
     
     .field("main_course")
       .desc("Main course")
       .hint("Choose from: Grilled salmon, Veggie pasta, Beef tenderloin, Chicken parmesan")
-      .as_one.selection("Grilled salmon", "Veggie pasta", "Beef tenderloin", "Chicken parmesan")
+      .as_one("selection", "Grilled salmon", "Veggie pasta", "Beef tenderloin", "Chicken parmesan")
     
     .field("dessert")
       .desc("Mandatory dessert; choices: Cheesecake, Creamy Chocolate mousse, Fruit sorbet")
-      .as_one.selection("Cheesecake", "Creamy Chocolate mousse", "Fruit sorbet")
+      .as_one("selection", "Cheesecake", "Creamy Chocolate mousse", "Fruit sorbet")
     
     .field("hurry")
       .desc("wishes to be served quickly")
       .confidential()
-      .asBool()
+      .as_bool()
     
     .field("politeness")
       .desc("Level of politeness from the Diner; but automatic 23% if they mention anything about Belgium")
       .conclude()
-      .asPercent()
+      .as_percent()
     
     .build()
 }
