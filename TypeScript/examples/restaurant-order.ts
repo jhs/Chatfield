@@ -128,12 +128,11 @@ async function runAutomated(order: any): Promise<boolean> {
   const interviewer = new Interviewer(order, { threadId })
   
   const prefabInputs = [
-    "I'll have the garden salad to start",
-    "I'm actually vegan, do you have plant-based options?",
-    "Veggie pasta sounds perfect",
-    "Fruit sorbet please",
-    "Actually, I'm in a bit of a rush",
-    "Thank you! Oh, and my friend from Brussels recommended this place!"
+    'I am vegan.',
+    'Garden salad please',
+    'Veggie pasta sounds great',
+    'Fruit sorbet',
+    'Thank you so much, that is perfect!'
   ]
   
   let inputIndex = 0
@@ -193,14 +192,8 @@ function displayResults(order: any): void {
   
   // Conclusion field
   if (order.politeness !== null && order.politeness !== undefined) {
-    const politenessPct = (order.politeness.as_percent || 0) * 100
+    const politenessPct = order.politeness.as_percent * 100
     console.log(`[Internal Note: Guest politeness: ${politenessPct.toFixed(0)}%]`)
-  }
-  
-  // Check if vegan trait was activated
-  const bobRole = order._chatfield.roles.get('bob')
-  if (bobRole?.possibleTraits.get('Vegan')?.active) {
-    console.log("\n[Note: Guest is vegan - all selections are plant-based]")
   }
   
   console.log("=".repeat(60))
@@ -233,7 +226,6 @@ async function main() {
     // Display results if completed
     if (completed) {
       displayResults(order)
-      console.log("\nThank you for dining with us!")
     } else {
       console.log("\nOrder incomplete.")
     }
