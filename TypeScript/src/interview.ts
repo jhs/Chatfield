@@ -66,6 +66,7 @@ export class Interview {
    */
   _id(): string {
     // Convert type name to lowercase and replace spaces/special chars with underscores
+    // TODO: CamelCase
     return this._chatfield.type.toLowerCase().replace(/[^a-z0-9]+/g, '_')
   }
 
