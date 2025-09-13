@@ -23,7 +23,6 @@ import {
 // @ts-ignore - module resolution issue
 import { toolsCondition } from '@langchain/langgraph/prebuilt'
 import { ChatOpenAI } from '@langchain/openai'
-import { tool as createLangChainTool } from '@langchain/core/tools'
 import { z } from 'zod'
 import { v4 as uuidv4 } from 'uuid'
 import { Interview } from './interview'
@@ -261,7 +260,42 @@ export class Interviewer {
     }
 
     const schema = z.object(argsSchema); // .describe(toolDesc);
-    const langchainTool = createLangChainTool(wrapperFunc, {name:toolName, description:toolDesc, schema:schema});
+    const langchainTool = {name:toolName, description:toolDesc, schema:schema};
+    return langchainTool;
+  }
+
+  private llmConcludeTool(state: InterviewStateType) {
+    // Return an llm-bindable tool with the correct definition, schema, etc.
+
+    // Build a schema for each field.
+    const argsSchema: Record<string, any> = {}
+
+    const interviewFieldNames = Object.keys(this.interview._chatfield.fields)
+    for (const fieldName of interviewFieldNames) {
+      const fieldMetadata = this.interview._chatfield.fields[fieldName];
+      const isConclude = fieldMetadata?.specs?.conclude;
+      if (! isConclude) {
+        console.log(`Skip non-conclude field in conclude args: ${fieldName}`);
+        continue;
+      }
+
+      const fieldSchema = this.buildFieldSchema(fieldName, fieldMetadata);
+
+      // Conclude fields are non-nullable, non-optional.
+      argsSchema[fieldName] = fieldSchema; // .nullable().optional()
+    }
+
+    const interview = this.getStateInterview(state);
+    const toolName = `conclude_${interview._id()}`;
+    const toolDesc = (
+      `Record key required information` +
+      ` about the ${interview._name()}` +
+      ` by summarizing, synthesizing, or recalling` +
+      ` the conversation so far with the ${interview._bob_role_name()}`
+    );
+
+    const schema = z.object(argsSchema); // .describe(toolDesc);
+    const langchainTool = {name:toolName, description:toolDesc, schema:schema};
     return langchainTool;
   }
 
@@ -696,19 +730,20 @@ ${fields.join('\n\n')}
   }
   
   private async digestConfidential(state: InterviewStateType): Promise<Partial<InterviewStateType>> {
-    const interview = this.getStateInterview(state)
-     // console.log(`Digest Confidential> ${interview?._name() || 'No interview'}`)
-    
-    if (!interview) {
+    const interview = this.getStateInterview(state);
+    if (! interview) {
        // console.log('No interview in digestConfidential state')
-      return {}
+      console.log(`Digest confidential: No interview in state`);
+      return {};
     }
     
+    console.log(`Digest Confidential: ${interview._name()}`);
     const fieldsPrompt: string[] = []
     const fieldDefinitions: Record<string, z.ZodTypeAny> = {}
     
     for (const [fieldName, chatfield] of Object.entries(interview._chatfield.fields)) {
       if (chatfield.specs.conclude) {
+        // console.log(`Skip conclude field in confidential digest: ${fieldName}`);
         continue
       }
       
@@ -719,14 +754,15 @@ ${fields.join('\n\n')}
         fieldDefinitions[fieldName] = fieldDefinition
       } else {
         // Force the LLM to pass null for values we don't need
-        fieldDefinitions[fieldName] = z.null().describe('Must be null because the field is already recorded')
+        // Actually, just do not mention it.
+        // fieldDefinitions[fieldName] = z.null().describe('Must be null because the field is already recorded')
       }
     }
     
     const fieldsPromptStr = fieldsPrompt.join('\n')
     
     // Build a special llm object bound to a tool which explicitly requires the proper arguments
-    const toolName = `update_${interview._id()}`
+    const toolName = `updateConfidential_${interview._id()}`
     const toolDesc = (
       `Record those confidential fields about the ${interview._name()} ` +
       `from the ${interview._bob_role_name()} ` +
@@ -734,11 +770,6 @@ ${fields.join('\n\n')}
     )
     
     const confidentialTool = z.object(fieldDefinitions).describe(toolDesc)
-    const llm = this.llm.bindTools([{
-      name: toolName,
-      description: toolDesc,
-      schema: confidentialTool
-    }])
     
     const sysMsg = new SystemMessage(
       `You have successfully recorded good ${interview._name()} fields. ` +
@@ -754,9 +785,15 @@ ${fields.join('\n\n')}
       `\n` +
       `${fieldsPromptStr}`
     )
+
+    const llm = this.llm.bindTools([{
+      name: toolName,
+      description: toolDesc,
+      schema: confidentialTool,
+    }]);
     
-    const allMessages = [...state.messages, sysMsg]
-    const llmResponseMessage = await llm.invoke(allMessages)
+    const allMessages = [...state.messages, sysMsg];
+    const llmResponseMessage = await llm.invoke(allMessages);
     
     // LangGraph wants only net-new messages. Its reducer will merge them.
     const newMessages = [sysMsg, llmResponseMessage]
@@ -764,15 +801,14 @@ ${fields.join('\n\n')}
   }
   
   private async digestConclude(state: InterviewStateType): Promise<Partial<InterviewStateType>> {
-    const interview = this.getStateInterview(state)
-     // console.log(`Digest Conclude> ${interview?._name() || 'No interview'}`)
-    
+    const interview = this.getStateInterview(state);
     if (!interview) {
-       // console.log('No interview in digestConclude state')
+      console.log(`Digest conclude: No interview`);
       return {}
     }
     
-    const llm = (this as any).llm_with_conclude
+    console.log(`Digest Conclude> ${interview._name()}`);
+
     const fieldsPrompt = this.makeFieldsPrompt(interview, 'conclude')
     const sysMsg = new SystemMessage(
       `You have successfully gathered enough information ` +
@@ -783,7 +819,10 @@ ${fields.join('\n\n')}
       `\n` +
       `${fieldsPrompt}`
     )
-    
+
+    // Define the tool for the LLM to call.
+    const concludeTool = this.llmConcludeTool(state);
+    const llm = this.llm.bindTools([concludeTool]);
     const allMessages = [...state.messages, sysMsg]
     const llmResponseMessage = await llm.invoke(allMessages)
     
@@ -821,6 +860,7 @@ ${fields.join('\n\n')}
           schema = z.string().describe(castPrompt)
           break
         case 'bool':
+        case 'boolean':
           schema = z.boolean().describe(castPrompt)
           break
         case 'list':
@@ -855,7 +895,7 @@ ${fields.join('\n\n')}
         }
 
         default:
-          throw new Error(`Cast ${castName} bad type: ${castType}; must be one of int, float, str, bool, list, set, dict, choice`)
+          throw new Error(`Bad type for cast ${castName}: ${castType}; must be one of int, float, str, bool, list, set, dict, choice`)
       }
       
       castsDefinitions[castName] = schema
@@ -885,6 +925,7 @@ ${fields.join('\n\n')}
       'float': (prompt) => z.number().describe(prompt),
       'str': (prompt) => z.string().describe(prompt),
       'bool': (prompt) => z.boolean().describe(prompt),
+      'boolean': (prompt) => z.boolean().describe(prompt),
       'list': (prompt) => z.array(z.any()).describe(prompt),
       'set': (prompt) => z.array(z.any()).describe(prompt),
       'dict': (prompt) => z.record(z.string(), z.any()).describe(prompt),
@@ -917,9 +958,9 @@ ${fields.join('\n\n')}
         
         castsDefinitions[castName] = schema.describe(prompt)
       } else {
-        const schemaFn = okPrimitiveTypes[castType]
+        const schemaFn = okPrimitiveTypes[castType];
         if (!schemaFn) {
-          throw new Error(`Cast ${castName} bad type: ${castType}; must be one of ${Object.keys(okPrimitiveTypes).join(', ')}`)
+          throw new Error(`Bad type for cast ${castName}: ${castType}; must be one of ${Object.keys(okPrimitiveTypes).join(', ')}`);
         }
         castsDefinitions[castName] = schemaFn(castPrompt)
       }
