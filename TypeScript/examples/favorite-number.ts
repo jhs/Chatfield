@@ -47,33 +47,33 @@ function createNumberInterview(): Gatherer {
             
             // Basic transformations
             .as_int()
-            // .as_float("The number as a floating point value")
-            // .as_percent("The number as a percentage of 100")
+            .as_float("The number as a floating point value")
+            .as_percent("The number as a percentage of 100")
             
             // // Language transformations
-            // .as_lang('fr', "French translation")
-            // .as_lang('de', "German translation")
-            // .as_lang('es', "Spanish translation")
-            // .as_lang('ja', "Japanese translation")
-            // .as_lang('th', "Thai translation")
+            .as_lang('fr', "French translation")
+            .as_lang('de', "German translation")
+            .as_lang('es', "Spanish translation")
+            .as_lang('ja', "Japanese translation")
+            .as_lang('th', "Thai translation")
             
             // // Boolean transformations with sub-attributes
-            // .as_bool('even', "True if even, False if odd")
-            // .as_bool('prime', "True if prime number")
-            // .as_bool('perfect_square', "True if perfect square")
-            // .as_bool('power_of_two', "True if power of two")
+            .as_bool('even', "True if even, False if odd")
+            .as_bool('prime', "True if prime number")
+            .as_bool('perfect_square', "True if perfect square")
+            .as_bool('power_of_two', "True if power of two")
             
             // // String transformation
-            // .as_str('longhand', "Written out in English words")
+            .as_str('longhand', "Written out in English words")
             
             // // Set transformation
-            // .as_set('factors', "All factors of the number")
+            .as_set('factors', "All factors of the number not counting 1")
             
             // // Cardinality decorators for properties
-            // .as_one('size_category', "tiny (1-10)", "small (11-25)", "medium (26-50)", "large (51-75)", "huge (76-100)")
-            // .as_maybe('special_property', "fibonacci", "perfect number", "triangular number")
-            // .as_multi('math_properties', "even", "odd", "prime", "composite", "square", "cubic")
-            // .as_any('cultural_significance', "lucky", "unlucky", "sacred", "mystical")
+            .as_one('size_category', "tiny (1-10)", "small (11-25)", "medium (26-50)", "large (51-75)", "huge (76-100)")
+            .as_maybe('special_property', "fibonacci", "perfect number", "triangular number")
+            .as_multi('math_properties', "even", "odd", "prime", "composite", "square", "cubic")
+            .as_any('cultural_significance', "lucky", "unlucky", "sacred", "mystical")
         
         .field("reason")
             .desc("Why is this your favorite number?")
