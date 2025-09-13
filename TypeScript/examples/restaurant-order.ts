@@ -42,7 +42,7 @@ function createRestaurantOrder() {
     .bob()
       .type("Diner")
       .trait.apply("First-time visitor")
-      .trait.possible("Vegan", "needs vegan, plant-based, non animal product")
+      // .trait.possible("Vegan", "needs vegan, plant-based, non animal product")
     
     .field("starter")
       .desc("starter or appetizer")
