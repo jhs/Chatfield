@@ -251,7 +251,7 @@ class Interviewer:
         
         for tool_call_invocation in tool_call_invocations:
             kwargs = tool_call_invocation['args']
-            tool_call_id = tool_call_invocation['id'] || ''
+            tool_call_id = tool_call_invocation['id'] or ''
             tool_call_name = tool_call_invocation['name']
             
             tool_message = self.run_tool(interview, tool_call_id, tool_call_name, kwargs)
@@ -441,7 +441,7 @@ class Interviewer:
         conclude_tool = self.llm_conclude_tool(state)
         llm = self.llm.bind_tools([conclude_tool])
         
-        fields_prompt = self.mkFieldsPrompt(interview, mode='conclude')
+        fields_prompt = self.mk_fields_prompt(interview, mode='conclude')
         sys_msg = SystemMessage(content=(
             f'You have successfully gathered enough information'
             f' to draw conclusions and record key information from this conversation.'
@@ -474,7 +474,7 @@ class Interviewer:
         prior_system_messages = [msg for msg in state['messages'] if isinstance(msg, SystemMessage)]
         if len(prior_system_messages) == 0:
             print(f'Start conversation in thread: {self.config["configurable"]["thread_id"]}')
-            system_prompt = self.mkSystemPrompt(state)
+            system_prompt = self.mk_system_prompt(state)
             new_system_message = SystemMessage(content=system_prompt)
 
         #
@@ -550,10 +550,10 @@ class Interviewer:
                 all_values[key] = val
             chatfield['value'] = all_values
 
-    def mkSystemPrompt(self, state: State) -> str:
+    def mk_system_prompt(self, state: State) -> str:
         interview = self._get_state_interview(state)
         collection_name = interview._name()
-        fields_prompt = self.mkFieldsPrompt(interview)
+        fields_prompt = self.mk_fields_prompt(interview)
 
         alice_traits = ''
         bob_traits = ''
@@ -616,7 +616,7 @@ class Interviewer:
         )
         return res
 
-    def mkFieldsPrompt(self, interview: Interview, mode='normal', field_names=None) -> str:
+    def mk_fields_prompt(self, interview: Interview, mode='normal', field_names=None) -> str:
         if mode not in ('normal', 'conclude'):
             raise ValueError(f'Bad mode: {mode!r}; must be "normal" or "conclude"')
 
