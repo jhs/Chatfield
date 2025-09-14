@@ -860,7 +860,6 @@ ${fields.join('\n\n')}
           schema = z.string().describe(castPrompt)
           break
         case 'bool':
-        case 'boolean':
           schema = z.boolean().describe(castPrompt)
           break
         case 'list':
@@ -925,7 +924,6 @@ ${fields.join('\n\n')}
       'float': (prompt) => z.number().describe(prompt),
       'str': (prompt) => z.string().describe(prompt),
       'bool': (prompt) => z.boolean().describe(prompt),
-      'boolean': (prompt) => z.boolean().describe(prompt),
       'list': (prompt) => z.array(z.any()).describe(prompt),
       'set': (prompt) => z.array(z.any()).describe(prompt),
       'dict': (prompt) => z.record(z.string(), z.any()).describe(prompt),
