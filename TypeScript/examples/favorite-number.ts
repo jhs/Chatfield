@@ -48,16 +48,16 @@ function createNumberInterview(): Gatherer {
             // Basic transformations
             .as_int()
             .as_float("The number as a floating point value")
-            .as_percent("The number as a percentage of 100")
+            .as_percent("The number as a real 0.0-1.0")
             
-            // // Language transformations
+            // Language transformations
             .as_lang('fr', "French translation")
             .as_lang('de', "German translation")
             .as_lang('es', "Spanish translation")
             .as_lang('ja', "Japanese translation")
             .as_lang('th', "Thai translation")
             
-            // // Boolean transformations with sub-attributes
+            // Boolean transformations with sub-attributes
             .as_bool('even', "True if even, False if odd")
             .as_bool('prime', "True if prime number")
             .as_bool('perfect_square', "True if perfect square")
