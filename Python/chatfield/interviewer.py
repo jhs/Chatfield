@@ -8,6 +8,7 @@ from pydantic import BaseModel, Field, conset, create_model
 from deepdiff import DeepDiff, extract
 
 from typing import Annotated, Any, Dict, Optional, TypedDict, List, Literal, Set
+from langchain_core.tools import tool
 from langchain_core.messages import HumanMessage, AIMessage, SystemMessage, ToolMessage
 from langgraph.graph import StateGraph, START, END
 from langgraph.types import Command, interrupt, Interrupt
@@ -187,14 +188,23 @@ class Interviewer:
         
         tool_name = f'update_{interview._id()}'
         tool_desc = f'Record valid information shared by the {interview._bob_role_name()} about the {interview._name()}'
-        
         UpdateToolArgs = create_model('UpdateToolArgs', **args_schema)
+
+        # This is not identical to the TypeScript implementation.
+        # TypeScript allows binding to the object with {name, description, args_schema},
+        # but that is not working in Python. For now, use the @tool decorator for a callable
+        # which never actually runs.
         
-        return {
-            'name': tool_name,
-            'description': tool_desc,
-            'args_schema': UpdateToolArgs
-        }
+        # return {
+        #     'name': tool_name,
+        #     'description': tool_desc,
+        #     'args_schema': UpdateToolArgs,
+        # }
+
+        @tool(tool_name, description=tool_desc, args_schema=UpdateToolArgs)
+        def wrapper(**kwargs):
+            raise Exception(f'This should not actually run: {tool_name} {kwargs!r}')
+        return wrapper
     
     def llm_conclude_tool(self, state: State):
         """Return an llm-bindable tool with the correct definition, schema, etc."""
@@ -224,12 +234,16 @@ class Interviewer:
         )
         
         ConcludeToolArgs = create_model('ConcludeToolArgs', **args_schema)
+
+        # This is not identical to the TypeScript implementation.
+        # TypeScript allows binding to the object with {name, description, args_schema},
+        # but that is not working in Python. For now, use the @tool decorator for a callable
+        # which never actually runs.
         
-        return {
-            'name': tool_name,
-            'description': tool_desc,
-            'args_schema': ConcludeToolArgs
-        }
+        @tool(tool_name, description=tool_desc, args_schema=ConcludeToolArgs)
+        def wrapper(**kwargs):
+            raise Exception(f'This should not actually run: {tool_name} {kwargs!r}')
+        return wrapper
     
     # Node
     def tools(self, state: State):
@@ -341,12 +355,16 @@ class Interviewer:
 
         ConfidentialToolArgs = create_model('ConfidentialToolArgs', **field_definitions)
         
-        llm = self.llm.bind_tools([{
-            'name': tool_name,
-            'description': tool_desc,
-            'args_schema': ConfidentialToolArgs
-        }])
+        # This is not identical to the TypeScript implementation.
+        # TypeScript allows binding to the object with {name, description, args_schema},
+        # but that is not working in Python. For now, use the @tool decorator for a callable
+        # which never actually runs.
+        
+        @tool(tool_name, description=tool_desc, args_schema=ConfidentialToolArgs)
+        def wrapper(**kwargs):
+            raise Exception(f'This should not actually run: {tool_name} {kwargs!r}')
 
+        llm = self.llm.bind_tools([wrapper])
         sys_msg = SystemMessage(content=(
             # f'You have successfully gathered enough information to'
             f'You have successfully recorded good {interview._name()} fields.'
