@@ -285,8 +285,8 @@ class Interviewer:
     
     def run_tool(self, interview: Interview, tool_call_id: str, tool_call_name: str, kwargs: Dict[str, Any]) -> ToolMessage:
         """Run a tool and return a ToolMessage."""
-        print(f'Run tool: {tool_call_id}> {kwargs!r}')
-        # TODO: This should really decide which tool to run. Currently it hard-codes process_tool_input.
+        print(f'Run tool {tool_call_name}: {tool_call_id} {kwargs!r}')
+        # TODO: This should really decide which tool to run. Currently it hard-codes process_update_tool.
         
         tool_error = None
         try:
@@ -701,7 +701,7 @@ class Interviewer:
 
         result = tools_condition(dict(state))
         if result == 'tools':
-            # print(f'Route: to tools')
+            print(f'Route: think -> tools')
             return 'tools'
 
         interview = self._get_state_interview(state)
