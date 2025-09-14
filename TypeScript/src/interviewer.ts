@@ -198,7 +198,7 @@ export class Interviewer {
     const priorSystemMessages = (state.messages || []).filter(msg => msg instanceof SystemMessage)
     if (priorSystemMessages.length === 0) {
       console.log(`Start conversation in thread: ${this.config.configurable.thread_id}`)
-      const systemPrompt = this.makeSystemPrompt(state)
+      const systemPrompt = this.mkSystemPrompt(state)
       newSystemMessage = new SystemMessage(systemPrompt)
     }
 
@@ -505,7 +505,7 @@ export class Interviewer {
     return fields.join('\n')
   }
 
-  private makeSystemPrompt(state: InterviewStateType): string {
+  mkSystemPrompt(state: InterviewStateType): string {
     const interview = this.getStateInterview(state) || this.interview
     const collectionName = interview._name()
     const theAlice = interview._alice_role_name()
