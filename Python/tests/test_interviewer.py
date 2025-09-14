@@ -142,7 +142,7 @@ def describe_interviewer():
             interviewer = Interviewer(interview)
             
             # Manually update field as if tool was called
-            interviewer.process_tool_input(interview, name={
+            interviewer.process_update_tool(interview, name={
                 'value': 'Test User',
                 'context': 'User provided their name',
                 'as_quote': 'My name is Test User'
@@ -165,9 +165,9 @@ def describe_interviewer():
             assert not interview._done
             
             # Set both fields
-            interviewer.process_tool_input(interview, 
+            interviewer.process_update_tool(interview, 
                 field1={'value': 'value1', 'context': 'N/A', 'as_quote': 'value1'})
-            interviewer.process_tool_input(interview,
+            interviewer.process_update_tool(interview,
                 field2={'value': 'value2', 'context': 'N/A', 'as_quote': 'value2'})
             
             # Should be done
@@ -185,7 +185,7 @@ def describe_interviewer():
             interviewer = Interviewer(interview)
             
             # Process tool input with transformations
-            interviewer.process_tool_input(interview, number={
+            interviewer.process_update_tool(interview, number={
                 'value': 'five',
                 'context': 'User said five',
                 'as_quote': 'The answer is five',

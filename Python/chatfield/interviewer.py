@@ -290,7 +290,7 @@ class Interviewer:
         
         tool_error = None
         try:
-            self.process_tool_input(interview, **kwargs)
+            self.process_update_tool(interview, **kwargs)
         except Exception as er:
             tool_error = er
         
@@ -537,7 +537,7 @@ class Interviewer:
         new_messages.append(llm_response_message)
         return {'messages':new_messages}
     
-    def process_tool_input(self, interview: Interview, **kwargs):
+    def process_update_tool(self, interview: Interview, **kwargs):
         """
         Move any LLM-provided field values into the interview state.
         """
