@@ -301,7 +301,7 @@ export class FieldBuilder<
     this.as_int = createCastBuilder(this, 'as_int', 'int', 'parse as integer', false)
     this.as_float = createCastBuilder(this, 'as_float', 'float', 'parse as float', false)
     this.as_bool = createCastBuilder(this, 'as_bool', 'bool', 'parse as boolean', false)
-    this.as_percent = createCastBuilder(this, 'as_percent', 'float', 'parse as percentage (0-100)', false)
+    this.as_percent = createCastBuilder(this, 'as_percent', 'float', 'parse as percentage (0.0 to 1.0)', false)
     this.as_list = createCastBuilder(this, 'as_list', Array, 'parse as list/array', false)
     this.as_set = createCastBuilder(this, 'as_set', Set, 'parse as unique set', false)
     this.as_dict = createCastBuilder(this, 'as_dict', Object, 'parse as key-value dictionary', false)
