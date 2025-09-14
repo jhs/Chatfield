@@ -130,45 +130,6 @@ def describe_interviewer():
             assert "Reject: profanity" in prompt
             # Note: Hints are included in specs but may not appear in system prompt
 
-    def describe_tool_generation():
-        """Tests for tool generation for fields."""
-        
-        @patch('chatfield.interviewer.init_chat_model')
-        def it_creates_tool_for_each_field(mock_init_model):
-            """Creates tool for each field."""
-            mock_llm = Mock()
-            mock_init_model.return_value = mock_llm
-            
-            interview = (chatfield()
-                .type("SimpleInterview")
-                .field("field1").desc("Field 1")
-                .field("field2").desc("Field 2")
-                .build())
-            interviewer = Interviewer(interview)
-            
-            # Tool should be bound to LLM
-            assert hasattr(interviewer.llm_with_both, 'bind_tools')
-        
-        @patch('chatfield.interviewer.init_chat_model')
-        def it_includes_transformations_in_tool_schema(mock_init_model):
-            """Includes transformations in tool schema."""
-            mock_llm = Mock()
-            mock_init_model.return_value = mock_llm
-            
-            interview = (chatfield()
-                .type("TypedInterview")
-                .field("number")
-                    .desc("A number")
-                    .as_int()
-                    .as_bool()
-                    .as_lang('fr')
-                .build())
-            interviewer = Interviewer(interview)
-            
-            # Tool args should include transformations
-            # This is complex to test without running the actual tool
-            assert interviewer.llm_with_both is not None
-
     def describe_conversation_flow():
         """Tests for conversation flow management."""
         
