@@ -866,7 +866,7 @@ ${fields.join('\n\n')}
           schema = z.array(z.any()).describe(castPrompt)
           break
         case 'set':
-          schema = z.array(z.any()).describe(castPrompt)
+          schema = z.set(z.any()).describe(castPrompt)
           break
         case 'dict':
           schema = z.record(z.string(), z.any()).describe(castPrompt)
@@ -894,7 +894,7 @@ ${fields.join('\n\n')}
         }
 
         default:
-          throw new Error(`Bad type for cast ${castName}: ${castType}; must be one of int, float, str, bool, list, set, dict, choice`)
+          throw new Error(`Bad type for cast "${castName}" as ${castType}: must be one of int, float, str, bool, list, set, dict, choice`)
       }
       
       castsDefinitions[castName] = schema
