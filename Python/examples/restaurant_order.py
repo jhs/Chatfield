@@ -47,16 +47,16 @@ def create_restaurant_order():
         
         .field("starter")
             .desc("starter or appetizer")
-            .as_one.selection("Sir Digby Chicken Caesar", "Shrimp cocktail", "Garden salad")
+            .as_one("selection", "Sir Digby Chicken Caesar", "Shrimp cocktail", "Garden salad")
         
         .field("main_course")
             .desc("Main course")
             .hint("Choose from: Grilled salmon, Veggie pasta, Beef tenderloin, Chicken parmesan")
-            .as_one.selection("Grilled salmon", "Veggie pasta", "Beef tenderloin", "Chicken parmesan")
+            .as_one("selection", "Grilled salmon", "Veggie pasta", "Beef tenderloin", "Chicken parmesan")
         
         .field("dessert")
             .desc("Mandatory dessert; choices: Cheesecake, Creamy Chocolate mousse, Fruit sorbet")
-            .as_one.selection("Cheesecake", "Creamy Chocolate mousse", "Fruit sorbet")
+            .as_one("selection", "Cheesecake", "Creamy Chocolate mousse", "Fruit sorbet")
 
         .field("hurry")
             .desc("wishes to be served quickly")

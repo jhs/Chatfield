@@ -55,7 +55,7 @@ def create_number_interview():
             # Basic transformations
             .as_int()
             .as_float("The number as a floating point value")
-            .as_percent("The number as a percentage of 100")
+            .as_percent("The number as a real 0.0-1.0")
             
             # Language transformations
             .as_lang('fr', "French translation")
@@ -74,7 +74,7 @@ def create_number_interview():
             .as_str('longhand', "Written out in English words")
             
             # Set transformation
-            .as_set('factors', "All factors of the number")
+            .as_set('factors', "All factors of the number not counting 1")
             
             # Cardinality decorators for properties
             .as_one('size_category', "tiny (1-10)", "small (11-25)", "medium (26-50)", "large (51-75)", "huge (76-100)")
