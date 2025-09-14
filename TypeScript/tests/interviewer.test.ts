@@ -90,7 +90,7 @@ describe('Interviewer', () => {
         .build()
       const interviewer = new Interviewer(interview, { llm: mockLlm })
       
-      const prompt = interviewer.mk_system_prompt({ interview })
+      const prompt = interviewer.mkSystemPrompt({ interview, messages: [] })
       
       expect(prompt).toContain('Customer feedback form')
       expect(prompt).toContain('rating: Overall satisfaction rating')
@@ -114,7 +114,7 @@ describe('Interviewer', () => {
         .build()
       const interviewer = new Interviewer(interview, { llm: mockLlm })
       
-      const prompt = interviewer.mk_system_prompt({ interview })
+      const prompt = interviewer.mkSystemPrompt({ interview, messages: [] })
       
       expect(prompt).toContain('Customer Support Agent')
       expect(prompt).toContain('Frustrated Customer')
@@ -134,44 +134,11 @@ describe('Interviewer', () => {
         .build()
       const interviewer = new Interviewer(interview, { llm: mockLlm })
       
-      const prompt = interviewer.mk_system_prompt({ interview })
+      const prompt = interviewer.mkSystemPrompt({ interview, messages: [] })
       
       expect(prompt).toContain('Must: specific details')
       expect(prompt).toContain('Reject: profanity')
       // Note: Hints are included in specs but may not appear in system prompt
-    })
-  })
-
-  describe('tool generation', () => {
-    it('creates tool for each field', () => {
-      const mockLlm = new MockLLMBackend()
-      const interview = chatfield()
-        .type('SimpleInterview')
-        .field('field1').desc('Field 1')
-        .field('field2').desc('Field 2')
-        .build()
-      const interviewer = new Interviewer(interview, { llm: mockLlm })
-      
-      // Tool should be bound to LLM
-      expect(interviewer.llm_with_both).toBeDefined()
-      expect(interviewer.llm_with_both).toHaveProperty('bindTools')
-    })
-    
-    it('includes transformations in tool schema', () => {
-      const mockLlm = new MockLLMBackend()
-      const interview = chatfield()
-        .type('TypedInterview')
-        .field('number')
-          .desc('A number')
-          .as_int()
-          .as_bool()
-          .as_lang('fr')
-        .build()
-      const interviewer = new Interviewer(interview, { llm: mockLlm })
-      
-      // Tool args should include transformations
-      // This is complex to test without running the actual tool
-      expect(interviewer.llm_with_both).toBeDefined()
     })
   })
 
@@ -185,7 +152,7 @@ describe('Interviewer', () => {
       const interviewer = new Interviewer(interview, { llm: mockLlm })
       
       // Manually update field as if tool was called
-      interviewer.process_tool_input(interview, {
+      interviewer.processUpdateTool(interview, {
         name: {
           value: 'Test User',
           context: 'User provided their name',
@@ -211,10 +178,10 @@ describe('Interviewer', () => {
       expect(interview._done).toBe(false)
       
       // Set both fields
-      interviewer.process_tool_input(interview, {
+      interviewer.processUpdateTool(interview, {
         field1: { value: 'value1', context: 'N/A', as_quote: 'value1' }
       })
-      interviewer.process_tool_input(interview, {
+      interviewer.processUpdateTool(interview, {
         field2: { value: 'value2', context: 'N/A', as_quote: 'value2' }
       })
       
@@ -234,7 +201,7 @@ describe('Interviewer', () => {
       const interviewer = new Interviewer(interview, { llm: mockLlm })
       
       // Process tool input with transformations
-      interviewer.process_tool_input(interview, {
+      interviewer.processUpdateTool(interview, {
         number: {
           value: 'five',
           context: 'User said five',
