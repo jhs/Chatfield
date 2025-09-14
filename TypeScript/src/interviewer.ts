@@ -371,7 +371,7 @@ export class Interviewer {
       // I did not think this would be possible. But we can rebuild a proper Interview object
       // from the ._chatfield property.
       // console.log(`State interview is a plain object - rebuilding Interview instance from _chatfield`)
-      const cf = interview._chatfield;
+      const cf = (interview as any)._chatfield;
       interview = new Interview(cf.type, cf.desc, cf.roles, cf.fields);
     }
 
@@ -600,13 +600,6 @@ export class Interviewer {
 ${descriptionSection}
 ${fields.join('\n\n')}
 `
-  }
-
-  /**
-   * Generate system prompt for the conversation (Python compatibility)
-   */
-  mk_system_prompt(state: { interview: Interview }): string {
-    return this.makeSystemPrompt({ interview: this.getStateInterview(state), messages: [] } as any)
   }
 
   /**
