@@ -88,17 +88,17 @@ function createCastBuilder<TParent extends FieldBuilder<any, any>>(
     
     // Store the cast
     // Special handling for int vs float distinction
-    let typeStr: string
-    if (primitiveType === Number && baseName === 'as_int') {
-      typeStr = 'int'
-    } else if (primitiveType === Number && baseName === 'as_float') {
-      typeStr = 'float'
-    } else if (primitiveType === Number && baseName === 'as_percent') {
-      typeStr = 'float'  // Percents are floats (0.0-1.0)
-    } else if (typeof primitiveType === 'function') {
-      typeStr = primitiveType.name.toLowerCase()
+    let typeStr: string;
+    if (typeof primitiveType === 'string') {
+      typeStr = primitiveType;
+    } else if (primitiveType === Array) {
+      typeStr = 'list';
+    } else if (primitiveType === Set) {
+      typeStr = 'set';
+    } else if (primitiveType === Object) {
+      typeStr = 'dict';
     } else {
-      typeStr = String(primitiveType)
+      throw new Error(`Unsupported primitive type for cast builder: ${primitiveType}`);
     }
     
     const castInfo: CastInfo = {
@@ -297,24 +297,23 @@ export class FieldBuilder<
     // Set as current field
     this.parent._currentField = fieldName as string
     
-    // Initialize cast builders
-    // Basic type casts (no sub-attributes)
-    this.as_int = createCastBuilder(this, 'as_int', Number, 'parse as integer', false)
-    this.as_float = createCastBuilder(this, 'as_float', Number, 'parse as float', false)
-    this.as_bool = createCastBuilder(this, 'as_bool', Boolean, 'parse as boolean', false)
-    this.as_percent = createCastBuilder(this, 'as_percent', Number, 'parse as percentage (0-100)', false)
+    // Casts
+    this.as_int = createCastBuilder(this, 'as_int', 'int', 'parse as integer', false)
+    this.as_float = createCastBuilder(this, 'as_float', 'float', 'parse as float', false)
+    this.as_bool = createCastBuilder(this, 'as_bool', 'bool', 'parse as boolean', false)
+    this.as_percent = createCastBuilder(this, 'as_percent', 'float', 'parse as percentage (0-100)', false)
     this.as_list = createCastBuilder(this, 'as_list', Array, 'parse as list/array', false)
     this.as_set = createCastBuilder(this, 'as_set', Set, 'parse as unique set', false)
     this.as_dict = createCastBuilder(this, 'as_dict', Object, 'parse as key-value dictionary', false)
     this.as_obj = this.as_dict  // Alias
-    this.as_context = createCastBuilder(this, 'as_context', String, 'capture conversational context', false)
-    this.as_quote = createCastBuilder(this, 'as_quote', String, 'capture direct user quote', false)
+    this.as_context = createCastBuilder(this, 'as_context', 'str', 'capture conversational context', false)
+    this.as_quote = createCastBuilder(this, 'as_quote', 'str', 'capture direct user quote', false)
     
     // Sub-attribute casts
-    this.as_str = createCastBuilder(this, 'as_str', String, 'format as {name}', false)
+    this.as_str = createCastBuilder(this, 'as_str', 'str', 'format as {name}', false)
     
     // Mandatory sub-name cast (requires at least 1 arg)
-    this.as_lang = createCastBuilder(this, 'as_lang', String, 'translate to {name}', true)
+    this.as_lang = createCastBuilder(this, 'as_lang', 'str', 'translate to {name}', true)
     
     // Initialize choice builders
     this.as_one = createChoiceBuilder(this, 'as_one', false, false)
