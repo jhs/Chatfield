@@ -4,10 +4,10 @@ Favorite Number Example
 =======================
 
 This example demonstrates the extensive transformation system:
-- Basic transformations (@as_int, @as_float, @as_bool)
-- Language transformations (@as_lang.fr, @as_lang.th, etc.)
-- Set and list transformations (@as_set, @as_list)
-- Cardinality decorators (@as_one, @as_maybe, @as_multi, @as_any)
+- Basic transformations (as_int, as_float, as_bool)
+- Language transformations (as_lang)
+- Set and list transformations (as_set, as_list)
+- Cardinality decorators (as_one, as_maybe, as_multi, as_any)
 - Complex sub-attribute transformations
 
 Run with:
@@ -28,10 +28,6 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from chatfield import chatfield
 from chatfield import Interviewer
-from chatfield import alice, bob, must, hint
-from chatfield import as_int, as_float, as_bool, as_str, as_set, as_percent
-from chatfield import as_lang
-from chatfield import as_one, as_maybe, as_multi, as_any
 
 
 def create_number_interview():
@@ -50,7 +46,11 @@ def create_number_interview():
         .field("favorite")
             .desc("What is your favorite number?")
             .must("a number between 1 and 100")
-            .hint("Think about a number that has special meaning to you")
+            .reject("Obscure like 73 or 88")
+            .reject("Too common like 7 or 10")
+            .must("A whole number")
+            .reject("Cliche like 42")
+            .hint("Do not cite the validation rules unless asked or an invalid answer is given")
             
             # Basic transformations
             .as_int()
@@ -70,13 +70,13 @@ def create_number_interview():
             .as_bool('perfect_square', "True if perfect square")
             .as_bool('power_of_two', "True if power of two")
             
-            # String transformation
+            # # String transformation
             .as_str('longhand', "Written out in English words")
             
-            # Set transformation
+            # # Set transformation
             .as_set('factors', "All factors of the number not counting 1")
             
-            # Cardinality decorators for properties
+            # # Cardinality decorators for properties
             .as_one('size_category', "tiny (1-10)", "small (11-25)", "medium (26-50)", "large (51-75)", "huge (76-100)")
             .as_maybe('special_property', "fibonacci", "perfect number", "triangular number")
             .as_multi('math_properties', "even", "odd", "prime", "composite", "square", "cubic")
@@ -84,7 +84,7 @@ def create_number_interview():
         
         .field("reason")
             .desc("Why is this your favorite number?")
-            .hint("Share what makes this number special to you")
+            .hint("Perhaps from a well-known reference or personal experience")
         
         .build())
 
