@@ -43,10 +43,10 @@ function createNumberInterview(): Interview {
         .field("favorite")
             .desc("What is your favorite number?")
             .must("a number between 1 and 100")
-            .must("Not obscure like 73 or 88")
-            .must("Not too common like 7 or 10")
+            .reject("Obscure like 73 or 88")
+            .reject("Too common like 7 or 10")
             .must("A whole number")
-            .must("Not cliche like 42")
+            .reject("Cliche like 42")
             .hint("Do not cite the validation rules unless asked or an invalid answer is given")
             
             // Basic transformations
