@@ -13,7 +13,7 @@ Chatfield provides implementations in both Python and TypeScript/JavaScript, all
 - **Type Safety**: Full type support in both Python and TypeScript
 - **Rich Transformations**: Convert responses into any data type with casts
 - **Framework Integration**: React components, CopilotKit support, and more
-- **Flexible APIs**: Multiple API styles to suit different preferences
+- **Fluent Builder API**: Clean, intuitive method chaining for configuration
 
 ## Quick Start
 
@@ -695,41 +695,7 @@ console.log(`Salary: ${jobApplication.salaryExpectation.as_str_formatted}`)
 console.log(`Recommendation: ${jobApplication.recommendation}`)
 ```
 
-## Alternative APIs
-
-### Decorator API (Python)
-```python
-from chatfield import Interview, alice, bob
-from chatfield import must, reject, hint
-from chatfield import as_int, as_bool, as_lang, as_multi
-
-@alice("Recruiter")
-@alice.trait("Professional and friendly")
-@bob("Job Applicant")
-class JobApplication(Interview):
-    """Collecting job application details"""
-    
-    @must("include first and last name")
-    def full_name(): 
-        "Your complete name"
-    
-    @must("be between 0 and 50")
-    @as_int
-    def years_experience(): 
-        "Years of relevant experience"
-    
-    @as_multi("Python", "JavaScript", "Go", "Rust")
-    def languages(): 
-        "Programming languages you know"
-    
-    @as_bool
-    def requires_visa(): 
-        "Do you require visa sponsorship?"
-
-# Use the decorated class
-app = JobApplication()
-interviewer = Interviewer(app)
-```
+## Builder API Features
 
 ### Special Transformations
 
@@ -825,18 +791,17 @@ completion = metrics.completion.as_percent  # 0.75 (float between 0.0-1.0)
 This repository contains two parallel implementations:
 
 ### `/Python` - Python Implementation
-- Decorator-based API with LangGraph orchestration
-- Builder pattern as alternative API
+- Builder pattern API with LangGraph orchestration
 - OpenAI integration with extensible LLM support
 - Rich validation and transformation system
 - Full async support and type hints
 
 ### `/TypeScript` - TypeScript/JavaScript Implementation  
 - NPM package `@chatfield/core`
-- Primary builder pattern API
+- Builder pattern API
 - React hooks and components
 - CopilotKit integration
-- Multiple API styles (builder, decorator, schema)
+- Schema-driven configuration support
 
 ## Installation
 
@@ -863,7 +828,7 @@ npm install
 
 Both implementations share the same core concepts but are tailored to their respective ecosystems:
 
-- **Python**: Uses decorators, LangGraph for orchestration, and async/await patterns
+- **Python**: Uses builder pattern, LangGraph for orchestration, and async/await patterns
 - **TypeScript**: Provides React integration, builder patterns, and full type safety
 
 ### Contributing
@@ -899,4 +864,4 @@ export OPENAI_API_KEY=your-api-key
 
 ## Status
 
-Both implementations are in active development with feature parity as a goal. The Python implementation currently has more complete decorator support, while the TypeScript implementation offers better framework integrations.
+Both implementations are in active development with feature parity as a goal. Both use the builder pattern API for clean, intuitive configuration, with the TypeScript implementation offering additional framework integrations.

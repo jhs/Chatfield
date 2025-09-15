@@ -213,7 +213,7 @@ support_ticket.impact               # "Critical - blocking all work"
 support_ticket.impact.as_quote      # "We literally can't do anything until this is fixed!"
 ```
 
-The `.as_context()` decorator captures relevant conversational context that led to the field value, while `.as_quote()` preserves the exact words used by the user, including formatting like ellipses, multiple paragraphs, and clarifying brackets.
+The `.as_context()` method captures relevant conversational context that led to the field value, while `.as_quote()` preserves the exact words used by the user, including formatting like ellipses, multiple paragraphs, and clarifying brackets.
 
 ## Choice Cardinality
 
@@ -545,21 +545,9 @@ Control selection from choices:
 - `Interview._done` - Check if all fields are collected  
 - `Interview._pretty()` - Get formatted representation of collected data
 
-### Legacy Decorator API
+### Note on API Evolution
 
-The original decorator-based API is still available for backward compatibility:
-
-```python
-from chatfield import Interview, alice, bob, must, as_int
-
-@alice("Interviewer")
-class MyInterview(Interview):
-    @must("specific answer")
-    @as_int
-    def age(): "Your age"
-```
-
-However, the builder API is now recommended for new projects as it provides better IDE support and a more intuitive interface.
+Chatfield now uses exclusively the builder pattern API for clean, intuitive configuration. This provides better IDE support, clearer syntax, and improved maintainability.
 
 ## Requirements
 

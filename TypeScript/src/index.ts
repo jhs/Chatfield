@@ -40,18 +40,6 @@ export type {
   RoleMeta
 } from './builder-types'
 
-// Decorators - mirroring Python
-export { 
-  alice, 
-  bob,
-  must, 
-  reject, 
-  hint,
-  // Type transformations (will be added later)
-  // as_int, as_float, as_bool, as_str, as_list, as_dict, as_set, as_obj,
-  // as_lang, as_percent,
-  // as_any, as_one, as_maybe, as_multi
-} from './decorators'
 
 // Metadata classes  
 export { FieldMeta } from './interview'
@@ -71,4 +59,3 @@ export { Interview as Gatherer } from './interview'
 export { Interview as GathererInstance } from './interview'
 export type { InterviewSchema as GathererSchema } from './types'
 export type { InterviewOptions as GathererOptions } from './types'
-export { alice as agent, bob as user } from './decorators'

@@ -7,7 +7,7 @@ Transform rigid forms into natural conversations with LLMs - TypeScript/JavaScri
 1. Use `npm run min` and get two things working
     1. The interrupt system to get user input
     2. The tool calling
-2. Go back to defining details: alice ID, alice traits, bob ID, bob traits, and especially the decorators and the casts.
+2. Go back to defining details: alice ID, alice traits, bob ID, bob traits, and especially the builder API and the casts.
 
 ## Installation
 

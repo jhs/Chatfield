@@ -28,7 +28,6 @@ TypeScript/
 │   ├── interviewer.ts           # LangGraph-based conversation orchestration  
 │   ├── builder.ts               # Builder pattern API (primary interface)
 │   ├── builder-types.ts         # TypeScript type definitions for builder
-│   ├── decorators.ts            # Decorator implementations (experimental)
 │   ├── field-proxy.ts           # FieldProxy string subclass for transformations
 │   ├── types.ts                 # Core type definitions
 │   └── integrations/            # Framework integrations
@@ -50,7 +49,6 @@ TypeScript/
 │   ├── basic-usage.ts           # Simple builder pattern example
 │   ├── job-interview.ts         # Job application (mirrors Python)
 │   ├── restaurant-order.ts      # Restaurant ordering
-│   ├── decorator-usage.ts       # Decorator API examples
 │   ├── schema-based.ts          # Schema-driven approach
 │   └── type-safe-demo.ts        # TypeScript type inference demo
 ├── dist/                        # Compiled output (generated)
@@ -119,10 +117,6 @@ node dist/examples/basic-usage.js           # Run compiled example
    - Provides transformation access (`.as_int`, `.as_lang_fr`, etc.)
    - Mirrors Python's FieldProxy behavior
 
-5. **Decorators** (`src/decorators.ts`)
-   - Experimental decorator support
-   - Uses reflect-metadata for metadata storage
-   - Provides Python-like decorator syntax
 
 ### Key Dependencies
 
@@ -131,7 +125,6 @@ node dist/examples/basic-usage.js           # Run compiled example
 - **@langchain/openai** (0.6.9+): OpenAI LLM integration
 - **openai** (4.70.0+): Direct OpenAI API client
 - **zod** (3.25.76+): Runtime type validation for tools
-- **reflect-metadata**: Decorator metadata support
 - **uuid** (11.1.0+): Unique ID generation
 
 ## Testing Approach
@@ -232,9 +225,9 @@ const interviewer = new Interviewer(interview, { llm: mockLlm })
 
 1. **Async by default**: All operations use async/await
 2. **Type safety**: Full TypeScript type inference and checking
-3. **Builder primary**: Builder pattern is primary API (decorators experimental)
+3. **Builder primary**: Builder pattern is primary API
 4. **React focus**: Built-in React hooks and components
-5. **No method discovery**: Fields defined via builder, not class methods
+5. **Field definition**: Fields defined via builder pattern
 6. **Zod validation**: Uses Zod for runtime type validation in tools
 7. **Import style**: Absolute imports from `src/` directory
 
