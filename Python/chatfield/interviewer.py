@@ -570,20 +570,26 @@ class Interviewer:
     def mk_system_prompt(self, state: State) -> str:
         interview = self._get_state_interview(state)
         collection_name = interview._name()
-        fields_prompt = self.mk_fields_prompt(interview)
+        theAlice = interview._alice_role_name()
+        theBob = interview._bob_role_name()
+        
+        # Count validation rules - will be updated by mk_fields_prompt
+        counters = {'hint': 0, 'must': 0, 'reject': 0}
+        
+        fields_prompt = self.mk_fields_prompt(interview, counters=counters)
 
         alice_traits = ''
         bob_traits = ''
 
         traits = interview._alice_role().get('traits', [])
         if traits:
-            alice_traits = f'# Traits and Characteristics about the {interview._alice_role_name()}\n\n'
+            alice_traits = f'# Traits and Characteristics about the {theAlice}\n\n'
             # Maintain source-code order, since decorators apply bottom-up.
             alice_traits += '\n'.join(f'- {trait}' for trait in reversed(traits))
 
         traits = interview._bob_role().get('traits', [])
         if traits:
-            bob_traits = f'# Traits and Characteristics about the {interview._bob_role_name()}\n\n'
+            bob_traits = f'# Traits and Characteristics about the {theBob}\n\n'
             # Maintain source-code order, since decorators apply bottom-up.
             bob_traits += '\n'.join(f'- {trait}' for trait in reversed(traits))
 
@@ -599,41 +605,88 @@ class Interviewer:
                 alice_and_bob += '\n\n'
             alice_and_bob += bob_traits
 
-        # TODO: Is it helpful at all to mention the tools in the system prompt?
-        # tool_name = 'update_interview'
-        use_tools = (
-            f' As soon as you encounter relevant information in conversation,'
-            f' immediately use tools to record information fields'
-            f' and their related "casts",'
-            f' which are cusom conversions you provide for each field.'
-        #     f' When you identify valid information to collect,'
-        #     f' Use the {tool_name} tool, followed by a response to the {interview._bob_role_name()}.'
-        )
-        # use_tools = ''
+        # Build description section if provided
+        description_section = ''
+        if interview._chatfield['desc']:
+            description_section = f'\n\n## Description\n\n{interview._chatfield["desc"]}'
 
+        explain_fields = ''
+        
+        if counters['must'] > 0 or counters['reject'] > 0:
+            # Explain how validation works
+            labels_and = ''
+            labels_or = ''
+            how_it_works = ''
+            
+            if counters['must'] > 0 and counters['reject'] == 0:
+                # Must only
+                labels_and = '"Must"'
+                labels_or = '"Must"'
+                how_it_works = 'All "Must" rules must pass for the field to be valid.'
+            elif counters['must'] == 0 and counters['reject'] > 0:
+                # Reject only
+                labels_and = '"Reject"'
+                labels_or = '"Reject"'
+                how_it_works = 'Any "Reject" rule which does not pass causes the field to be invalid.'
+            elif counters['must'] > 0 and counters['reject'] > 0:
+                # Both must and reject
+                labels_and = '"Must" and "Reject"'
+                labels_or = '"Must" or "Reject"'
+                how_it_works = (
+                    'All "Must" rules associated with a field must pass for the field to be valid.'
+                    '\n\n'
+                    'Any "Reject" rule associated with a field which does not pass causes the field to be invalid.'
+                )
+            
+            explain_fields += (
+                f'\n\n# Validation Rules: {labels_and}\n\n'
+                f'Always ensure that all {labels_and} rules are satisfied before recording information.'
+                f'\n\n'
+                f'{how_it_works}'
+                f'\n\n'
+                f'If the {theBob} provides information not satisfying {labels_or} rules,'
+                f' explain the situation'
+                f' in a manner suitable for the {theAlice} role.'
+            )
+        
+        if counters['hint'] > 0:
+            explain_fields += (
+                '\n\n# How Hints Work\n\n'
+                'Fields may have one or more "Hints", which are clarifications to you,'
+                ' or "tooltip"-style explanations,'
+                ' or example content.'
+                f' Remember these hints, and provide this information to the {theBob} as needed.'
+            )
+            
+            if counters['must'] > 0 or counters['reject'] > 0:
+                # Hints override validation
+                explain_fields += (
+                    '\n\n'
+                    f'To explain main ideas or examples to the {theBob}, use Hints.'
+                    ' Mention specific validation rules as they become relevant in conversation.'
+                )
+
+        # TODO: Do not mention casts if there are no casts.
+        # TODO: Maybe remind the LLM about the validation rules later in conversation, or at/around tool calls.
         res = (
-            f'You are the conversational {interview._alice_role_name()} focused on gathering key information in conversation with the {interview._bob_role_name()},'
-            # f' into a collection called {collection_name},'
-            f' detailed below.'
-            f'{with_traits}'
-            # f' You begin the conversation in the most suitable way.'
-            f'{use_tools}'
-            f' Although the {interview._bob_role_name()} may take the conversation anywhere, your response must fit the conversation and your respective roles'
-            f' while refocusing the discussion so that you can gather clear key {collection_name} information from the {interview._bob_role_name()}.'
+            f'You are the conversational {theAlice} focused on gathering key information'
+            f' in conversation with the {theBob}, detailed below.{with_traits}'
+            f' As soon as you encounter relevant information in conversation, immediately use tools to record information'
+            f' fields and their related "casts", which are cusom conversions you provide for each field.'
+            f' Although the {theBob} may take the conversation anywhere, your response must fit the conversation and your'
+            f' respective roles while refocusing the discussion so that you can gather'
+            f' clear key {collection_name} information from the {theBob}.'
             f'{alice_and_bob}'
+            f'{explain_fields}'
             f'\n\n----\n\n'
-            f'# Collection: {collection_name}\n'
-            f'\n'
-            f'## Description\n'
-            f'{interview._chatfield["desc"]}'
-            f'\n\n'
-            f'## Fields to Collect\n'
-            f'\n'
-            f'{fields_prompt}\n'
+            f'# Collection: {collection_name}'
+            f'{description_section}'
+            f'\n\n## Fields to Collect\n\n'
+            f'{fields_prompt}'
         )
         return res
 
-    def mk_fields_prompt(self, interview: Interview, mode='normal', field_names=None) -> str:
+    def mk_fields_prompt(self, interview: Interview, mode='normal', field_names=None, counters=None) -> str:
         if mode not in ('normal', 'conclude'):
             raise ValueError(f'Bad mode: {mode!r}; must be "normal" or "conclude"')
 
@@ -662,15 +715,19 @@ class Interviewer:
 
             if specs['confidential']:
                 specs_prompts.append(
-                    f'**Confidential**:'
-                    f' Do not inquire about this explicitly nor bring it up yourself. Continue your normal behavior.'
+                    f'    - **Confidential**: Do not inquire about this explicitly nor bring it up yourself. Continue your normal behavior.'
                     f' However, if the {interview._bob_role_name()} ever volunteers or implies it, you must record this information.'
                 )
 
             for spec_name, predicates in specs.items():
                 if spec_name not in ('confidential', 'conclude'):
+                    # Count validation rules if counters provided
+                    if counters is not None and predicates:
+                        if spec_name in ('hint', 'must', 'reject'):
+                            counters[spec_name] += len(predicates)
+                    
                     for predicate in predicates:
-                        specs_prompts.append(f'{spec_name.capitalize()}: {predicate}')
+                        specs_prompts.append(f'    - {spec_name.capitalize()}: {predicate}')
             
             casts = chatfield.get('casts', {})
             casts_prompts = []
@@ -682,17 +739,17 @@ class Interviewer:
             # Disable casts for the system prompt becauase they are required parameters for the tool call.
             casts_prompts = []
 
-            field_specs = '\n'.join(f'    - {spec}' for spec in specs_prompts) + '\n' if specs_prompts else ''
-            field_casts = '\n'.join(f'    - {cast}' for cast in casts_prompts) + '\n' if casts_prompts else ''
-
-            field_prompt = (
-                f'- {field_label}\n'
-                f'{field_specs}'
-                f'{field_casts}'
-            )
+            field_prompt = f'- {field_label}'
+            if specs_prompts:
+                field_prompt += '\n' + '\n'.join(specs_prompts)
+            
+            # Casts are disabled in system prompt as per comment
+            # if casts_prompts:
+            #     field_prompt += '\n' + '\n'.join(f'    - {cast}' for cast in casts_prompts)
+            
             fields.append(field_prompt)
 
-        fields = '\n'.join(fields)
+        fields = '\n\n'.join(fields)
         return fields
     
     def route_from_think(self, state: State) -> str:
