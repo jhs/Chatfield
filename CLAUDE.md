@@ -169,18 +169,18 @@ npx tsx minimal.ts                                  # Test OpenAI API connection
 - **Data Storage**: `_chatfield` dictionary structure on Interview instances
 - **Transformations**: FieldProxy provides `field.as_int`, `field.as_lang_fr`, etc.
 - **Testing**: pytest with pytest-describe for BDD-style test organization
-- **Dependencies**: langchain (0.3.27+), langgraph (0.6.4+), langchain-openai (0.3.29+), openai (1.99.6+), pydantic (2.11.7+)
+- **Dependencies**: langchain (0.3.27+), langgraph (1.0.0a3+), langchain-openai (0.3.29+), openai (1.99.6+), pydantic (2.11.7+)
 
 ### TypeScript Implementation Details
 
 - **Primary API**: Fluent builder pattern (`chatfield().field().must()`)
 - **Alternative APIs**: Schema-based
-- **Orchestration**: LangGraph TypeScript with state management (v0.4.6+)
+- **Orchestration**: LangGraph TypeScript with state management (1.0.0a3+)
 - **Type Safety**: Full TypeScript type inference and checking
 - **React Integration**: Hooks (`useConversation`) and components
 - **CopilotKit**: Sidebar component for conversational UI
 - **Testing**: Jest with test structure mirroring Python implementation
-- **Dependencies**: @langchain/core (0.3.72+), @langchain/langgraph (0.4.6+), @langchain/openai (0.6.9+), openai (4.70.0+), zod, reflect-metadata
+- **Dependencies**: @langchain/core (0.3.72+), @langchain/langgraph (1.0.0a3+), @langchain/openai (0.6.9+), openai (4.70.0+), zod, reflect-metadata
 
 ### Synchronization Requirements
 
@@ -399,7 +399,7 @@ Both implementations use LangGraph for conversation orchestration:
 
 1. **Python uses `python` command**: Always use `python`, not `python3`, as .venv is configured for `python`
 2. **Test harmonization**: Both implementations use BDD-style test organization with matching test descriptions
-3. **LangGraph versions**: Python uses langgraph 0.6.4+, TypeScript uses @langchain/langgraph 0.4.6+
+3. **LangGraph versions**: Python uses langgraph 1.0.0a3+, TypeScript uses @langchain/langgraph 1.0.0a3+
 4. **React focus**: TypeScript implementation prioritizes React/UI integration
 5. **API rate limits**: Consider rate limiting for production use
 6. **Thread safety**: Each Interviewer maintains separate thread ID
