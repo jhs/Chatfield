@@ -510,8 +510,14 @@ export class Interviewer {
     const collectionName = interview._name()
     const theAlice = interview._alice_role_name()
     const theBob = interview._bob_role_name()
+
+
+    // Fields
     
-    // Build field descriptions
+    let hintCount = 0;
+    let mustCount = 0;
+    let rejectCount = 0;
+
     const fields: string[] = []
     for (const fieldName of Object.keys(interview._chatfield.fields).reverse()) {
       const field = interview._chatfield.fields[fieldName]
@@ -540,14 +546,23 @@ export class Interviewer {
           if (specType === 'confidential' || specType === 'conclude') {
             continue
           }
+
+          if (!Array.isArray(rules) || rules.length === 0) {
+            continue;
+          }
+
+          if (specType === 'hint') {
+            hintCount += 1;
+          } else if (specType === 'must') {
+            mustCount += 1;
+          } else if (specType === 'reject') {
+            rejectCount += 1;
+          }
           
           // Only process if rules is an array
-          if (Array.isArray(rules)) {
-            for (const rule of rules) {
-              // The specType should be capitalized.
-              const specLabel = specType.charAt(0).toUpperCase() + specType.slice(1)
-              specs.push(`    - ${specLabel}: ${rule}`)
-            }
+          for (const rule of rules) {
+            const specLabel = specType.charAt(0).toUpperCase() + specType.slice(1)
+            specs.push(`    - ${specLabel}: ${rule}`)
           }
         }
       }
@@ -589,17 +604,93 @@ export class Interviewer {
     // Add description section if provided
     let descriptionSection = ''
     if (interview._chatfield.desc) {
-      descriptionSection = `\n## Description\n${interview._chatfield.desc}\n\n## Fields to Collect\n`
+      descriptionSection = `\n\n## Description\n\n${interview._chatfield.desc}`
+    }
+
+    let explainFields = ``;
+    
+    if (mustCount > 0 || rejectCount > 0) {
+      // Explain how validation works.
+      let labelsAnd;
+      let labelsOr;
+      let howItWorks = '';
+
+      if (mustCount > 0 && rejectCount === 0) {
+        // Must only.
+        labelsAnd = `"Must"`;
+        labelsOr = `"Must"`;
+        howItWorks = `All "Must" rules must pass for the field to be valid.`;
+      } else if (mustCount === 0 && rejectCount > 0) {
+        // Reject only.
+        labelsAnd = `"Reject"`;
+        labelsOr = `"Reject"`;
+        howItWorks = `Any "Reject" rule which does not pass causes the field to be invalid.`;
+      } else if (mustCount > 0 && rejectCount > 0) {
+        // Both must and reject.
+        labelsAnd = `"Must" and "Reject"`;
+        labelsOr = `"Must" or "Reject"`;
+
+        howItWorks = (
+          `All "Must" rules associated with a field must pass for the field to be valid.` +
+          `\n\n` +
+          `Any "Reject" rule associated with a field which does not pass causes the field to be invalid.` +
+          ``
+        );
+      }
+
+      explainFields += (
+        `\n\n# Validation Rules: ${labelsAnd}\n\n` +
+        `Always ensure that all ${labelsAnd} rules are satisfied before recording information.` +
+        `\n\n` +
+        `${howItWorks}` +
+        `\n\n` +
+        `If the ${theBob} provides information not satisfying ${labelsOr} rules,` +
+        ` explain the situation` +
+        ` in a manner suitable for the ${theAlice} role.` +
+        ``
+      );
+    }
+
+    if (hintCount > 0) {
+      explainFields += (
+        `\n\n# How Hints Work\n\n` +
+        `Fields may have one or more "Hints", which are clarifications to you,` +
+        ` or "tooltip"-style explanations,` +
+        ` or example content.` +
+        ` Remember these hints, and provide this information to the ${theBob} as needed.` +
+        ``
+      );
+
+      if (mustCount > 0 || rejectCount > 0) {
+        // Hints override validation.
+        explainFields += (
+          `\n\n` +
+          `To explain main ideas or examples to the ${theBob}, use Hints.` +
+          ` Mention specific validation rules as they become relevant in conversation.` +
+          ``
+        );
+      }
     }
     
-    return `You are the conversational ${theAlice} focused on gathering key information in conversation with the ${theBob}, detailed below.${withTraits} As soon as you encounter relevant information in conversation, immediately use tools to record information fields and their related "casts", which are cusom conversions you provide for each field. Although the ${theBob} may take the conversation anywhere, your response must fit the conversation and your respective roles while refocusing the discussion so that you can gather clear key ${collectionName} information from the ${theBob}.${aliceAndBob}
-
-----
-
-# Collection: ${collectionName}
-${descriptionSection}
-${fields.join('\n\n')}
-`
+    // TODO: Do not mention casts if there are no casts.
+    // TODO: Maybe remind the LLM about the validation rules later in conversation, or at/around tool calls.
+    return (
+      `You are the conversational ${theAlice} focused on gathering key information` +
+      ` in conversation with the ${theBob}, detailed below.${withTraits}` +
+      ` As soon as you encounter relevant information in conversation, immediately use tools to record information` +
+      ` fields and their related "casts", which are cusom conversions you provide for each field.` +
+      ` Although the ${theBob} may take the conversation anywhere, your response must fit the conversation and your` +
+      ` respective roles while refocusing the discussion so that you can gather` +
+      ` clear key ${collectionName} information from the ${theBob}.` +
+      `${aliceAndBob}` +
+      `${explainFields}` +
+      `\n\n----\n\n` +
+      `# Collection: ${collectionName}` +
+      `${descriptionSection}` +
+      `\n\n## Fields to Collect\n\n` +
+      `${fields.join('\n\n')}` +
+      ``
+    );
   }
 
   /**
