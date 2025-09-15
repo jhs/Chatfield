@@ -655,7 +655,7 @@ export class Interviewer {
       explainFields += (
         `\n\n# How Hints Work\n\n` +
         `Fields may have one or more "Hints", which are clarifications to you,` +
-        ` or "tooltip"-style explanations,` +
+        ` or tooltip-style explanations,` +
         ` or example content.` +
         ` Remember these hints, and provide this information to the ${theBob} as needed.` +
         ``
