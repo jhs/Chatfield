@@ -366,7 +366,6 @@ class Interviewer:
 
         llm = self.llm.bind_tools([wrapper])
         sys_msg = SystemMessage(content=(
-            # f'You have successfully gathered enough information to'
             f'You have successfully recorded good {interview._name()} fields.'
             f' Now, before messaging {interview._bob_role_name()} again,'
             f' you must perform one more followup update to record'
@@ -461,7 +460,7 @@ class Interviewer:
         
         fields_prompt = self.mk_fields_prompt(interview, mode='conclude')
         sys_msg = SystemMessage(content=(
-            f'You have successfully gathered enough information'
+            f'You have successfully recorded enough information'
             f' to draw conclusions and record key information from this conversation.'
             f' You must now record all conclusion fields, defined below.'
             f'\n\n'

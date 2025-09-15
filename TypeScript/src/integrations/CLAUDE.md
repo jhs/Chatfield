@@ -67,15 +67,6 @@ The React integration is currently in a transitional state:
 - Current implementation includes stubs and warnings
 - Full functionality will be restored after refactoring
 
-### Migration Path
-```typescript
-// Old approach (removed)
-const conversation = new Conversation(gatherer)
-
-// New approach (to be implemented)
-const interviewer = new Interviewer(gatherer)
-```
-
 ## Development Commands
 
 ### Testing React Integration
@@ -112,7 +103,7 @@ npm install -D @testing-library/react @testing-library/react-hooks
 import { useConversation } from 'chatfield/integrations/react'
 
 function MyComponent() {
-  const [state, actions] = useConversation(gatherer, {
+  const [state, actions] = useConversation(interview, {
     onComplete: (instance) => {
       console.log('Completed:', instance)
     },
@@ -142,7 +133,7 @@ function App() {
   return (
     <CopilotSidebar>
       <ChatfieldConversation 
-        gatherer={MyForm}
+        interview={MyForm}
         onComplete={handleComplete}
       />
     </CopilotSidebar>
@@ -243,7 +234,7 @@ import { renderHook, act } from '@testing-library/react-hooks'
 
 test('useConversation initializes correctly', () => {
   const { result } = renderHook(() => 
-    useConversation(gatherer)
+    useConversation(interview)
   )
   
   expect(result.current[0].isComplete).toBe(false)
@@ -257,7 +248,7 @@ import { render, fireEvent, waitFor } from '@testing-library/react'
 
 test('full conversation flow', async () => {
   const { getByRole, getByText } = render(
-    <ConversationComponent gatherer={gatherer} />
+    <ConversationComponent interview={interview} />
   )
   
   // Interact with the component
@@ -284,7 +275,7 @@ test('full conversation flow', async () => {
 ### API Improvements
 ```typescript
 // Future API possibilities
-const [state, actions] = useConversation(gatherer, {
+const [state, actions] = useConversation(interview, {
   backend: customBackend,
   persistence: localStorage,
   streaming: true,
@@ -308,11 +299,11 @@ const [state, actions] = useConversation(gatherer, {
 ### From Old Conversation Class
 ```typescript
 // Old (removed)
-const conversation = new Conversation(gatherer)
+const conversation = new Conversation(interview)
 await conversation.start()
 
 // New (to be implemented)
-const interviewer = new Interviewer(gatherer)
+const interviewer = new Interviewer(interview)
 await interviewer.run()
 ```
 
@@ -320,7 +311,7 @@ await interviewer.run()
 The hook API will remain largely the same after refactoring:
 ```typescript
 // API remains stable
-const [state, actions] = useConversation(gatherer)
+const [state, actions] = useConversation(interview)
 ```
 
 ## Contributing

@@ -859,4 +859,4 @@ The key compromises are:
 - Some decorator syntax differences
 - More verbose in places
 
-However, the core developer experience and functionality remain intact, providing a powerful conversational data gathering system in TypeScript.
+However, the core developer experience and functionality remain intact, providing a powerful conversational data collection system in TypeScript.

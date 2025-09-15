@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "chatfield"
 version = "0.2.0"
-description = "Conversational data gathering powered by LLMs - Transform rigid forms into natural conversations"
+description = "Conversational data collection powered by LLMs - Transform rigid forms into natural conversations"
 readme = "README.md"
 requires-python = ">=3.8"
 license = {text = "Apache-2.0"}
@@ -19,7 +19,7 @@ keywords = [
     "llm",
     "conversation",
     "forms",
-    "data-gathering",
+    "data-collection",
     "ai",
     "chatbot",
     "natural-language",

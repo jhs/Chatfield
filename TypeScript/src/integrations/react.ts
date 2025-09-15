@@ -15,12 +15,11 @@ try {
 } catch {
   // React not available - hooks will throw runtime errors
 }
-import { Gatherer, GathererInstance } from '../core/gatherer'
 import { ConversationMessage, CollectedData } from '../core/types'
 import { FieldMeta } from '../core/metadata'
 
 export interface UseConversationOptions {
-  onComplete?: (instance: GathererInstance) => void
+  onComplete?: (instance: InterviewInstance) => void
   onError?: (error: Error) => void
   onFieldChange?: (fieldName: string, value: string) => void
 }
@@ -55,13 +54,13 @@ export interface ConversationActions {
  * TODO: Refactor to use Interviewer from interviewer.ts
  */
 export function useConversation(
-  gatherer: Gatherer,
+  interview: Interview,
   options: UseConversationOptions = {}
 ): [ConversationState, ConversationActions] {
   
   const conversationRef = useRef<any>() // TODO: Replace with Interviewer
   const [state, setState] = useState<ConversationState>(() => {
-    const meta = gatherer.getMeta()
+    const meta = interview.getMeta()
     const totalFields = meta.getFields().length
     
     return {
@@ -101,7 +100,7 @@ export function useConversation(
     }
 
     startConversation()
-  }, [gatherer])
+  }, [interview])
 
   const sendMessage = useCallback(async (message: string) => {
     if (state.isLoading) return
@@ -138,14 +137,14 @@ export function useConversation(
         validationError: 'An error occurred. Please try again.'
       }))
     }
-  }, [state.isLoading, gatherer, options])
+  }, [state.isLoading, interview, options])
 
   const retry = useCallback(async () => {
     setState(prev => ({ ...prev, validationError: null }))
   }, [])
 
   const reset = useCallback(() => {
-    const meta = gatherer.getMeta()
+    const meta = interview.getMeta()
     const totalFields = meta.getFields().length
     
     setState({
@@ -160,7 +159,7 @@ export function useConversation(
       completedFields: 0,
       progress: 0
     })
-  }, [gatherer])
+  }, [interview])
 
   const skipField = useCallback(() => {
     // TODO: Implement field skipping with Interviewer
@@ -174,10 +173,10 @@ export function useConversation(
 }
 
 /**
- * Simple hook for basic gatherer usage
+ * Simple hook for basic interview usage
  */
-export function useGatherer(gatherer: Gatherer) {
-  const [state, actions] = useConversation(gatherer)
+export function useInterview(interview: Interview) {
+  const [state, actions] = useConversation(interview)
   
   return {
     ...state,
@@ -190,20 +189,20 @@ export function useGatherer(gatherer: Gatherer) {
 }
 
 /**
- * Hook for managing multiple gatherers or steps
+ * Hook for managing multiple interviews or steps
  */
-export function useMultiStepGatherer(gatherers: Gatherer[]) {
+export function useMultiStepInterview(interviews: Interview[]) {
   const [currentStep, setCurrentStep] = useState(0)
-  const [completedSteps, setCompletedSteps] = useState<GathererInstance[]>([])
+  const [completedSteps, setCompletedSteps] = useState<InterviewInstance[]>([])
   const [isComplete, setIsComplete] = useState(false)
 
-  const currentGatherer = gatherers[currentStep]
-  const [state, actions] = useConversation(currentGatherer, {
+  const currentInterview = interviews[currentStep]
+  const [state, actions] = useConversation(currentInterview, {
     onComplete: (instance) => {
       const newCompleted = [...completedSteps, instance]
       setCompletedSteps(newCompleted)
       
-      if (currentStep + 1 < gatherers.length) {
+      if (currentStep + 1 < interviews.length) {
         setCurrentStep(currentStep + 1)
       } else {
         setIsComplete(true)
@@ -212,10 +211,10 @@ export function useMultiStepGatherer(gatherers: Gatherer[]) {
   })
 
   const goToStep = useCallback((step: number) => {
-    if (step >= 0 && step < gatherers.length) {
+    if (step >= 0 && step < interviews.length) {
       setCurrentStep(step)
     }
-  }, [gatherers.length])
+  }, [interviews.length])
 
   const reset = useCallback(() => {
     setCurrentStep(0)
@@ -231,10 +230,10 @@ export function useMultiStepGatherer(gatherers: Gatherer[]) {
     
     // Multi-step specific
     currentStep,
-    totalSteps: gatherers.length,
+    totalSteps: interviews.length,
     completedSteps,
     isComplete: isComplete,
-    canGoNext: state.isComplete && currentStep + 1 < gatherers.length,
+    canGoNext: state.isComplete && currentStep + 1 < interviews.length,
     canGoPrevious: currentStep > 0,
     
     // Actions
@@ -252,12 +251,12 @@ export function useMultiStepGatherer(gatherers: Gatherer[]) {
 /**
  * Hook for form-like usage where you want to control the conversation flow
  */
-export function useControlledGatherer(gatherer: Gatherer) {
+export function useControlledInterview(interview: Interview) {
   const [collectedData, setCollectedData] = useState<CollectedData>({})
   const [currentFieldIndex, setCurrentFieldIndex] = useState(0)
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({})
   
-  const meta = gatherer.getMeta()
+  const meta = interview.getMeta()
   const fields = meta.getFields()
   const currentField = fields[currentFieldIndex]
   const isComplete = currentFieldIndex >= fields.length
@@ -299,7 +298,7 @@ export function useControlledGatherer(gatherer: Gatherer) {
 
   const complete = useCallback(() => {
     if (isComplete) {
-      return new GathererInstance(meta, collectedData)
+      return new InterviewInstance(meta, collectedData)
     }
     return null
   }, [isComplete, meta, collectedData])

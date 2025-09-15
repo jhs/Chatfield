@@ -16,7 +16,7 @@ This file provides guidance to Claude Code when working with the TypeScript/Java
 
 ## Overview
 
-Chatfield JS/TS is the TypeScript/JavaScript implementation (v0.1.0) of conversational data gathering powered by LLMs. Package name: `@chatfield/core`. This implementation maintains feature parity with the Python version (v0.2.0).
+Chatfield JS/TS is the TypeScript/JavaScript implementation (v0.1.0) of conversational data collection powered by LLMs. Package name: `@chatfield/core`. This implementation maintains feature parity with the Python version (v0.2.0).
 
 ## Project Structure
 
@@ -31,7 +31,7 @@ TypeScript/
 │   ├── field-proxy.ts           # FieldProxy string subclass for transformations
 │   ├── types.ts                 # Core type definitions
 │   └── integrations/            # Framework integrations
-│       ├── react.ts             # React hooks (useConversation, useGatherer)
+│       ├── react.ts             # React hooks (useConversation)
 │       ├── react-components.tsx # UI components  
 │       └── copilotkit.tsx       # CopilotKit integration
 ├── tests/                       # Test suite (*.test.ts naming, mirrors Python)

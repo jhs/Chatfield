@@ -3,8 +3,6 @@
  */
 
 import React, { useState, useRef, useEffect } from 'react'
-import { Gatherer } from '../core/gatherer'
-import { useConversation, useControlledGatherer, ConversationState } from './react'
 import { ConversationMessage } from '../core/types'
 
 export interface ChatMessageProps {
@@ -143,7 +141,7 @@ export function ValidationError({ error, onRetry }: ValidationErrorProps) {
 }
 
 export interface ConversationInterfaceProps {
-  gatherer: Gatherer
+  interview: Interview
   onComplete?: (data: any) => void
   onError?: (error: Error) => void
   className?: string
@@ -151,13 +149,13 @@ export interface ConversationInterfaceProps {
 }
 
 export function ConversationInterface({ 
-  gatherer, 
+  interview, 
   onComplete, 
   onError,
   className = '',
   showProgress = true 
 }: ConversationInterfaceProps) {
-  const [state, actions] = useConversation(gatherer, {
+  const [state, actions] = useConversation(interview, {
     onComplete: (instance) => onComplete?.(instance.getData()),
     onError
   })
@@ -245,12 +243,12 @@ export function ConversationInterface({
 }
 
 export interface FormInterfaceProps {
-  gatherer: Gatherer
+  interview: Interview
   onComplete?: (data: any) => void
   className?: string
 }
 
-export function FormInterface({ gatherer, onComplete, className = '' }: FormInterfaceProps) {
+export function FormInterface({ interview, onComplete, className = '' }: FormInterfaceProps) {
   const {
     currentField,
     currentFieldIndex,
@@ -268,7 +266,7 @@ export function FormInterface({ gatherer, onComplete, className = '' }: FormInte
     canGoPrevious,
     getFieldError,
     hasError
-  } = useControlledGatherer(gatherer)
+  } = useControlledInterview(interview)
 
   const handleFieldChange = (value: string) => {
     if (currentField) {
@@ -401,12 +399,12 @@ export function FormInterface({ gatherer, onComplete, className = '' }: FormInte
 }
 
 export interface FieldPreviewProps {
-  gatherer: Gatherer
+  interview: Interview
   className?: string
 }
 
-export function FieldPreview({ gatherer, className = '' }: FieldPreviewProps) {
-  const preview = gatherer.getFieldPreview()
+export function FieldPreview({ interview, className = '' }: FieldPreviewProps) {
+  const preview = interview.getFieldPreview()
   
   return (
     <div className={`bg-white border border-gray-200 rounded-lg p-4 ${className}`}>

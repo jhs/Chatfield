@@ -107,9 +107,6 @@ import { chatfield } from '../src'
 // Backend imports
 import { OpenAIBackend, MockLLMBackend } from '../src'
 
-// Type imports
-import type { GathererInstance, CollectedData } from '../src'
-
 ```
 
 ### API Styles
@@ -122,30 +119,11 @@ const Form = chatfield()
   .build()
 ```
 
-```typescript
-@Gatherer()
-class Form {
-  @Field('Your name')
-  @Must('include first and last')
-  name: string
-}
-```
-
-3. **Schema-Based**:
-```typescript
-const schema = z.object({
-  name: z.string(),
-  email: z.string().email()
-})
-const Form = chatfieldFromSchema(schema)
-```
-
 ### Running Conversations
 
 Standard pattern for all examples:
 
 ```typescript
-// Create gatherer
 const form = chatfield()
   .field('name', 'Your name')
   .build()
@@ -157,7 +135,7 @@ const backend = new OpenAIBackend({
 
 // Create and run interviewer
 const interviewer = new Interviewer(form, { backend })
-const result = await interviewer.run()
+const result = await interviewer.go()
 
 // Access collected data
 console.log(result.name)
@@ -267,7 +245,5 @@ const [state, actions] = useConversation(Form)
 
 ### With CopilotKit
 ```typescript
-<CopilotSidebar>
-  <ChatfieldConversation gatherer={Form} />
-</CopilotSidebar>
+// TODO write this
 ```

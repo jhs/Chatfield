@@ -1,40 +1,38 @@
 /**
  * CopilotKit integration for Chatfield
- * Allows using Chatfield gatherers within CopilotKit conversations
+ * Allows using Chatfield interviews within CopilotKit conversations
  */
 
 import React, { useState, useCallback, useEffect } from 'react'
 import { useCopilotChat, useCopilotAction } from '@copilotkit/react-core'
-import { Gatherer, GathererInstance } from '../core/gatherer'
-import { createGatherer, schemaPresets } from '../builders/schema-builder'
 import { useConversation } from './react'
 import { ConversationInterface, FieldPreview } from './react-components'
 
 export interface ChatfieldCopilotProps {
-  gatherers?: Record<string, Gatherer>
-  onDataCollected?: (gathererName: string, data: any) => void
+  interviews?: Record<string, Interview>
+  onDataCollected?: (interviewName: string, data: any) => void
   className?: string
 }
 
 /**
- * CopilotKit component that integrates Chatfield gatherers
+ * CopilotKit component that integrates Chatfield interviews
  */
 export function ChatfieldCopilot({ 
-  gatherers = {}, 
+  interviews = {}, 
   onDataCollected, 
   className = '' 
 }: ChatfieldCopilotProps) {
-  const [activeGatherer, setActiveGatherer] = useState<string | null>(null)
+  const [activeInterview, setActiveInterview] = useState<string | null>(null)
   const [collectedData, setCollectedData] = useState<Record<string, any>>({})
 
-  // Register actions with CopilotKit for each gatherer
-  Object.entries(gatherers).forEach(([name, gatherer]) => {
+  // Register actions with CopilotKit for each interview
+  Object.entries(interviews).forEach(([name, interview]) => {
     useCopilotAction({
-      name: `start_${name}_gathering`,
+      name: `start_${name}_interviewing`,
       description: `Start collecting ${name} information through a conversation`,
       handler: async () => {
-        setActiveGatherer(name)
-        return `Starting ${name} information gathering...`
+        setActiveInterview(name)
+        return `Starting ${name} information interviewing...`
       }
     })
   })
@@ -44,7 +42,7 @@ export function ChatfieldCopilot({
     name: "start_business_plan",
     description: "Start collecting business plan information",
     handler: async () => {
-      setActiveGatherer('business_plan')
+      setActiveInterview('business_plan')
       return "Starting business plan gathering..."
     }
   })
@@ -53,7 +51,7 @@ export function ChatfieldCopilot({
     name: "start_bug_report",
     description: "Start collecting bug report information",
     handler: async () => {
-      setActiveGatherer('bug_report')
+      setActiveInterview('bug_report')
       return "Starting bug report gathering..."
     }
   })
@@ -62,7 +60,7 @@ export function ChatfieldCopilot({
     name: "start_user_feedback",
     description: "Start collecting user feedback",
     handler: async () => {
-      setActiveGatherer('user_feedback')
+      setActiveInterview('user_feedback')
       return "Starting user feedback collection..."
     }
   })
@@ -76,8 +74,8 @@ export function ChatfieldCopilot({
       }
       
       let summary = "Here's what we've collected:\n\n"
-      Object.entries(collectedData).forEach(([gathererName, data]) => {
-        summary += `**${gathererName}:**\n`
+      Object.entries(collectedData).forEach(([interviewName, data]) => {
+        summary += `**${interviewName}:**\n`
         Object.entries(data).forEach(([field, value]) => {
           summary += `- ${field}: ${value}\n`
         })
@@ -88,47 +86,47 @@ export function ChatfieldCopilot({
     }
   })
 
-  const handleDataCollected = useCallback((gathererName: string, data: any) => {
+  const handleDataCollected = useCallback((interviewName: string, data: any) => {
     setCollectedData(prev => ({
       ...prev,
-      [gathererName]: data
+      [interviewName]: data
     }))
-    setActiveGatherer(null)
-    onDataCollected?.(gathererName, data)
+    setActiveInterview(null)
+    onDataCollected?.(interviewName, data)
   }, [onDataCollected])
 
-  // Get the current gatherer
-  const getCurrentGatherer = (): Gatherer | null => {
-    if (!activeGatherer) return null
+  // Get the current interview
+  const getCurrentInterview = (): Interview | null => {
+    if (!activeInterview) return null
     
-    if (gatherers[activeGatherer]) {
-      return gatherers[activeGatherer]
+    if (interviews[activeInterview]) {
+      return interviews[activeInterview]
     }
     
     // Use presets
-    switch (activeGatherer) {
+    switch (activeInterview) {
       case 'business_plan':
-        return createGatherer(schemaPresets.businessPlan())
+        return createInterview(schemaPresets.businessPlan())
       case 'bug_report':
-        return createGatherer(schemaPresets.bugReport())
+        return createInterview(schemaPresets.bugReport())
       case 'user_feedback':
-        return createGatherer(schemaPresets.userFeedback())
+        return createInterview(schemaPresets.userFeedback())
       default:
         return null
     }
   }
 
-  const currentGatherer = getCurrentGatherer()
+  const currentInterview = getCurrentInterview()
 
-  if (activeGatherer && currentGatherer) {
+  if (activeInterview && currentInterview) {
     return (
       <div className={`chatfield-copilot ${className}`}>
         <div className="mb-4">
           <h3 className="text-lg font-semibold mb-2">
-            {activeGatherer.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())} Collection
+            {activeInterview.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())} Collection
           </h3>
           <button
-            onClick={() => setActiveGatherer(null)}
+            onClick={() => setActiveInterview(null)}
             className="text-sm text-gray-600 hover:text-gray-800 underline"
           >
             ← Back to chat
@@ -136,9 +134,9 @@ export function ChatfieldCopilot({
         </div>
         
         <ConversationInterface
-          gatherer={currentGatherer}
-          onComplete={(data) => handleDataCollected(activeGatherer, data)}
-          onError={(error) => console.error('Gatherer error:', error)}
+          interview={currentInterview}
+          onComplete={(data) => handleDataCollected(activeInterview, data)}
+          onError={(error) => console.error('Interview error:', error)}
           className="h-96"
         />
       </div>
@@ -156,35 +154,35 @@ export function ChatfieldCopilot({
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
         {/* Built-in presets */}
-        <GathererCard
+        <InterviewCard
           name="Business Plan"
           description="Collect comprehensive business plan information"
-          onClick={() => setActiveGatherer('business_plan')}
-          gatherer={createGatherer(schemaPresets.businessPlan())}
+          onClick={() => setActiveInterview('business_plan')}
+          interview={createInterview(schemaPresets.businessPlan())}
         />
         
-        <GathererCard
+        <InterviewCard
           name="Bug Report"
           description="Gather detailed bug report information"
-          onClick={() => setActiveGatherer('bug_report')}
-          gatherer={createGatherer(schemaPresets.bugReport())}
+          onClick={() => setActiveInterview('bug_report')}
+          interview={createInterview(schemaPresets.bugReport())}
         />
         
-        <GathererCard
+        <InterviewCard
           name="User Feedback"
           description="Collect user feedback and suggestions"
-          onClick={() => setActiveGatherer('user_feedback')}
-          gatherer={createGatherer(schemaPresets.userFeedback())}
+          onClick={() => setActiveInterview('user_feedback')}
+          interview={createInterview(schemaPresets.userFeedback())}
         />
         
-        {/* Custom gatherers */}
-        {Object.entries(gatherers).map(([name, gatherer]) => (
-          <GathererCard
+        {/* Custom interviews */}
+        {Object.entries(interviews).map(([name, interview]) => (
+          <InterviewCard
             key={name}
             name={name.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
             description={`Custom ${name} data collection`}
-            onClick={() => setActiveGatherer(name)}
-            gatherer={gatherer}
+            onClick={() => setActiveInterview(name)}
+            interview={interview}
           />
         ))}
       </div>
@@ -208,16 +206,16 @@ export function ChatfieldCopilot({
   )
 }
 
-interface GathererCardProps {
+interface InterviewCardProps {
   name: string
   description: string
   onClick: () => void
-  gatherer: Gatherer
+  interview: Interview
 }
 
-function GathererCard({ name, description, onClick, gatherer }: GathererCardProps) {
+function InterviewCard({ name, description, onClick, interview }: InterviewCardProps) {
   const [showPreview, setShowPreview] = useState(false)
-  const fieldCount = gatherer.getFieldPreview().length
+  const fieldCount = interview.getFieldPreview().length
 
   return (
     <div className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
@@ -248,7 +246,7 @@ function GathererCard({ name, description, onClick, gatherer }: GathererCardProp
       
       {showPreview && (
         <div className="mt-3 pt-3 border-t">
-          <FieldPreview gatherer={gatherer} className="border-0 p-0" />
+          <FieldPreview interview={interview} className="border-0 p-0" />
         </div>
       )}
     </div>
@@ -259,16 +257,16 @@ function GathererCard({ name, description, onClick, gatherer }: GathererCardProp
  * Hook for using Chatfield within CopilotKit conversations
  */
 export function useChatfieldCopilot() {
-  const [activeGatherers, setActiveGatherers] = useState<Record<string, Gatherer>>({})
-  const [gathererInstances, setGathererInstances] = useState<Record<string, GathererInstance>>({})
+  const [activeInterviews, setActiveInterviews] = useState<Record<string, Interview>>({})
+  const [interviewInstances, setInterviewInstances] = useState<Record<string, InterviewInstance>>({})
 
-  const startGathering = useCallback((name: string, gatherer: Gatherer) => {
-    setActiveGatherers(prev => ({ ...prev, [name]: gatherer }))
+  const startInterviewing = useCallback((name: string, interview: Interview) => {
+    setActiveInterviews(prev => ({ ...prev, [name]: interview }))
   }, [])
 
-  const completeGathering = useCallback((name: string, instance: GathererInstance) => {
-    setGathererInstances(prev => ({ ...prev, [name]: instance }))
-    setActiveGatherers(prev => {
+  const completeInterviewing = useCallback((name: string, instance: InterviewInstance) => {
+    setInterviewInstances(prev => ({ ...prev, [name]: instance }))
+    setActiveInterviews(prev => {
       const { [name]: _, ...rest } = prev
       return rest
     })
@@ -276,40 +274,40 @@ export function useChatfieldCopilot() {
 
   const getAllData = useCallback(() => {
     return Object.fromEntries(
-      Object.entries(gathererInstances).map(([name, instance]) => [
+      Object.entries(interviewInstances).map(([name, instance]) => [
         name,
         instance.getData()
       ])
     )
-  }, [gathererInstances])
+  }, [interviewInstances])
 
   return {
-    activeGatherers,
-    gathererInstances,
-    startGathering,
-    completeGathering,
+    activeInterviews,
+    interviewInstances,
+    startInterviewing,
+    completeInterviewing,
     getAllData,
-    hasActiveGatherers: Object.keys(activeGatherers).length > 0,
-    hasCompletedData: Object.keys(gathererInstances).length > 0
+    hasActiveInterviews: Object.keys(activeInterviews).length > 0,
+    hasCompletedData: Object.keys(interviewInstances).length > 0
   }
 }
 
 /**
- * CopilotKit action registrar for dynamic gatherer setup
+ * CopilotKit action registrar for dynamic interview setup
  */
 export function registerChatfieldActions(
-  gatherers: Record<string, Gatherer>,
+  interviews: Record<string, Interview>,
   options: {
-    onGathererStart?: (name: string) => void
-    onGathererComplete?: (name: string, data: any) => void
+    onInterviewStart?: (name: string) => void
+    onInterviewComplete?: (name: string, data: any) => void
   } = {}
 ) {
-  return Object.entries(gatherers).map(([name, gatherer]) => {
+  return Object.entries(interviews).map(([name, interview]) => {
     return {
       name: `collect_${name}`,
       description: `Start collecting ${name} information through an interactive conversation`,
       handler: async () => {
-        options.onGathererStart?.(name)
+        options.onInterviewStart?.(name)
         return `Starting ${name} information collection. This will guide you through a conversational form to gather all necessary details.`
       }
     }
@@ -320,27 +318,27 @@ export function registerChatfieldActions(
  * Chatfield-powered CopilotKit sidebar component
  */
 export function ChatfieldSidebar({ 
-  gatherers = {},
+  interviews = {},
   className = '' 
 }: {
-  gatherers?: Record<string, Gatherer>
+  interviews?: Record<string, Interview>
   className?: string
 }) {
   const {
-    activeGatherers,
-    gathererInstances,
-    startGathering,
-    completeGathering,
+    activeInterviews,
+    interviewInstances,
+    startInterviewing,
+    completeInterviewing,
     getAllData
   } = useChatfieldCopilot()
 
-  // Register actions for all gatherers
-  Object.entries(gatherers).forEach(([name, gatherer]) => {
+  // Register actions for all interviews
+  Object.entries(interviews).forEach(([name, interview]) => {
     useCopilotAction({
       name: `collect_${name}`,
       description: `Collect ${name} information through conversation`,
       handler: async () => {
-        startGathering(name, gatherer)
+        startInterviewing(name, interview)
         return `Starting ${name} collection...`
       }
     })
@@ -356,23 +354,23 @@ export function ChatfieldSidebar({
     }
   })
 
-  const activeGathererEntries = Object.entries(activeGatherers)
+  const activeInterviewEntries = Object.entries(activeInterviews)
 
   return (
     <div className={`chatfield-sidebar ${className}`}>
-      {activeGathererEntries.length > 0 ? (
+      {activeInterviewEntries.length > 0 ? (
         <div className="space-y-4">
-          {activeGathererEntries.map(([name, gatherer]) => (
+          {activeInterviewEntries.map(([name, interview]) => (
             <div key={name} className="border border-gray-200 rounded-lg p-4">
               <h3 className="font-semibold mb-2">
                 Collecting: {name.replace('_', ' ')}
               </h3>
               
               <ConversationInterface
-                gatherer={gatherer}
+                interview={interview}
                 onComplete={(data) => {
-                  const instance = new GathererInstance(gatherer.getMeta(), data)
-                  completeGathering(name, instance)
+                  const instance = new InterviewInstance(interview.getMeta(), data)
+                  completeInterviewing(name, instance)
                 }}
                 className="h-80"
               />
@@ -381,7 +379,7 @@ export function ChatfieldSidebar({
         </div>
       ) : (
         <ChatfieldCopilot 
-          gatherers={gatherers}
+          interviews={interviews}
           onDataCollected={(name, data) => console.log(`Collected ${name}:`, data)}
           className={className}
         />

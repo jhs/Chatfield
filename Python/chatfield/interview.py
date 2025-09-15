@@ -1,4 +1,4 @@
-"""Base class for Chatfield gatherers."""
+"""Chatfield interview."""
 
 import re
 # import json

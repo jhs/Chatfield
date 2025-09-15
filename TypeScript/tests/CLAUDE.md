@@ -97,7 +97,6 @@ TypeScript/tests/
 - **Structure**: Standard React testing patterns with describe/it
 - **Test Examples**:
   - `describe('useConversation')` → `it('manages conversation state')`
-  - `describe('useGatherer')` → `it('provides gatherer interface')`
 - **Requirements**: React Testing Library, DOM environment
 - **Focus**: React integration and component behavior
 
@@ -355,7 +354,7 @@ import { renderHook, act } from '@testing-library/react-hooks'
 
 test('useConversation hook', () => {
   const { result } = renderHook(() => 
-    useConversation(gatherer)
+    useConversation(interview)
   )
   
   act(() => {

@@ -21,13 +21,13 @@ import * as path from 'path';
 import * as dotenv from 'dotenv';
 import { parseArgs } from 'util';
 import { chatfield } from '../src/builder';
+import { Interview } from '../src/interview';
 import { Interviewer } from '../src/interviewer';
-import type { Gatherer } from '../src/types';
 
 // Load environment variables from top-level .env file
 dotenv.config({ path: path.resolve(__dirname, '../../.env') });
 
-function createNumberInterview(): Gatherer {
+function createNumberInterview(): Interview {
     /**Create an interview about favorite numbers with many transformations.**/
     return chatfield()
         .type("NumberInterview")
@@ -82,7 +82,7 @@ function createNumberInterview(): Gatherer {
         .build();
 }
 
-async function runInteractive(interview: Gatherer): Promise<boolean> {
+async function runInteractive(interview: Interview): Promise<boolean> {
     /**Run the interview interactively.**/
     const threadId = `numbers-${process.pid}`;
     console.log(`Starting number interview (thread: ${threadId})`);
@@ -121,7 +121,7 @@ async function runInteractive(interview: Gatherer): Promise<boolean> {
     return interview._done;
 }
 
-async function runAutomated(interview: Gatherer): Promise<boolean> {
+async function runAutomated(interview: Interview): Promise<boolean> {
     /**Run with prefab inputs for demonstration.**/
     const prefabInputs = [
         "My favorite number is 42",
@@ -159,7 +159,7 @@ async function runAutomated(interview: Gatherer): Promise<boolean> {
     return interview._done;
 }
 
-function displayResults(interview: Gatherer): void {
+function displayResults(interview: Interview): void {
     /**Display the collected number information with transformations.**/
     console.log("\n" + "=".repeat(60));
     console.log("NUMBER ANALYSIS");

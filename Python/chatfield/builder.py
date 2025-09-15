@@ -327,31 +327,3 @@ class ChatfieldBuilder:
 def chatfield():
     """Create a new Chatfield builder."""
     return ChatfieldBuilder()
-
-
-# Preset builders for common patterns
-def patient_gatherer():
-    """Create a patient, thorough gatherer."""
-    return (chatfield()
-        .alice()
-            .trait("patient and thorough")
-            .trait("asks follow-up questions when answers seem incomplete")
-            .trait("provides helpful examples when users seem confused"))
-
-
-def quick_gatherer():
-    """Create a quick, efficient gatherer."""
-    return (chatfield()
-        .alice()
-            .trait("concise and efficient")
-            .trait("accepts brief answers when they meet requirements")
-            .trait("moves quickly through fields"))
-
-
-def expert_gatherer():
-    """Create an expert consultation gatherer."""
-    return (chatfield()
-        .alice()
-            .trait("assumes domain expertise")
-            .trait("asks detailed technical questions")
-            .trait("expects comprehensive, specific answers"))

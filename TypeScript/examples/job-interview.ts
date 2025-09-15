@@ -18,8 +18,8 @@
 
 import * as path from 'path'
 import * as dotenv from 'dotenv'
-import { chatfield } from '../src/builders/gatherer-builder'
-import { Interviewer } from '../src/core/interviewer'
+import { chatfield } from '../src/builder'
+import { Interviewer } from '../src/interviewer'
 import * as readline from 'readline'
 import * as process from 'process'
 

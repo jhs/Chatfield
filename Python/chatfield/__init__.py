@@ -1,4 +1,4 @@
-"""Chatfield: Socratic dialogue for data gathering powered by LLMs.
+"""Chatfield: Socratic dialogue for data collection powered by LLM Agents.
 
 Transform rigid forms into thoughtful Socratic conversations that guide users to express their needs clearly.
 """

@@ -29,7 +29,7 @@ const BusinessPlan = chatfield()
   .agent('patient advisor')
   .build()
 
-const result = await BusinessPlan.gather()
+const result = await BusinessPlan.go()
 console.log(result.concept, result.market)
 ```
 

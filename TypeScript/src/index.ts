@@ -1,5 +1,5 @@
 /**
- * Chatfield: Conversational data gathering powered by LLMs
+ * Chatfield: Conversational data collection powered by LLMs
  * TypeScript/JavaScript implementation
  * Mirrors Python's __init__.py structure
  */
@@ -18,9 +18,6 @@ export {
 export { 
   chatfield,
   chatfieldDynamic,
-  patientGatherer,
-  quickGatherer,
-  expertGatherer,
   // Builder classes (for type annotations if needed)
   ChatfieldBuilder,
   FieldBuilder,
@@ -53,9 +50,3 @@ export type {
   CollectedData,
   InterviewOptions
 } from './types'
-
-// Backwards compatibility exports (deprecated)
-export { Interview as Gatherer } from './interview'
-export { Interview as GathererInstance } from './interview'
-export type { InterviewSchema as GathererSchema } from './types'
-export type { InterviewOptions as GathererOptions } from './types'

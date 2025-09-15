@@ -1,6 +1,6 @@
 # Chatfield Examples
 
-This directory contains example implementations demonstrating various features of the Chatfield conversational data gathering system.
+This directory contains example implementations demonstrating various features of the Chatfield conversational data collection system.
 
 ## Running Examples
 

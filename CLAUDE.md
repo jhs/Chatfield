@@ -60,7 +60,7 @@ Chatfield/
     │   ├── builder-types.ts     # TypeScript type definitions for builder
     │   ├── types.ts             # Core type definitions
     │   └── integrations/        # Framework integrations
-    │       ├── react.ts         # React hooks (useGatherer, etc.)
+    │       ├── react.ts         # React hooks
     │       ├── react-components.tsx # UI components
     │       └── copilotkit.tsx   # CopilotKit integration
     ├── tests/                   # Jest test suite (*.test.ts naming, mirrors Python)
@@ -153,7 +153,7 @@ npx tsx minimal.ts                                  # Test OpenAI API connection
 
 ### Core Concepts (Both Implementations)
 
-1. **Interview/Gatherer**: Main class that defines fields to collect via builder API
+1. **Interview**: Main class that defines fields to collect via builder API
 2. **Field Definitions**: Builder calls that define data fields
 3. **Field Specifications**: Validation rules (must, reject, hint) applied to fields
 4. **Field Transformations**: Type casts (as_int, as_bool, etc.) computed by LLM
@@ -177,7 +177,7 @@ npx tsx minimal.ts                                  # Test OpenAI API connection
 - **Alternative APIs**: Schema-based
 - **Orchestration**: LangGraph TypeScript with state management (v0.4.6+)
 - **Type Safety**: Full TypeScript type inference and checking
-- **React Integration**: Hooks (`useConversation`, `useGatherer`) and components
+- **React Integration**: Hooks (`useConversation`) and components
 - **CopilotKit**: Sidebar component for conversational UI
 - **Testing**: Jest with test structure mirroring Python implementation
 - **Dependencies**: @langchain/core (0.3.72+), @langchain/langgraph (0.4.6+), @langchain/openai (0.6.9+), openai (4.70.0+), zod, reflect-metadata
@@ -308,7 +308,7 @@ const Form = chatfield()
   .build()
 
 // After collection
-const result = await Form.gather()
+const result = await Interviewer.go()
 result.name        // string
 result.age         // number (transformed)
 ```

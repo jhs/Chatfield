@@ -1,7 +1,7 @@
 {
   "name": "@chatfield/core",
   "version": "0.1.0",
-  "description": "Conversational data gathering powered by LLMs - TypeScript/JavaScript implementation",
+  "description": "Conversational data collection powered by LLMs - TypeScript/JavaScript implementation",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
@@ -17,7 +17,7 @@
   "keywords": [
     "llm",
     "conversation",
-    "data-gathering",
+    "data-collection",
     "ai",
     "chatgpt",
     "claude"
