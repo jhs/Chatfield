@@ -43,7 +43,11 @@ function createNumberInterview(): Interview {
         .field("favorite")
             .desc("What is your favorite number?")
             .must("a number between 1 and 100")
-            .hint("Think about a number that has special meaning to you")
+            .must("Not obscure like 73 or 88")
+            .must("Not too common like 7 or 10")
+            .must("A whole number")
+            .must("Not cliche like 42")
+            .hint("Do not cite the validation rules unless asked or an invalid answer is given")
             
             // Basic transformations
             .as_int()
@@ -77,7 +81,7 @@ function createNumberInterview(): Interview {
         
         .field("reason")
             .desc("Why is this your favorite number?")
-            .hint("Share what makes this number special to you")
+            .hint("Perhaps from a well-known reference or personal experience")
         
         .build();
 }
