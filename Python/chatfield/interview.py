@@ -25,11 +25,6 @@ class Interview:
             def tried(): "What have you tried?"
     """
 
-    # This will be built by any @alice or @bob decorators.
-    # _roles: Dict[str, Dict[str, Any]] = {
-    #     'alice': {'role': None, 'traits': []},
-    #     'bob'  : {'role': None, 'traits': []},
-    # }
 
     # At this time, .model_dump() is needed by langgraph's checkpointer serializer.
     # Just explicitly track it. For now it's not defined what happens if the caller
@@ -41,6 +36,9 @@ class Interview:
     #     'alice': {'type': None, 'traits': []},
     #     'bob'  : {'type': None, 'traits': []},
     # }
+
+    # TODO HERE
+    # Next step is get a TS build and get Chatfield working in a browser.
 
     def __init__(self, **kwargs):
         try:

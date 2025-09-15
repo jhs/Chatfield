@@ -4,13 +4,13 @@ This file provides guidance to Claude Code when working with the Python implemen
 
 ## Overview
 
-Chatfield is a Python package (v0.2.0) that transforms data gathering from rigid forms into conversational dialogues powered by LLMs. It uses a decorator-based API to define fields and validation rules, then leverages LangGraph to orchestrate natural conversations that collect structured data.
+Chatfield is a Python package (v0.2.0) that transforms data gathering from rigid forms into conversational dialogues powered by LLMs. It uses a fluent builder API to define fields and validation rules, then leverages LangGraph to orchestrate natural conversations that collect structured data.
 
 ## Core Architecture
 
 ### Key Design Principles
 
-1. **Decorator-based API** - All configuration through decorators, no complex inheritance
+1. **Builder-based API** - All configuration through fluent method chains
 2. **String-based fields** - All field values are strings with transformation access
 3. **LLM-powered validation** - Validation through conversational guidance
 4. **Stateful conversation** - LangGraph manages conversation state and flow
@@ -24,11 +24,10 @@ Python/
 │   ├── __init__.py             # Main exports and public API
 │   ├── interview.py            # Interview base class with field discovery
 │   ├── interviewer.py          # LangGraph-based conversation orchestration
-│   ├── decorators.py           # All decorator implementations
 │   ├── field_proxy.py          # FieldProxy string subclass for transformations
-│   ├── builder.py              # Fluent builder API (alternative to decorators)
+│   ├── builder.py              # Fluent builder API
 │   ├── serialization.py        # Interview state serialization
-│   ├── presets.py              # Common preset decorators
+│   ├── presets.py              # Common preset configurations
 │   └── visualization.py        # Graph visualization utilities
 ├── tests/                       # Test suite (pytest-describe structure)
 │   ├── test_interview.py       # Interview class tests
@@ -36,7 +35,7 @@ Python/
 │   ├── test_interviewer_conversation.py # Conversation flow tests
 │   ├── test_builder.py         # Builder API tests
 │   ├── test_field_proxy.py     # FieldProxy tests
-│   ├── test_custom_transformations.py # Transformation decorator tests
+│   ├── test_custom_transformations.py # Transformation system tests
 │   ├── test_conversations.py   # End-to-end conversation tests
 │   └── CLAUDE.md               # Test suite documentation
 ├── examples/                    # Usage examples
@@ -71,8 +70,8 @@ class Interview:
             'fields': {
                 # field_name: {
                 #     'desc': field description,
-                #     'specs': {category: [rules]},  # from @must, @reject, @hint
-                #     'casts': {name: cast_info},    # from @as_* decorators
+                #     'specs': {category: [rules]},  # from must(), reject(), hint()
+                #     'casts': {name: cast_info},    # from as_*() methods
                 #     'value': None or {value, context, as_quote, ...}
                 # }
             }
@@ -137,8 +136,8 @@ interview = (chatfield()
 The builder:
 - Provides method chaining for field configuration
 - Generates Interview instances with proper metadata
-- Supports all decorators as methods
-- Offers better IDE autocomplete than decorators
+- Provides all field configuration options as methods
+- Offers excellent IDE autocomplete support
 
 ### 4. Interviewer Class (`interviewer.py`)
 
@@ -172,69 +171,43 @@ The Interviewer:
 - Manages conversation state and checkpointing
 - Returns messages for the UI to display
 
-### 4. Decorator System (`decorators.py`)
+### 4. Builder System (`builder.py`)
 
-Three main decorator types:
+The builder system provides a fluent API for defining interviews:
 
-#### InterviewDecorator (Role decorators)
 ```python
-class InterviewDecorator:
-    """@alice and @bob decorators"""
-    
-alice = InterviewDecorator('alice')
-bob = InterviewDecorator('bob')
+from chatfield import chatfield
 
-# Usage:
-# @alice("Senior Developer")
-# @alice.trait("Direct communication")
+interview = chatfield()\
+    .type("JobInterview")\
+    .desc("Collect job application information")\
+    .alice("Interviewer")\
+    .bob("Candidate")\
+    .field("position", "What position are you applying for?")\
+        .must("include company name")\
+        .hint("Be specific about role and company")\
+    .field("experience", "Years of relevant experience")\
+        .as_int()\
+        .must("be realistic number")\
+    .build()
 ```
 
-#### FieldSpecificationDecorator (Validation)
-```python
-class FieldSpecificationDecorator:
-    """@must, @reject, @hint decorators"""
-    
-must = FieldSpecificationDecorator('must')
-reject = FieldSpecificationDecorator('reject')
-hint = FieldSpecificationDecorator('hint')
-
-# Stores rules in func._chatfield['specs']
-```
-
-#### FieldCastDecorator (Type transformations)
-```python
-class FieldCastDecorator:
-    """Type transformation decorators"""
-    
-    def __init__(self, name, primitive_type, prompt, sub_only=False):
-        # sub_only=True means can only be used as @decorator.sub_attr
-        
-as_int = FieldCastDecorator('as_int', int, 'parse as integer')
-as_lang = FieldCastDecorator('as_lang', str, 'translate to {name}', sub_only=True)
-
-# Stores in func._chatfield['casts']
-```
-
-#### FieldCastChoiceDecorator (Cardinality)
-```python
-class FieldCastChoiceDecorator(FieldCastDecorator):
-    """Choice cardinality decorators"""
-    
-as_one = FieldCastChoiceDecorator('choose_exactly_one', ...)
-as_maybe = FieldCastChoiceDecorator('choose_zero_or_one', ...)
-as_multi = FieldCastChoiceDecorator('choose_one_or_more', ...)
-as_any = FieldCastChoiceDecorator('choose_zero_or_more', ...)
-```
+The builder supports:
+- **Interview metadata**: `.type()`, `.desc()`, `.alice()`, `.bob()`
+- **Field definitions**: `.field(name, description)`
+- **Validation rules**: `.must()`, `.reject()`, `.hint()`
+- **Type transformations**: `.as_int()`, `.as_float()`, `.as_bool()`, etc.
+- **Choice cardinality**: `.as_one()`, `.as_multi()`, `.as_maybe()`, `.as_any()`
 
 ## Data Flow
 
 1. **Definition Phase**
-   - User defines Interview subclass with decorated methods
-   - Decorators attach metadata to methods
+   - User defines interview using builder pattern
+   - Builder methods configure metadata and field definitions
 
 2. **Initialization Phase**
-   - Interview.__init__ discovers all methods
-   - Builds _chatfield structure from decorator metadata
+   - Builder creates Interview instance
+   - Builds _chatfield structure from builder configuration
    - Creates field definitions with specs and casts
 
 3. **Conversation Phase**
@@ -271,7 +244,7 @@ def merge_interviews(a: Interview, b: Interview) -> Interview:
 For each field, the Interviewer generates a Pydantic model for tool arguments:
 
 ```python
-# For a field with @as_int and @as_lang.fr decorators:
+# For a field with as_int() and as_lang('fr') methods:
 class FieldModel(BaseModel):
     value: str = Field(description="Natural value")
     context: str = Field(description="Conversational context")
@@ -283,10 +256,10 @@ class FieldModel(BaseModel):
 ## Key Implementation Details
 
 ### Field Discovery
-Fields are discovered by examining class methods:
-- Any method without leading underscore is a field
-- Method docstring becomes field description
-- Decorators add metadata to `method._chatfield`
+Fields are defined through the builder pattern:
+- Fields defined via `.field(name, description)` calls
+- Builder stores field metadata during construction
+- No method inspection required
 
 ### Transformation Naming
 Transformations follow consistent naming:
@@ -304,11 +277,11 @@ Each Interviewer maintains its own:
 
 ### Basic Interview
 ```python
-class SimpleInterview(Interview):
-    def name(): "Your name"
-    def email(): "Your email"
+interview = chatfield()\
+    .field("name", "Your name")\
+    .field("email", "Your email")\
+    .build()
 
-interview = SimpleInterview()
 interviewer = Interviewer(interview)
 
 while not interview._done:
@@ -318,15 +291,16 @@ while not interview._done:
     user_input = input("> ")
 ```
 
-### With Full Decorators
+### With Full Builder Configuration
 ```python
-@alice("Interviewer")
-@bob("Candidate")
-class JobInterview(Interview):
-    @must("specific role")
-    @as_int
-    @as_lang.fr
-    def years_experience(): "Years of experience"
+interview = chatfield()\
+    .alice("Interviewer")\
+    .bob("Candidate")\
+    .field("years_experience", "Years of experience")\
+        .must("specific role")\
+        .as_int()\
+        .as_lang("fr")\
+    .build()
 ```
 
 ### Accessing Data
@@ -415,7 +389,7 @@ make clean         # Clean build artifacts
 - **deepdiff** (6.0.0+): State comparison utilities
 
 ### Builder API
-In addition to decorators, Chatfield provides a fluent builder API:
+Chatfield provides a fluent builder API:
 
 ```python
 from chatfield import chatfield
@@ -458,7 +432,7 @@ interview.model_validate(state)  # Restore from dict
 1. **Python command**: Always use `python`, not `python3` (venv configured)
 2. **Test harmonization**: Test names match TypeScript implementation exactly
 3. **Import style**: Use relative imports within the package
-4. **Field discovery**: Methods without leading underscore become fields
+4. **Field discovery**: Fields defined via builder pattern calls
 5. **Transformation naming**: Consistent `as_*` pattern for all transformations
 6. **Thread safety**: Each Interviewer maintains separate thread ID
 7. **LLM computation**: All transformations computed during collection, not post-processing

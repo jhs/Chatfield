@@ -56,7 +56,7 @@ A professional job interview for a software engineer position.
 - Possible traits that activate based on conversation content
 - Multiple confidential fields (mentoring, leadership)
 - Conclusion fields for final assessments
-- Field validation with `@must` decorator
+- Field validation with must() method
 - Professional conversation flow
 
 **Interesting aspects:**
@@ -69,15 +69,15 @@ A professional job interview for a software engineer position.
 An extensive demonstration of Chatfield's transformation system.
 
 **Features demonstrated:**
-- Basic transformations (`@as_int`, `@as_float`, `@as_percent`)
-- Language translations (`@as_lang.fr`, `@as_lang.ja`, etc.)
-- Boolean properties with sub-attributes (`@as_bool.prime`)
-- Set transformations (`@as_set.factors`)
-- All cardinality decorators:
-  - `@as_one` - exactly one choice
-  - `@as_maybe` - zero or one choice
-  - `@as_multi` - one or more choices
-  - `@as_any` - zero or more choices
+- Basic transformations (as_int(), as_float(), as_percent())
+- Language translations (as_lang('fr'), as_lang('ja'), etc.)
+- Boolean properties with sub-attributes (as_bool('prime'))
+- Set transformations (as_set('factors'))
+- All cardinality methods:
+  - as_one() - exactly one choice
+  - as_maybe() - zero or one choice
+  - as_multi() - one or more choices
+  - as_any() - zero or more choices
 
 **Try asking about:** The number 42 to see all transformations!
 
@@ -87,7 +87,7 @@ A realistic business conversation between a Product Owner and Technology Consult
 
 **Features demonstrated:**
 - Complex role definitions with multiple traits
-- Multiple validation rules (`@must`, `@reject`, `@hint`)
+- Multiple validation rules (must(), reject(), hint())
 - Integer transformations for numeric fields
 - Real-world project requirement gathering
 - Professional consulting conversation flow

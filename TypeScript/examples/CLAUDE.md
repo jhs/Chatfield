@@ -4,14 +4,13 @@ This file provides guidance to Claude Code when working with the TypeScript/Java
 
 ## Overview
 
-This directory contains demonstration examples of the Chatfield TypeScript/JavaScript library, showcasing different API styles (builder, decorator, schema-based) and various use cases. Each example demonstrates specific capabilities of the conversational data collection framework in a TypeScript/Node.js environment.
+This directory contains demonstration examples of the Chatfield TypeScript/JavaScript library, showcasing the builder API and various use cases. Each example demonstrates specific capabilities of the conversational data collection framework in a TypeScript/Node.js environment.
 
 ## Project Structure
 
 ```
 TypeScript/examples/
 ├── basic-usage.ts       # Simple examples with builder API
-├── decorator-usage.ts   # Decorator-based API demonstration
 ├── schema-based.ts      # Zod schema integration example
 ├── type-safe-demo.ts    # TypeScript type safety features
 ├── job-interview.ts     # Professional HR use case
@@ -27,11 +26,6 @@ TypeScript/examples/
 - **Patterns**: Fluent method chaining, field validation
 - **Key Concepts**: `.must()`, `.reject()`, `.hint()` methods
 
-### decorator-usage.ts
-- **Purpose**: Demonstrates decorator-based API (similar to Python)
-- **Features**: Class decorators, field decorators, metadata reflection
-- **Requirements**: Requires `experimentalDecorators` in tsconfig
-- **Use Case**: For developers preferring decorator syntax
 
 ### schema-based.ts
 - **Purpose**: Shows Zod schema integration
@@ -64,12 +58,10 @@ TypeScript/examples/
 ```bash
 # Using npm scripts (defined in package.json)
 npm run example:basic
-npm run example:decorator
 npm run example:schema
 
 # Direct execution with tsx
 npx tsx examples/basic-usage.ts
-npx tsx examples/decorator-usage.ts
 npx tsx examples/schema-based.ts
 npx tsx examples/type-safe-demo.ts
 npx tsx examples/job-interview.ts
@@ -118,8 +110,6 @@ import { OpenAIBackend, MockLLMBackend } from '../src'
 // Type imports
 import type { GathererInstance, CollectedData } from '../src'
 
-// Decorator imports (when using decorators)
-import { Gatherer, Field, Must, Reject } from '../src/decorators'
 ```
 
 ### API Styles
@@ -132,7 +122,6 @@ const Form = chatfield()
   .build()
 ```
 
-2. **Decorator Pattern**:
 ```typescript
 @Gatherer()
 class Form {
@@ -191,8 +180,6 @@ Examples require specific TypeScript settings:
 ```json
 {
   "compilerOptions": {
-    "experimentalDecorators": true,  // For decorator examples
-    "emitDecoratorMetadata": true,   // For decorator metadata
     "target": "ES2020",
     "module": "commonjs",
     "strict": true
@@ -235,7 +222,6 @@ const backend = new MockLLMBackend({
 1. **TypeScript Version**: Examples require TypeScript 4.5+ for best experience
 2. **Node.js Version**: Requires Node.js 16+ for ES modules support
 3. **API Key Management**: Never commit API keys to version control
-4. **Decorator Support**: Experimental feature requiring specific tsconfig
 5. **Bundle Size**: Consider tree-shaking for production builds
 6. **React Integration**: See `src/integrations/react.ts` for React examples
 7. **Async/Await**: All examples use async/await patterns
@@ -260,7 +246,6 @@ When creating new examples:
 - **Module not found**: Run `npm install` and `npm run build` first
 - **API Key Error**: Set OPENAI_API_KEY environment variable
 - **TypeScript Errors**: Ensure tsconfig.json has correct settings
-- **Decorator Errors**: Enable `experimentalDecorators` in tsconfig
 - **Runtime Errors**: Check Node.js version (16+ required)
 - **Import Errors**: Use correct import paths ('../src' during development)
 

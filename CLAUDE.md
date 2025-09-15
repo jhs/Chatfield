@@ -12,7 +12,7 @@ Chatfield is a dual-implementation library that transforms data collection from 
 - LLM-powered conversational data collection
 - Smart validation and transformation of responses
 - LangGraph-based conversation orchestration
-- Both decorator and builder pattern APIs
+- Fluent builder pattern API
 - Full TypeScript type safety
 - React and CopilotKit integrations
 
@@ -27,11 +27,10 @@ Chatfield/
 │   │   ├── __init__.py          # Main exports and public API
 │   │   ├── interview.py         # Base Interview class with field discovery
 │   │   ├── interviewer.py       # LangGraph-based conversation orchestration
-│   │   ├── decorators.py        # Decorator implementations (@alice, @must, @as_int, etc.)
 │   │   ├── field_proxy.py       # FieldProxy string subclass for transformations
-│   │   ├── builder.py           # Fluent builder API (alternative to decorators)
+│   │   ├── builder.py           # Fluent builder API
 │   │   ├── serialization.py     # Interview state serialization
-│   │   ├── presets.py           # Common preset decorators and configurations
+│   │   ├── presets.py           # Common preset configurations
 │   │   └── visualization.py     # Graph visualization utilities
 │   ├── tests/                   # Test suite (test_*.py naming, pytest-describe structure)
 │   │   ├── test_interview.py    # Interview class tests
@@ -39,7 +38,7 @@ Chatfield/
 │   │   ├── test_interviewer_conversation.py # Conversation flow tests
 │   │   ├── test_builder.py      # Builder API tests
 │   │   ├── test_field_proxy.py  # FieldProxy tests
-│   │   ├── test_custom_transformations.py # Transformation decorator tests
+│   │   ├── test_custom_transformations.py # Transformation system tests
 │   │   ├── test_conversations.py # End-to-end conversation tests
 │   │   └── CLAUDE.md            # Test suite documentation
 │   ├── examples/                # Python usage examples
@@ -56,7 +55,6 @@ Chatfield/
     │   ├── index.ts             # Main exports and public API
     │   ├── interview.ts         # Base Interview class (mirrors Python)
     │   ├── interviewer.ts       # LangGraph conversation orchestration
-    │   ├── decorators.ts        # Decorator implementations
     │   ├── field-proxy.ts       # FieldProxy for transformations
     │   ├── builder.ts           # Primary fluent builder API
     │   ├── builder-types.ts     # TypeScript type definitions for builder
@@ -80,8 +78,6 @@ Chatfield/
     │   ├── basic-usage.ts       # Simple builder pattern example
     │   ├── job-interview.ts     # Job application (mirrors Python)
     │   ├── restaurant-order.ts  # Restaurant ordering
-    │   ├── decorator-usage.ts   # Decorator API examples
-    │   ├── decorator-react.tsx  # React component examples
     │   ├── schema-based.ts      # Schema-driven approach
     │   └── type-safe-demo.ts    # TypeScript type inference demo
     ├── package.json             # Node package configuration
@@ -157,20 +153,19 @@ npx tsx minimal.ts                                  # Test OpenAI API connection
 
 ### Core Concepts (Both Implementations)
 
-1. **Interview/Gatherer**: Main class that defines fields to collect via methods or builder API
-2. **Field Definitions**: Methods (Python) or builder calls (TypeScript) that define data fields
-3. **Field Specifications**: Validation rules (@must, @reject, @hint) applied to fields
-4. **Field Transformations**: Type casts (@as_int, @as_bool, etc.) computed by LLM
+1. **Interview/Gatherer**: Main class that defines fields to collect via builder API
+2. **Field Definitions**: Builder calls that define data fields
+3. **Field Specifications**: Validation rules (must, reject, hint) applied to fields
+4. **Field Transformations**: Type casts (as_int, as_bool, etc.) computed by LLM
 5. **Interviewer**: Orchestrates conversation flow using LangGraph and LLMs
 6. **FieldProxy**: String subclass providing dot-access to transformations
 7. **State Management**: LangGraph manages conversation state and transitions
 
 ### Python Implementation Details
 
-- **Primary API**: Decorator-based (`@alice`, `@bob`, `@must`, `@as_int`)
-- **Alternative API**: Fluent builder pattern (`chatfield().field().must()`)
+- **Primary API**: Fluent builder pattern (`chatfield().field().must()`)
 - **Orchestration**: LangGraph state machine with nodes and edges
-- **Field Discovery**: Automatic via method inspection in `Interview.__init__`
+- **Field Discovery**: Via builder pattern calls
 - **Data Storage**: `_chatfield` dictionary structure on Interview instances
 - **Transformations**: FieldProxy provides `field.as_int`, `field.as_lang_fr`, etc.
 - **Testing**: pytest with pytest-describe for BDD-style test organization
@@ -179,7 +174,7 @@ npx tsx minimal.ts                                  # Test OpenAI API connection
 ### TypeScript Implementation Details
 
 - **Primary API**: Fluent builder pattern (`chatfield().field().must()`)
-- **Alternative APIs**: Decorators (experimental), schema-based
+- **Alternative APIs**: Schema-based
 - **Orchestration**: LangGraph TypeScript with state management (v0.4.6+)
 - **Type Safety**: Full TypeScript type inference and checking
 - **React Integration**: Hooks (`useConversation`, `useGatherer`) and components
@@ -203,9 +198,8 @@ npx tsx minimal.ts                                  # Test OpenAI API connection
 ### Python Core Files
 - `chatfield/interview.py`: Base Interview class, field discovery, _chatfield structure
 - `chatfield/interviewer.py`: LangGraph orchestration, tool generation, state management
-- `chatfield/decorators.py`: All decorators (@alice, @must, @as_int, etc.)
+- `chatfield/builder.py`: Fluent builder API
 - `chatfield/field_proxy.py`: String subclass for transformation access
-- `chatfield/builder.py`: Fluent API alternative to decorators
 - `chatfield/serialization.py`: State serialization for LangGraph
 
 ### TypeScript Core Files
@@ -213,7 +207,6 @@ npx tsx minimal.ts                                  # Test OpenAI API connection
 - `src/interviewer.ts`: LangGraph TypeScript orchestration
 - `src/builder.ts`: Primary fluent builder API
 - `src/field-proxy.ts`: FieldProxy implementation for transformations
-- `src/decorators.ts`: Experimental decorator support
 - `src/types.ts`: Core TypeScript type definitions
 
 ## Testing Approach
@@ -224,7 +217,7 @@ Both implementations follow identical BDD-style test organization with matching 
 ### Python Tests
 - **Framework**: pytest with pytest-describe for BDD-style organization
 - **Structure**: Nested `describe_*` and `it_*` functions for test organization
-- **Unit Tests**: Individual component testing (decorators, field discovery)
+- **Unit Tests**: Individual component testing (builder API, field discovery)
 - **Integration Tests**: Component interaction testing with mock LLMs
 - **Live API Tests**: Real OpenAI API tests (marked with `@pytest.mark.requires_api_key`)
 - **Coverage**: Run `make test-cov` for HTML coverage report in `htmlcov/`
@@ -258,15 +251,7 @@ interviewer = Interviewer(interview, api_key="your-api-key")
 
 ## Common Development Tasks
 
-### Adding a New Decorator (Python)
-1. Define decorator class in `chatfield/decorators.py`
-2. Add to exports in `chatfield/__init__.py`
-3. Update field discovery in `interview.py` if needed
-4. Handle transformation in `interviewer.py` tool generation
-5. Write tests in `tests/test_decorators.py`
-6. Add example usage to `examples/`
-
-### Adding a New Builder Method (TypeScript)
+### Adding a New Builder Method
 1. Add method to builder class in `src/builder.ts`
 2. Update type definitions in `src/builder-types.ts`
 3. Export from `src/index.ts`
@@ -292,11 +277,12 @@ npx tsx examples/job-interview.ts
 ### Field Value Access (Python)
 ```python
 # During definition
-class MyInterview(Interview):
-    @must("be specific")
-    @as_int
-    @as_lang.fr
-    def age(): "Your age"
+interview = chatfield()\
+    .field("age", "Your age")\
+    .must("be specific")\
+    .as_int()\
+    .as_lang("fr")\
+    .build()
 
 # After collection
 interview.age              # "25" (base string value)
@@ -327,47 +313,46 @@ result.name        // string
 result.age         // number (transformed)
 ```
 
-### Decorator Pattern (Python)
+### Builder Pattern (Python)
 ```python
-@alice("Interviewer")
-@alice.trait("friendly and professional")
-@bob("Job Candidate")
-class JobInterview(Interview):
-    @must("include company name")
-    @must("mention specific role")
-    def desired_position(): "What position are you applying for?"
-    
-    @as_int
-    @must("be realistic number")
-    def years_experience(): "Years of relevant experience"
-    
-    @as_multi("Python", "JavaScript", "Go", "Rust")
-    def languages(): "Programming languages you know"
+interview = chatfield()\
+    .alice("Interviewer")\
+    .alice_trait("friendly and professional")\
+    .bob("Job Candidate")\
+    .field("desired_position", "What position are you applying for?")\
+        .must("include company name")\
+        .must("mention specific role")\
+    .field("years_experience", "Years of relevant experience")\
+        .as_int()\
+        .must("be realistic number")\
+    .field("languages", "Programming languages you know")\
+        .as_multi(["Python", "JavaScript", "Go", "Rust"])\
+    .build()
 ```
 
 ## Validation and Transformation
 
 Both implementations use LLM-powered validation and transformation:
 
-### Validation Decorators/Methods
-- `@must` / `.must()`: Requirements the response must meet
-- `@reject` / `.reject()`: Patterns to avoid in responses  
-- `@hint` / `.hint()`: Guidance shown to the user
+### Validation Methods
+- `.must()`: Requirements the response must meet
+- `.reject()`: Patterns to avoid in responses  
+- `.hint()`: Guidance shown to the user
 
-### Transformation Decorators/Methods
-- `@as_int` / `.as_int()`: Parse to integer
-- `@as_float` / `.as_float()`: Parse to float
-- `@as_bool` / `.as_bool()`: Parse to boolean
-- `@as_list` / `.as_list()`: Parse to list/array
-- `@as_json` / `.as_json()`: Parse as JSON object
-- `@as_percent` / `.as_percent()`: Parse to 0.0-1.0 range
-- `@as_lang.{code}` / `.as_lang('code')`: Translate to language
+### Transformation Methods
+- `.as_int()`: Parse to integer
+- `.as_float()`: Parse to float
+- `.as_bool()`: Parse to boolean
+- `.as_list()`: Parse to list/array
+- `.as_json()`: Parse as JSON object
+- `.as_percent()`: Parse to 0.0-1.0 range
+- `.as_lang('code')`: Translate to language
 
 ### Choice Cardinality
-- `@as_one` / `.as_one()`: Choose exactly one option
-- `@as_maybe` / `.as_maybe()`: Choose zero or one option
-- `@as_multi` / `.as_multi()`: Choose one or more options
-- `@as_any` / `.as_any()`: Choose zero or more options
+- `.as_one()`: Choose exactly one option
+- `.as_maybe()`: Choose zero or one option
+- `.as_multi()`: Choose one or more options
+- `.as_any()`: Choose zero or more options
 
 ## LangGraph Integration
 
@@ -419,7 +404,7 @@ Both implementations use LangGraph for conversation orchestration:
 5. **API rate limits**: Consider rate limiting for production use
 6. **Thread safety**: Each Interviewer maintains separate thread ID
 7. **Transformation computation**: All transformations computed by LLM during collection, not post-processing
-8. **Field discovery**: Python discovers fields via method inspection, TypeScript via builder calls
+8. **Field discovery**: Both implementations use builder calls for field definition
 9. **State persistence**: LangGraph checkpointer allows conversation resumption
 10. **Prompt engineering**: Validation quality depends on prompt crafting
 11. **Import differences**: Python uses relative imports, TypeScript uses absolute from src/

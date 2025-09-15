@@ -21,14 +21,14 @@ Python/examples/
 
 ### favorite_number.py
 - **Purpose**: Demonstrates the complete transformation system
-- **Features**: All transformation decorators (`@as_int`, `@as_float`, `@as_bool`, `@as_lang.*`, `@as_set`, `@as_percent`)
-- **Cardinality**: Shows `@as_one`, `@as_maybe`, `@as_multi`, `@as_any` patterns
+- **Features**: All transformation methods (as_int(), as_float(), as_bool(), as_lang(), as_set(), as_percent())
+- **Cardinality**: Shows as_one(), as_maybe(), as_multi(), as_any() patterns
 - **Usage**: Supports `--auto` flag for automated demo without user input
 
 ### job_interview.py
 - **Purpose**: Professional HR/recruitment scenario
 - **Features**: Complex validation rules, multiple constraints per field
-- **Patterns**: Demonstrates `@must`, `@reject`, and `@hint` decorators
+- **Patterns**: Demonstrates must(), reject(), and hint() methods
 - **Use Case**: Shows how to build professional forms with business logic
 
 ### restaurant_order.py
@@ -86,10 +86,7 @@ pip install -e ".[dev]"
 
 1. **Import Structure**: All examples use similar imports:
    ```python
-   from chatfield import chatfield
-   from chatfield import Interviewer
-   from chatfield import alice, bob, must, hint, reject
-   from chatfield import as_int, as_float, as_bool, as_lang
+   from chatfield import chatfield, Interviewer
    ```
 
 2. **Builder Pattern**: Examples use the fluent builder API:

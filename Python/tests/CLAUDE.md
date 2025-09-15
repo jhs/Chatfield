@@ -4,7 +4,7 @@ This file provides guidance to Claude Code when working with the Python test sui
 
 ## Overview
 
-This directory contains the comprehensive test suite for the Chatfield Python library, covering unit tests, integration tests, and conversation flow tests. The tests validate decorator functionality, field discovery, interview orchestration, and transformation capabilities. The test suite uses pytest with pytest-describe for BDD-style test organization that harmonizes with the TypeScript implementation.
+This directory contains the comprehensive test suite for the Chatfield Python library, covering unit tests, integration tests, and conversation flow tests. The tests validate builder functionality, field discovery, interview orchestration, and transformation capabilities. The test suite uses pytest with pytest-describe for BDD-style test organization that harmonizes with the TypeScript implementation.
 
 ## Project Structure
 
@@ -16,7 +16,7 @@ Python/tests/
 ├── test_interviewer_conversation.py # Conversation flow and state tests
 ├── test_builder.py                  # Builder API and chaining tests
 ├── test_field_proxy.py              # FieldProxy string subclass tests
-├── test_custom_transformations.py   # Transformation decorator tests
+├── test_custom_transformations.py   # Transformation system tests
 ├── test_conversations.py            # Full conversation integration tests
 └── CLAUDE.md                        # This documentation file
 ```
@@ -53,7 +53,7 @@ Python/tests/
 
 ### test_builder.py
 - **Purpose**: Tests the fluent builder API
-- **Coverage**: Method chaining, field configuration, decorator application
+- **Coverage**: Method chaining, field configuration, builder application
 - **Structure**: `describe_builder` with nested test functions
 - **Test Examples**:
   - `describe_chaining` → `it_supports_method_chaining`
@@ -72,8 +72,8 @@ Python/tests/
 - **Special**: Tests dynamic property generation (`.as_int`, `.as_lang_fr`, etc.)
 
 ### test_custom_transformations.py
-- **Purpose**: Tests transformation decorators
-- **Coverage**: `@as_int`, `@as_float`, `@as_bool`, `@as_lang.*`, cardinality
+- **Purpose**: Tests transformation system
+- **Coverage**: as_int(), as_float(), as_bool(), as_lang(), cardinality methods
 - **Structure**: `describe_transformations` with type-specific describe blocks
 - **Test Examples**:
   - `describe_numeric_transformations` → `it_transforms_to_int`
@@ -168,8 +168,8 @@ mock_responses = {
     'field_name': 'predetermined value'
 }
 
-# 3. Patch decorators for testing
-@patch('chatfield.decorators.must')
+# 3. Patch builder methods for testing
+@patch('chatfield.builder.chatfield')
 def test_validation(mock_must):
     # Test validation logic
 ```
@@ -222,7 +222,7 @@ def describe_component():
 
 1. **Always Mock**: External API calls, file I/O, network requests
 2. **Sometimes Mock**: LangGraph components (for speed)
-3. **Never Mock**: Core business logic, decorators, field discovery
+3. **Never Mock**: Core business logic, builder methods, field discovery
 
 ## Important Patterns
 
