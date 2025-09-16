@@ -760,12 +760,18 @@ job_application = (chatfield()
         .as_one('preference', 'Remote', 'Hybrid', 'Office')
 
     # Confidential assessments
-    .field("communication_quality")
-        .desc("Communication clarity during interview")
+    .field("values_concern")
+        .desc("Candidate mentions something raising a values concern")
         .confidential()
-        .as_one('level', 'poor', 'adequate', 'good', 'excellent')
+        .as_bool()
 
-    .build())
+    # Evaluate the entire conversation to conclude the communication style
+    .field('communication_score')
+        .desc('Clarity, focus, active listening during the conversation')
+        .conclude()
+        .as_percent()
+
+      .build())
 
 # Run the interview
 interviewer = Interviewer(job_application)
@@ -785,7 +791,7 @@ print(f"Is Senior: {job_application.years_experience.as_bool_senior}")
 print(f"Languages: {job_application.primary_languages.as_multi_langs}")
 print(f"Salary: {job_application.salary_expectation.as_str_formatted}")
 print(f"Communication: {job_application.communication_quality.as_one_level}")
-print(f"Recommendation: {job_application.recommendation.as_one_decision}")
+print(f"Values concern: {job_application.values_concern.as_bool}")
 ```
 
 **TypeScript:**
@@ -848,11 +854,17 @@ const jobApplication = chatfield()
     .confidential()
     .as_one('level', 'poor', 'adequate', 'good', 'excellent')
 
-  // Final evaluation
-  .field('recommendation')
-    .desc('Hiring recommendation')
+  // Confidential assessments
+  .field("valuesConcern")
+    .desc("Candidate mentions something raising a values concern")
+    .confidential()
+    .as_bool()
+
+  // Evaluate the entire conversation to conclude the communication style
+  .field('communicationScore')
+    .desc('Clarity, focus, active listening during the conversation')
     .conclude()
-    .as_one('decision', 'reject', 'maybe', 'interview', 'strong_yes')
+    .as_percent()
 
   .build()
 
@@ -877,7 +889,7 @@ console.log(`Is Senior: ${jobApplication.yearsExperience.as_bool_senior}`)
 console.log(`Languages: ${jobApplication.primaryLanguages.as_multi_langs}`)
 console.log(`Salary: ${jobApplication.salaryExpectation.as_str_formatted}`)
 console.log(`Communication: ${jobApplication.communicationQuality.as_one_level}`)
-console.log(`Recommendation: ${jobApplication.recommendation.as_one_decision}`)
+console.log(`Values concern: ${jobApplication.valuesConcern.as_bool}`)
 ```
 
 ### Product Launch Planning
