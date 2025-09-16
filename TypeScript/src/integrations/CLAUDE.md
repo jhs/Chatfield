@@ -304,7 +304,7 @@ await conversation.start()
 
 // New (to be implemented)
 const interviewer = new Interviewer(interview)
-await interviewer.run()
+await interviewer.go()
 ```
 
 ### Hook Migration

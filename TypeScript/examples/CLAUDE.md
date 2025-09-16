@@ -176,7 +176,7 @@ if (!process.env.OPENAI_API_KEY) {
 }
 
 try {
-  const result = await interviewer.run()
+  const result = await interviewer.go()
 } catch (error) {
   console.error('Interview failed:', error)
 }
@@ -233,7 +233,7 @@ When creating new examples:
 ```typescript
 app.post('/interview', async (req, res) => {
   const interviewer = new Interviewer(Form)
-  const result = await interviewer.run()
+  const result = await interviewer.go()
   res.json(result)
 })
 ```

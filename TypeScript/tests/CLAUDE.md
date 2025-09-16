@@ -307,13 +307,13 @@ describe('ComponentName', () => {
 // Async test pattern
 test('should handle async operations', async () => {
   const interviewer = new Interviewer(interview)
-  const result = await interviewer.run()
+  const result = await interviewer.go()
   expect(result).toBeDefined()
 })
 
 // With error handling
 test('should handle errors', async () => {
-  await expect(interviewer.run()).rejects.toThrow('Expected error')
+  await expect(interviewer.go()).rejects.toThrow('Expected error')
 })
 ```
 

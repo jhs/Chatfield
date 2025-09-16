@@ -102,7 +102,7 @@ pip install -e ".[dev]"
 3. **Interviewer Usage**: Standard pattern for running interviews:
    ```python
    interviewer = Interviewer(interview)
-   result = interviewer.run()
+   result = interviewer.go()
    ```
 
 4. **Auto-Mode Support**: Examples may include automated responses:

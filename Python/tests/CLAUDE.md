@@ -265,7 +265,9 @@ def test_as_int_transformation(input, expected):
 @pytest.mark.asyncio
 async def test_async_interview():
     # Test async interview operations
-    result = await interviewer.arun()
+    # Note: Async version not yet implemented
+    # result = await interviewer.ago()
+    pass
 ```
 
 ## Known Considerations
