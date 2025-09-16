@@ -2,15 +2,8 @@
 
 import os
 import pytest
-from pathlib import Path
 from unittest.mock import Mock, patch, MagicMock
 from langchain_core.messages import HumanMessage, AIMessage, SystemMessage, ToolMessage
-from dotenv import load_dotenv
-
-# Load environment variables from project root .env file
-project_root = Path(__file__).parent.parent.parent
-env_file = project_root / '.env'
-load_dotenv(env_file)
 
 from chatfield import Interview, Interviewer, chatfield
 

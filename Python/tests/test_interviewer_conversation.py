@@ -4,15 +4,8 @@ Mirrors TypeScript's interviewer_conversation.test.ts with identical test descri
 
 import os
 import pytest
-from pathlib import Path
-from dotenv import load_dotenv
 
-# Load environment variables from project root .env file
-project_root = Path(__file__).parent.parent.parent
-env_file = project_root / '.env'
-load_dotenv(env_file)
-
-from chatfield import Interview, Interviewer, chatfield
+from chatfield import Interviewer, chatfield
 
 
 def describe_interviewer_conversation():
