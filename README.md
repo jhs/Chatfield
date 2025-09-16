@@ -5,8 +5,8 @@
 Chatfield is a library to collect information from people using conversation rather than forms. Chatfield supports:
 
 - **Python** and **TypeScript** as well as JavaScript
-- **Server** and **Browser** operation via Node.js and any web browser
-- **Any User Interface** as Chatfield only computes what to say, now how to present it
+- **Server** and **Browser** operation
+- **Any User Interface** because Chatfield computes what to say, now how to present
 
 With Chatfield, your application can easily do:
 
@@ -18,6 +18,7 @@ With Chatfield, your application can easily do:
     - **Translate language**: `"Hello"` becomes `"Bonjour"`
     - **Classify** user input, such as choosing from a list of user intents like `["plan", "do", "review"]`
 
+Chatfield is built on [LangGraph](https://www.langchain.com/langgraph) and [LangChain](https://www.langchain.com/), supporting all LLMs which LangChain supports.
 
 ## Quick Start
 
@@ -164,50 +165,6 @@ const apiRequest = chatfield()
     .must('at least 20 words')
     .reject('vague statements')
     .hint('Describe your use case in detail')
-
-  .build()
-```
-
-### Complex Validation
-
-Combine multiple validation strategies:
-
-**Python:**
-```python
-application = (chatfield()
-    .field("project_url", "GitHub project URL")
-        .must("be a GitHub repository URL")
-        .must("be a public repository")
-        .reject("private or 404 repos")
-        .hint("Format: https://github.com/username/repo")
-
-    .field("experience")
-        .desc("Your experience summary")
-        .must("mention specific technologies")
-        .must("include years of experience")
-        .must("describe at least one project")
-        .reject("vague statements like 'various projects'")
-        .hint("Be specific about your contributions")
-
-    .build())
-```
-
-**TypeScript:**
-```typescript
-const application = chatfield()
-  .field('projectUrl', 'GitHub project URL')
-    .must('be a GitHub repository URL')
-    .must('be a public repository')
-    .reject('private or 404 repos')
-    .hint('Format: https://github.com/username/repo')
-
-  .field('experience')
-    .desc('Your experience summary')
-    .must('mention specific technologies')
-    .must('include years of experience')
-    .must('describe at least one project')
-    .reject("vague statements like 'various projects'")
-    .hint('Be specific about your contributions')
 
   .build()
 ```
@@ -807,12 +764,6 @@ job_application = (chatfield()
         .desc("Communication clarity during interview")
         .confidential()
         .as_one('level', 'poor', 'adequate', 'good', 'excellent')
-
-    # Final evaluation
-    .field("recommendation")
-        .desc("Hiring recommendation")
-        .conclude()
-        .as_one('decision', 'reject', 'maybe', 'interview', 'strong_yes')
 
     .build())
 
