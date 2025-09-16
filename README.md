@@ -1,19 +1,23 @@
-# Chatfield: Conversational Data Collection
+# Chatfield: Conversational Data Collection AI Agent
 
 🎥 **Watch me develop this live!** Follow along as I build Chatfield in real-time: [YouTube Development Streams](https://www.youtube.com/@JasonSmithBuild/streams)
 
-Transform data collection from rigid forms into natural conversations powered by LLMs.
+Chatfield is a library to collect information from people using conversation rather than forms. Chatfield supports:
 
-Chatfield provides implementations in both Python and TypeScript/JavaScript, allowing you to create conversational interfaces for gathering structured data in any application.
+- **Python** and **TypeScript** as well as JavaScript
+- **Server** and **Browser** operation via Node.js and any web browser
+- **Any User Interface** as Chatfield only computes what to say, now how to present it
 
-## Features
+With Chatfield, your application can easily do:
 
-- **Natural Conversations**: Replace traditional forms with engaging dialogues
-- **LLM-Powered Validation**: Smart validation and guidance through conversation
-- **Type Safety**: Full type support in both Python and TypeScript
-- **Rich Transformations**: Convert responses into any data type with casts
-- **Framework Integration**: React components, CopilotKit support, and more
-- **Fluent Builder API**: Clean, intuitive method chaining for configuration
+- **Natural Conversation**: You tell Chatfield the user input. Chatfield tells you what to say in response.
+- **LLM-Powered Validation**: Write rules in natural language describing valid or invalid field values.
+- **LLM-powered Data Transformation**: "Cast" user input into any additional representation you want:
+    - **Convert to data**: `"5k"` becomes `5000`. `"Yes"` becomes `true`. `"50/50"` becomes `0.5`
+    - **Convert to object**: `"I am Sam age 20"` becomes `{"name":"Sam", "age":20}`
+    - **Translate language**: `"Hello"` becomes `"Bonjour"`
+    - **Classify** user input, such as choosing from a list of user intents like `["plan", "do", "review"]`
+
 
 ## Quick Start
 
