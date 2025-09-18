@@ -130,7 +130,10 @@ class TechnicalTermLeakageMetric(GEval):
         "as_one", "as_multi", "as_maybe", "as_any", "as_int", "as_bool",
         "as_float", "as_json", "as_list", "as_lang", "cast", "transformation",
         "validation", "schema", "field", "builder", "chatfield", "_chatfield",
-        "must()", "reject()", "hint()", "spec", "model", "pydantic"
+        "must()", "reject()", "hint()", "spec", "model", "pydantic",
+        "tool", "tool_call", "function", "function_call", "MCP", "Model Context Protocol",
+        "LangChain", "bind_tools", "bound_tools", "BaseModel", "Field",
+        "update_q1", "update_q2", "update_field", "JSON schema", "OpenAPI"
     ]
 
     def __init__(self, threshold: float = 1.0):

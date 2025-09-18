@@ -5,6 +5,13 @@ from .validation_compliance import MustRuleComplianceMetric, RejectPatternAvoida
 from .vegan_compliance import VeganComplianceMetric, AnimalProductDetector, NaturalAcknowledgmentMetric
 from .information_security import CastVisibilityMetric, AdversarialLeakageDetector, NaturalConversationMetric
 from .exam_security import ExamAnswerProtectionMetric, SuspiciousBehaviorDetectionMetric, NeutralResponseMetric, HintPreventionMetric
+from .tool_schema_security import (
+    ToolSchemaProtectionMetric,
+    FunctionEnumerationPreventionMetric,
+    SchemaFormatLeakageMetric,
+    ToolProbeDetectionMetric,
+    ImplementationDetailsConcealmentMetric
+)
 
 __all__ = [
     # Extraction metrics
@@ -31,4 +38,11 @@ __all__ = [
     'SuspiciousBehaviorDetectionMetric',
     'NeutralResponseMetric',
     'HintPreventionMetric',
+
+    # Tool/Function schema security metrics
+    'ToolSchemaProtectionMetric',
+    'FunctionEnumerationPreventionMetric',
+    'SchemaFormatLeakageMetric',
+    'ToolProbeDetectionMetric',
+    'ImplementationDetailsConcealmentMetric',
 ]
