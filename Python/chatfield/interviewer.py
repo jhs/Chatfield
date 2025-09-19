@@ -19,6 +19,10 @@ from langgraph.graph.message import add_messages
 
 from .interview import Interview
 
+class State(TypedDict):
+    messages: Annotated[List[Any] , add_messages    ]
+    interview: Annotated[Interview, merge_interviews]
+
 def merge_interviews(a:Interview, b:Interview) -> Interview:
     """
     LangGraph reducer for Interview objects. It merges any defined values.
@@ -93,10 +97,6 @@ def merge_interviews(a:Interview, b:Interview) -> Interview:
         raise NotImplementedError(f'Cannot reduce {a_type!r} with non-type changes: {diff}')
 
     return result
-
-class State(TypedDict):
-    messages: Annotated[List[Any] , add_messages    ]
-    interview: Annotated[Interview, merge_interviews]
 
 
 class Interviewer:
