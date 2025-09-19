@@ -2,11 +2,22 @@
 
 🎥 **Watch me develop this live!** Follow along as I build Chatfield in real-time: [YouTube Development Streams](https://www.youtube.com/@JasonSmithBuild/streams)
 
-Chatfield is a library to collect information from people using conversation rather than forms. Chatfield supports:
+Chatfield is a library to collect information using conversation rather than forms.
 
-- **Python** and **TypeScript** as well as JavaScript
-- **Server** and **Browser** operation
-- **Any User Interface** because Chatfield computes what to say, now how to present
+- Chatfield supports **Python** and **TypeScript** as well as JavaScript
+- Chatfield supports **Server** and **Browser** operation
+- Chatfield works in **any User Interface** because it computes what to say, now how to present
+
+```typescript
+import { chatfield } from 'chatfield' // Or Python: from chatfield import chatfield
+
+const trip = chatfield()              // Identical API in Python and TypeScript/JavaScript
+    .field('destination')
+        .desc('Where would you like to go?')
+    .field('budget')
+        .desc('What is your budget?')
+    .build()
+```
 
 With Chatfield, your application can easily do:
 
@@ -16,63 +27,65 @@ With Chatfield, your application can easily do:
     - **Convert to data**: `"5k"` becomes `5000`. `"Yes"` becomes `true`. `"50/50"` becomes `0.5`
     - **Convert to object**: `"I am Sam age 20"` becomes `{"name":"Sam", "age":20}`
     - **Translate language**: `"Hello"` becomes `"Bonjour"`
-    - **Classify** user input, such as choosing from a list of user intents like `["plan", "do", "review"]`
+    - **Classify** user input into categories you choose
 
-Chatfield is built on [LangGraph](https://www.langchain.com/langgraph) and [LangChain](https://www.langchain.com/), supporting all LLMs which LangChain supports.
+Chatfield works in any framework. Internally, Chatfield is built on [LangGraph](https://www.langchain.com/langgraph) and [LangChain](https://www.langchain.com/), supporting all LLMs which LangChain supports.
 
 ## Quick Start
 
-### Simple Contact Form
+### Running the Travel Planner
+
+Using the simple travel form defined above, here's how to run a conversation:
 
 **Python:**
 ```python
 from chatfield import chatfield, Interviewer
 
-# Define the form
-contact_form = (chatfield()
-    .field("name", "Your full name")
-    .field("email", "Your email address")
-    .field("message", "How can we help you?")
+# Define the travel planner (from above)
+trip = (chatfield()
+    .field("destination")
+        .desc("Where would you like to go?")
+    .field("budget")
+        .desc("What is your budget?")
     .build())
 
 # Run the conversation
-interviewer = Interviewer(contact_form)
+interviewer = Interviewer(trip)
 user_input = None
-while not contact_form._done:
+while not trip._done:
     message = interviewer.go(user_input)
     print(message)
     user_input = input("> ")
 
 # Access collected data
-print(f"Name: {contact_form.name}")
-print(f"Email: {contact_form.email}")
-print(f"Message: {contact_form.message}")
+print(f"Destination: {trip.destination}")
+print(f"Budget: {trip.budget}")
 ```
 
 **TypeScript:**
 ```typescript
-import { chatfield, Interviewer } from '@chatfield/core'
+import { chatfield, Interviewer } from 'chatfield'
 
-// Define the form
-const contactForm = chatfield()
-  .field('name', 'Your full name')
-  .field('email', 'Your email address')
-  .field('message', 'How can we help you?')
+// Define the travel planner (from above)
+const trip = chatfield()
+  .field('destination')
+    .desc('Where would you like to go?')
+  .field('budget')
+    .desc('What is your budget?')
   .build()
 
 // Run the conversation
-const interviewer = new Interviewer(contactForm)
+const interviewer = new Interviewer(trip)
 let userInput: string | null = null
-while (!contactForm._done) {
+while (!trip._done) {
   const message = await interviewer.go(userInput)
   console.log(message)
   userInput = await getUserInput() // Your input method
 }
 
 // Access collected data
-console.log(`Name: ${contactForm.name}`)
-console.log(`Email: ${contactForm.email}`)
-console.log(`Message: ${contactForm.message}`)
+console.log(`Destination: ${trip.destination}`)
+console.log(`Budget: ${trip.budget}`)
 ```
 
 ## Core Concepts
@@ -85,17 +98,25 @@ Fields are the basic building blocks. Each field represents a piece of data to c
 
 **Python:**
 ```python
-interview = (chatfield()
-    .field("age", "Your age")
-    .field("location", "Where are you located?")
+trip = (chatfield()
+    .field("destination")
+        .desc("Where would you like to go?")
+    .field("travel_style")
+        .desc("What's your travel style?")
+    .field("group_size")
+        .desc("How many people are traveling?")
     .build())
 ```
 
 **TypeScript:**
 ```typescript
-const interview = chatfield()
-  .field('age', 'Your age')
-  .field('location', 'Where are you located?')
+const trip = chatfield()
+  .field('destination')
+    .desc('Where would you like to go?')
+  .field('travelStyle')
+    .desc('What\'s your travel style?')
+  .field('groupSize')
+    .desc('How many people are traveling?')
   .build()
 ```
 
@@ -105,23 +126,61 @@ Provide context about your interview:
 
 **Python:**
 ```python
-bug_report = (chatfield()
-    .type("Bug Report")
-    .desc("Collecting bug report details")
-    .field("steps", "Steps to reproduce")
-    .field("expected", "What should happen")
-    .field("actual", "What actually happens")
+vacation_planner = (chatfield()
+    .type("Vacation Planning")
+    .desc("Plan your perfect vacation")
+    .field("destination")
+        .desc("Where would you like to go?")
+    .field("duration")
+        .desc("How many days?")
+    .field("interests")
+        .desc("What are you interested in?")
     .build())
 ```
 
 **TypeScript:**
 ```typescript
-const bugReport = chatfield()
-  .type('Bug Report')
-  .desc('Collecting bug report details')
-  .field('steps', 'Steps to reproduce')
-  .field('expected', 'What should happen')
-  .field('actual', 'What actually happens')
+const vacationPlanner = chatfield()
+  .type('Vacation Planning')
+  .desc('Plan your perfect vacation')
+  .field('destination')
+    .desc('Where would you like to go?')
+  .field('duration')
+    .desc('How many days?')
+  .field('interests')
+    .desc('What are you interested in?')
+  .build()
+```
+
+## Adding Validation
+
+The basic travel planner above can be enhanced with validation rules:
+
+**Python:**
+```python
+trip = (chatfield()
+    .field("destination")
+        .desc("Where would you like to go?")
+        .must("be a real place")
+        .reject("generic answers like 'anywhere'")
+    .field("budget")
+        .desc("What is your budget?")
+        .must("include a specific amount")
+        .hint("Per person or total is fine")
+    .build())
+```
+
+**TypeScript:**
+```typescript
+const trip = chatfield()
+  .field('destination')
+    .desc('Where would you like to go?')
+    .must('be a real place')
+    .reject("generic answers like 'anywhere'")
+  .field('budget')
+    .desc('What is your budget?')
+    .must('include a specific amount')
+    .hint('Per person or total is fine')
   .build()
 ```
 
@@ -131,104 +190,142 @@ Ensure data quality with validation rules that guide the conversation:
 
 ### Must, Reject, and Hint
 
+For more complex validation scenarios:
+
 **Python:**
 ```python
-api_request = (chatfield()
-    .field("email")
-        .desc("Work email address")
-        .must("be from company domain")
-        .reject("gmail.com, yahoo.com, hotmail.com")
-        .hint("Use your company email")
+advanced_trip = (chatfield()
+    .field("dates")
+        .desc("Travel dates")
+        .must("be at least 7 days in the future")
+        .must("not exceed 30 days duration")
+        .reject("peak holiday periods if avoiding crowds")
+        .hint("Consider shoulder season for better rates")
 
-    .field("purpose")
-        .desc("What you'll build with the API")
-        .must("be specific")
-        .must("at least 20 words")
-        .reject("vague statements")
-        .hint("Describe your use case in detail")
+    .field("budget")
+        .desc("Total trip budget")
+        .must("be realistic for destination")
+        .must("include all travelers")
+        .reject("vague amounts like 'whatever it takes'")
+        .hint("Include flights, hotels, food, and activities")
 
     .build())
 ```
 
 **TypeScript:**
 ```typescript
-const apiRequest = chatfield()
-  .field('email')
-    .desc('Work email address')
-    .must('be from company domain')
-    .reject('gmail.com, yahoo.com, hotmail.com')
-    .hint('Use your company email')
+const advancedTrip = chatfield()
+  .field('dates')
+    .desc('Travel dates')
+    .must('be at least 7 days in the future')
+    .must('not exceed 30 days duration')
+    .reject('peak holiday periods if avoiding crowds')
+    .hint('Consider shoulder season for better rates')
 
-  .field('purpose')
-    .desc("What you'll build with the API")
-    .must('be specific')
-    .must('at least 20 words')
-    .reject('vague statements')
-    .hint('Describe your use case in detail')
+  .field('budget')
+    .desc('Total trip budget')
+    .must('be realistic for destination')
+    .must('include all travelers')
+    .reject("vague amounts like 'whatever it takes'")
+    .hint('Include flights, hotels, food, and activities')
 
   .build()
 ```
 
 ## Type Transformations
 
-Convert free-form responses into structured data types:
-
-### Basic Transformations
+The basic budget field can be enhanced to convert text into structured data:
 
 **Python:**
 ```python
-survey = (chatfield()
-    .field("age", "Your age")
-        .as_int()  # "twenty-five" → 25
-
-    .field("salary", "Expected salary")
-        .as_float()  # "85.5k" → 85500.0
-
-    .field("remote", "Open to remote work?")
-        .as_bool()  # "yeah" → True
-
-    .field("skills", "Your top skills")
-        .as_list()  # "Python, React, SQL" → ["Python", "React", "SQL"]
-
-    .field("confidence", "Confidence level")
-        .as_percent()  # "75%" → 0.75
-
+trip = (chatfield()
+    .field("destination")
+        .desc("Where would you like to go?")
+    .field("budget")
+        .desc("What is your budget?")
+        .as_float()  # "2.5k" → 2500.0
     .build())
-
-# Access transformed values
-age = survey.age.as_int        # integer
-salary = survey.salary.as_float # float
-remote = survey.remote.as_bool  # boolean
-skills = survey.skills.as_list  # list
-confidence = survey.confidence.as_percent # float
 ```
 
 **TypeScript:**
 ```typescript
-const survey = chatfield()
-  .field('age', 'Your age')
-    .as_int()  // "twenty-five" → 25
+const trip = chatfield()
+  .field('destination')
+    .desc('Where would you like to go?')
+  .field('budget')
+    .desc('What is your budget?')
+    .as_float()  // "2.5k" → 2500.0
+  .build()
+```
 
-  .field('salary', 'Expected salary')
-    .as_float()  // "85.5k" → 85500.0
+### Basic Transformations
 
-  .field('remote', 'Open to remote work?')
-    .as_bool()  // "yeah" → true
+More transformation examples:
 
-  .field('skills', 'Your top skills')
-    .as_list()  // "Python, React, SQL" → ["Python", "React", "SQL"]
+**Python:**
+```python
+booking = (chatfield()
+    .field("group_size")
+        .desc("How many travelers?")
+        .as_int()  # "family of four" → 4
 
-  .field('confidence', 'Confidence level')
-    .as_percent()  // "75%" → 0.75
+    .field("trip_budget")
+        .desc("Trip budget per person")
+        .as_float()  # "2.5k" → 2500.0
+
+    .field("all_inclusive")
+        .desc("Want all-inclusive package?")
+        .as_bool()  # "yes please" → True
+
+    .field("destinations")
+        .desc("Countries to visit")
+        .as_list()  # "France, Italy, Greece" → ["France", "Italy", "Greece"]
+
+    .field("flexibility")
+        .desc("How flexible are your dates?")
+        .as_percent()  # "very flexible" → 0.85
+
+    .build())
+
+# Access transformed values
+travelers = booking.group_size.as_int       # integer
+budget = booking.trip_budget.as_float       # float
+inclusive = booking.all_inclusive.as_bool   # boolean
+countries = booking.destinations.as_list    # list
+flex = booking.flexibility.as_percent       # float
+```
+
+**TypeScript:**
+```typescript
+const booking = chatfield()
+  .field('groupSize')
+    .desc('How many travelers?')
+    .as_int()  // "family of four" → 4
+
+  .field('tripBudget')
+    .desc('Trip budget per person')
+    .as_float()  // "2.5k" → 2500.0
+
+  .field('allInclusive')
+    .desc('Want all-inclusive package?')
+    .as_bool()  // "yes please" → true
+
+  .field('destinations')
+    .desc('Countries to visit')
+    .as_list()  // "France, Italy, Greece" → ["France", "Italy", "Greece"]
+
+  .field('flexibility')
+    .desc('How flexible are your dates?')
+    .as_percent()  // "very flexible" → 0.85
 
   .build()
 
 // Access transformed values
-const age = survey.age.as_int        // number
-const salary = survey.salary.as_float // number
-const remote = survey.remote.as_bool  // boolean
-const skills = survey.skills.as_list  // array
-const confidence = survey.confidence.as_percent // number
+const travelers = booking.groupSize.as_int      // number
+const budget = booking.tripBudget.as_float      // number
+const inclusive = booking.allInclusive.as_bool  // boolean
+const countries = booking.destinations.as_list  // array
+const flex = booking.flexibility.as_percent     // number
 ```
 
 ### Advanced Transformations
@@ -237,56 +334,59 @@ Multiple transformations on the same field:
 
 **Python:**
 ```python
-analytics = (chatfield()
-    .field("visitors", "Monthly website visitors")
-        .as_int()
+international_trip = (chatfield()
+    .field("budget")
+        .desc("Your travel budget")
+        .as_float()
         .as_lang('es')  # Spanish translation
-        .as_lang('fr')  # French translation
-        .as_bool('high_traffic', 'True if > 10000')
-        .as_str('formatted', 'With commas like 1,234')
-        .as_percent('growth', 'As percentage of 1M target')
+        .as_lang('jp')  # Japanese translation
+        .as_bool('luxury', 'True if > 5000 per person')
+        .as_str('formatted', 'With currency symbol like $5,000')
+        .as_percent('of_annual', 'As percentage of $50k annual travel budget')
 
     .build())
 
-# After user says "fifty thousand":
-visitors = analytics.visitors                     # "50000"
-visitors_int = analytics.visitors.as_int          # 50000
-visitors_es = analytics.visitors.as_lang_es       # "cincuenta mil"
-visitors_fr = analytics.visitors.as_lang_fr       # "cinquante mille"
-is_high = analytics.visitors.as_bool_high_traffic # True
-formatted = analytics.visitors.as_str_formatted   # "50,000"
-growth = analytics.visitors.as_percent_growth     # 0.05
+# After user says "three thousand dollars":
+budget = international_trip.budget                    # "3000"
+budget_float = international_trip.budget.as_float     # 3000.0
+budget_es = international_trip.budget.as_lang_es      # "tres mil dólares"
+budget_jp = international_trip.budget.as_lang_jp      # "三千ドル"
+is_luxury = international_trip.budget.as_bool_luxury  # False
+formatted = international_trip.budget.as_str_formatted # "$3,000"
+of_annual = international_trip.budget.as_percent_of_annual # 0.06
 ```
 
 **TypeScript:**
 ```typescript
-const analytics = chatfield()
-  .field('visitors', 'Monthly website visitors')
-    .as_int()
+const internationalTrip = chatfield()
+  .field('budget')
+    .desc('Your travel budget')
+    .as_float()
     .as_lang('es')  // Spanish translation
-    .as_lang('fr')  // French translation
-    .as_bool('highTraffic', 'True if > 10000')
-    .as_str('formatted', 'With commas like 1,234')
-    .as_percent('growth', 'As percentage of 1M target')
+    .as_lang('jp')  // Japanese translation
+    .as_bool('luxury', 'True if > 5000 per person')
+    .as_str('formatted', 'With currency symbol like $5,000')
+    .as_percent('ofAnnual', 'As percentage of $50k annual travel budget')
 
   .build()
 
-// After user says "fifty thousand":
-const visitors = analytics.visitors                      // "50000"
-const visitorsInt = analytics.visitors.as_int            // 50000
-const visitorsEs = analytics.visitors.as_lang_es         // "cincuenta mil"
-const visitorsFr = analytics.visitors.as_lang_fr         // "cinquante mille"
-const isHigh = analytics.visitors.as_bool_highTraffic    // true
-const formatted = analytics.visitors.as_str_formatted    // "50,000"
-const growth = analytics.visitors.as_percent_growth      // 0.05
+// After user says "three thousand dollars":
+const budget = internationalTrip.budget                     // "3000"
+const budgetFloat = internationalTrip.budget.as_float       // 3000.0
+const budgetEs = internationalTrip.budget.as_lang_es        // "tres mil dólares"
+const budgetJp = internationalTrip.budget.as_lang_jp        // "三千ドル"
+const isLuxury = internationalTrip.budget.as_bool_luxury    // false
+const formatted = internationalTrip.budget.as_str_formatted // "$3,000"
+const ofAnnual = internationalTrip.budget.as_percent_ofAnnual // 0.06
 ```
 
 ### Language Translations
 
 **Python:**
 ```python
-international = (chatfield()
-    .field("greeting", "Your greeting message")
+multilingual_booking = (chatfield()
+    .field("special_request")
+        .desc("Any special requests for your trip?")
         .as_lang('es')   # Spanish
         .as_lang('fr')   # French
         .as_lang('de')   # German
@@ -294,18 +394,19 @@ international = (chatfield()
         .as_lang('zh')   # Chinese
     .build())
 
-# User: "Hello, nice to meet you"
-greeting_es = international.greeting.as_lang_es  # "Hola, encantado de conocerte"
-greeting_fr = international.greeting.as_lang_fr  # "Bonjour, ravi de vous rencontrer"
-greeting_de = international.greeting.as_lang_de  # "Hallo, schön Sie kennenzulernen"
-greeting_ja = international.greeting.as_lang_ja  # "こんにちは、お会いできて嬉しいです"
-greeting_zh = international.greeting.as_lang_zh  # "你好，很高兴见到你"
+# User: "I need a quiet room away from the elevator"
+request_es = multilingual_booking.special_request.as_lang_es  # "Necesito una habitación tranquila lejos del ascensor"
+request_fr = multilingual_booking.special_request.as_lang_fr  # "J'ai besoin d'une chambre calme loin de l'ascenseur"
+request_de = multilingual_booking.special_request.as_lang_de  # "Ich brauche ein ruhiges Zimmer weit vom Aufzug"
+request_ja = multilingual_booking.special_request.as_lang_ja  # "エレベーターから離れた静かな部屋が必要です"
+request_zh = multilingual_booking.special_request.as_lang_zh  # "我需要一个远离电梯的安静房间"
 ```
 
 **TypeScript:**
 ```typescript
-const international = chatfield()
-  .field('greeting', 'Your greeting message')
+const multilingualBooking = chatfield()
+  .field('specialRequest')
+    .desc('Any special requests for your trip?')
     .as_lang('es')   // Spanish
     .as_lang('fr')   // French
     .as_lang('de')   // German
@@ -313,12 +414,12 @@ const international = chatfield()
     .as_lang('zh')   // Chinese
   .build()
 
-// User: "Hello, nice to meet you"
-const greetingEs = international.greeting.as_lang_es  // "Hola, encantado de conocerte"
-const greetingFr = international.greeting.as_lang_fr  // "Bonjour, ravi de vous rencontrer"
-const greetingDe = international.greeting.as_lang_de  // "Hallo, schön Sie kennenzulernen"
-const greetingJa = international.greeting.as_lang_ja  // "こんにちは、お会いできて嬉しいです"
-const greetingZh = international.greeting.as_lang_zh  // "你好，很高兴见到你"
+// User: "I need a quiet room away from the elevator"
+const requestEs = multilingualBooking.specialRequest.as_lang_es  // "Necesito una habitación tranquila lejos del ascensor"
+const requestFr = multilingualBooking.specialRequest.as_lang_fr  // "J'ai besoin d'une chambre calme loin de l'ascenseur"
+const requestDe = multilingualBooking.specialRequest.as_lang_de  // "Ich brauche ein ruhiges Zimmer weit vom Aufzug"
+const requestJa = multilingualBooking.specialRequest.as_lang_ja  // "エレベーターから離れた静かな部屋が必要です"
+const requestZh = multilingualBooking.specialRequest.as_lang_zh  // "我需要一个远离电梯的安静房间"
 ```
 
 ### JSON and Dictionary Parsing
@@ -326,10 +427,12 @@ const greetingZh = international.greeting.as_lang_zh  // "你好，很高兴见�
 **Python:**
 ```python
 api_form = (chatfield()
-    .field("config", "Paste your configuration")
+    .field("config")
+        .desc("Paste your configuration")
         .as_dict()  # Parses JSON/dict
 
-    .field("metadata", "Additional metadata")
+    .field("metadata")
+        .desc("Additional metadata")
         .as_obj()  # Alternative name for dict
 
     .build())
@@ -341,10 +444,12 @@ config = api_form.config.as_dict  # {'timeout': 30, 'retries': 3, 'debug': True}
 **TypeScript:**
 ```typescript
 const apiForm = chatfield()
-  .field('config', 'Paste your configuration')
+  .field('config')
+    .desc('Paste your configuration')
     .as_dict()  // Parses JSON/dict
 
-  .field('metadata', 'Additional metadata')
+  .field('metadata')
+    .desc('Additional metadata')
     .as_obj()  // Alternative name for dict
 
   .build()
@@ -358,7 +463,8 @@ const config = apiForm.config.as_dict  // {timeout: 30, retries: 3, debug: true}
 **Python:**
 ```python
 analysis = (chatfield()
-    .field("tags", "Relevant tags")
+    .field("tags")
+        .desc("Relevant tags")
         .as_set()  # Unique values only
         .as_set('keywords', 'Extract main keywords')
         .as_set('entities', 'Named entities')
@@ -374,7 +480,8 @@ entities = analysis.tags.as_set_entities # Named entities from text
 **TypeScript:**
 ```typescript
 const analysis = chatfield()
-  .field('tags', 'Relevant tags')
+  .field('tags')
+    .desc('Relevant tags')
     .as_set()  // Unique values only
     .as_set('keywords', 'Extract main keywords')
     .as_set('entities', 'Named entities')
@@ -474,10 +581,12 @@ tech_interview = (chatfield()
         .trait("10+ years experience")
         .trait("Prefers detailed discussions")
 
-    .field("stack", "Proposed technology stack")
+    .field("stack")
+        .desc("Proposed technology stack")
         .must("specific technology choices")
 
-    .field("scale", "Expected scale requirements")
+    .field("scale")
+        .desc("Expected scale requirements")
         .must("quantifiable metrics")
 
     .build())
@@ -496,10 +605,12 @@ const techInterview = chatfield()
     .trait('10+ years experience')
     .trait('Prefers detailed discussions')
 
-  .field('stack', 'Proposed technology stack')
+  .field('stack')
+    .desc('Proposed technology stack')
     .must('specific technology choices')
 
-  .field('scale', 'Expected scale requirements')
+  .field('scale')
+    .desc('Expected scale requirements')
     .must('quantifiable metrics')
 
   .build()
@@ -521,8 +632,10 @@ adaptive_interview = (chatfield()
         .trait.possible("senior", "10+ years or leadership")
         .trait.possible("career_changer", "switching industries")
 
-    .field("background", "Tell me about your background")
-    .field("goals", "What are your career goals?")
+    .field("background")
+        .desc("Tell me about your background")
+    .field("goals")
+        .desc("What are your career goals?")
 
     .build())
 
@@ -541,8 +654,10 @@ const adaptiveInterview = chatfield()
     .trait.possible('senior', '10+ years or leadership')
     .trait.possible('careerChanger', 'switching industries')
 
-  .field('background', 'Tell me about your background')
-  .field('goals', 'What are your career goals?')
+  .field('background')
+    .desc('Tell me about your background')
+  .field('goals')
+    .desc('What are your career goals?')
 
   .build()
 
@@ -558,7 +673,8 @@ Track information silently without directly asking:
 **Python:**
 ```python
 interview = (chatfield()
-    .field("experience", "Years of experience")
+    .field("experience")
+        .desc("Years of experience")
         .as_int()
 
     .field("shows_leadership")
@@ -582,7 +698,8 @@ print(f"Mentions mentoring: {interview.mentions_mentoring.as_bool}")
 **TypeScript:**
 ```typescript
 const interview = chatfield()
-  .field('experience', 'Years of experience')
+  .field('experience')
+    .desc('Years of experience')
     .as_int()
 
   .field('showsLeadership')
@@ -610,9 +727,11 @@ Evaluated only after all other fields are collected:
 **Python:**
 ```python
 assessment = (chatfield()
-    .field("technical_skills", "Technical competencies")
+    .field("technical_skills")
+        .desc("Technical competencies")
 
-    .field("project_experience", "Project background")
+    .field("project_experience")
+        .desc("Project background")
 
     .field("communication_quality")
         .desc("Communication effectiveness throughout conversation")
@@ -632,9 +751,11 @@ assessment = (chatfield()
 **TypeScript:**
 ```typescript
 const assessment = chatfield()
-  .field('technicalSkills', 'Technical competencies')
+  .field('technicalSkills')
+    .desc('Technical competencies')
 
-  .field('projectExperience', 'Project background')
+  .field('projectExperience')
+    .desc('Project background')
 
   .field('communicationQuality')
     .desc('Communication effectiveness throughout conversation')
@@ -725,14 +846,17 @@ job_application = (chatfield()
         .trait.possible("enterprise_experience", "mentions large companies")
 
     # Basic information
-    .field("name", "Your full name")
+    .field("name")
+        .desc("Your full name")
         .must("include first and last name")
 
-    .field("email", "Email address")
+    .field("email")
+        .desc("Email address")
         .must("be a valid email")
 
     # Experience with transformations
-    .field("years_experience", "Years of professional experience")
+    .field("years_experience")
+        .desc("Years of professional experience")
         .as_int()
         .must("be realistic (0-50 years)")
         .as_bool('senior', 'True if >= 5 years')
@@ -749,7 +873,8 @@ job_application = (chatfield()
         .as_any('tools', 'React', 'Django', 'Flask', 'FastAPI', 'Node.js', 'Spring')
 
     # Salary with formatting
-    .field("salary_expectation", "Salary expectations")
+    .field("salary_expectation")
+        .desc("Salary expectations")
         .hint("You can give a range")
         .as_int()
         .as_str('formatted', 'Formatted as $XXX,XXX')
@@ -814,14 +939,17 @@ const jobApplication = chatfield()
     .trait.possible('enterpriseExperience', 'mentions large companies')
 
   // Basic information
-  .field('name', 'Your full name')
+  .field('name')
+    .desc('Your full name')
     .must('include first and last name')
 
-  .field('email', 'Email address')
+  .field('email')
+    .desc('Email address')
     .must('be a valid email')
 
   // Experience with transformations
-  .field('yearsExperience', 'Years of professional experience')
+  .field('yearsExperience')
+    .desc('Years of professional experience')
     .as_int()
     .must('be realistic (0-50 years)')
     .as_bool('senior', 'True if >= 5 years')
@@ -838,7 +966,8 @@ const jobApplication = chatfield()
     .as_any('tools', 'React', 'Django', 'Flask', 'FastAPI', 'Node.js', 'Spring')
 
   // Salary with formatting
-  .field('salaryExpectation', 'Salary expectations')
+  .field('salaryExpectation')
+    .desc('Salary expectations')
     .hint('You can give a range')
     .as_int()
     .as_str('formatted', 'Formatted as $XXX,XXX')
