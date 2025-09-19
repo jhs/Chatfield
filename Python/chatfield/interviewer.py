@@ -826,6 +826,12 @@ class Interviewer:
         user_input = update["user_input"]
         user_msg = HumanMessage(content=user_input)
         return {'messages': [user_msg]}
+    
+    def get_graph_state(self) -> Dict[str, Any]:
+        graph = self.graph
+        config = self.config
+        state = graph.get_state(config=config)
+        return state.values
         
     def go(self, user_input: Optional[str] = None) -> Optional[str]:
         """
@@ -838,9 +844,9 @@ class Interviewer:
             The content of the latest AI message as a string, or None if conversation is complete
         """
         print(f'Go: User input: {user_input!r}')
-        state = self.graph.get_state(config=self.config)
+        state_values = self.get_graph_state()
 
-        if state.values and state.values['messages']:
+        if state_values and state_values['messages']:
             print(f'Continue conversation: {self.config["configurable"]["thread_id"]}')
             graph_input = Command(update={}, resume={'user_input': user_input})
         else:
