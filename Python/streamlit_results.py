@@ -216,19 +216,19 @@ def main():
         col1, col2 = st.columns([2, 1])
         with col1:
             fig = create_success_rate_chart(summary_df[summary_df.index.isin(selected_models)])
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, width='stretch')
         with col2:
             st.subheader("Model Rankings")
             filtered_summary = summary_df[summary_df.index.isin(selected_models)]
-            st.dataframe(filtered_summary, use_container_width=True)
+            st.dataframe(filtered_summary, width='stretch')
 
     with tab2:
         fig = create_heatmap(filtered_df)
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, width='stretch')
 
     with tab3:
         fig = create_score_distribution(filtered_df)
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, width='stretch')
 
     # Detailed Test Results
     st.header("📝 Detailed Test Results")
@@ -256,7 +256,7 @@ def main():
                     # Results table
                     st.dataframe(
                         test_df[['model', 'Result', 'Score', 'Cost']],
-                        use_container_width=True,
+                        width='stretch',
                         hide_index=True
                     )
 
@@ -293,7 +293,7 @@ def main():
         vmax=100
     )
 
-    st.dataframe(styled_df, use_container_width=True, hide_index=True)
+    st.dataframe(styled_df, width='stretch', hide_index=True)
 
     # Export functionality
     st.header("💾 Export Results")
