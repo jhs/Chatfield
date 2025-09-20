@@ -13,6 +13,7 @@ from datetime import datetime
 from typing import List, Dict, Any, Tuple
 
 from deepeval import evaluate
+from deepeval.evaluate import AsyncConfig
 from deepeval.test_case import ConversationalTestCase, Turn, ToolCall
 from deepeval.dataset import EvaluationDataset, ConversationalGolden
 
@@ -356,9 +357,9 @@ def evaluate_conversation_dataset(dataset_name:str):
 
     print(f"Evaluate test cases: {len(goldens_dataset.test_cases)}")
 
-    results = evaluate(test_cases=goldens_dataset.test_cases, metrics=metrics)
+    async_config = AsyncConfig(max_concurrent=5)
+    results = evaluate(test_cases=goldens_dataset.test_cases, metrics=metrics, async_config=async_config)
     return results
-
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Exam security testing for Chatfield")
