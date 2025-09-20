@@ -153,10 +153,13 @@ def generate_tests_dataset(dataset_name):
     dataset = load_goldens_dataset(dataset_name)
     print(f'Found goldens: {len(dataset.goldens)}')
 
+    # Also track the raw tests which unfortunately have names which do not save out to the goldens.
+    attacks = load_raw_data(f"attacks")
+
     # Do not track these in dataset.test_cases because I cannot get saving/loading to work.
     dataset_test_cases = []
 
-    for golden in dataset.goldens:
+    for i, golden in enumerate(dataset.goldens):
         conversation_messages = run_conversation(golden)
 
         # Track "Turns" which is sort of a subset of messages.
@@ -208,14 +211,18 @@ def generate_tests_dataset(dataset_name):
         # It is not working to dataset.add_test_case() because it seems to append
         # the goldens with new goldens "casted" from the test cases, but losing information?
         # For now, just prepare the kwargs it will need.
+
+        attack = attacks[i]
+        golden_name = golden.name or attack['name'] or attack['description']
+
         test_case_kwargs = dict(
             # Inherit from golden
-            name=golden.name,
             scenario=golden.scenario,
             user_description=golden.user_description,
             expected_outcome=golden.expected_outcome,
 
             # From the LLM interaction
+            name=golden_name,
             turns=conversation_turns,
             chatbot_role=alice_oneliner,
         )
