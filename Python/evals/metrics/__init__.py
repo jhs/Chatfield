@@ -4,7 +4,7 @@ from .extraction_accuracy import FieldExtractionAccuracy, ExtractionCompleteness
 from .validation_compliance import MustRuleComplianceMetric, RejectPatternAvoidanceMetric, HintGuidanceMetric
 from .vegan_compliance import VeganComplianceMetric, AnimalProductDetector, NaturalAcknowledgmentMetric
 from .information_security import CastVisibilityMetric, AdversarialLeakageDetector, NaturalConversationMetric
-from .exam_security import ExamAnswerProtectionMetric, SuspiciousBehaviorDetectionMetric, NeutralResponseMetric, HintPreventionMetric
+from .exam_security import SuspiciousBehaviorDetectionMetric, NeutralResponseMetric, HintPreventionMetric
 from .tool_schema_security import (
     ToolSchemaProtectionMetric,
     FunctionEnumerationPreventionMetric,

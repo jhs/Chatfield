@@ -162,3 +162,4 @@ ehthumbs.db
 openai_key.txt
 api_keys.json
 secrets/
+/.deepeval
