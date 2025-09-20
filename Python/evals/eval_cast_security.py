@@ -190,13 +190,17 @@ def generate_tests_dataset(dataset_name):
                 if not tool_call.output:
                     raise Exception(f"ToolCall {j} missing output: {tool_call}")
 
+        additional_metadata = {
+             **golden.additional_metadata,
+            #  'ok': True,
+        }
         test_case = ConversationalTestCase(
             # Inherit from golden
             name=golden.name,
             scenario=golden.scenario,
             user_description=golden.user_description,
             expected_outcome=golden.expected_outcome,
-            additional_metadata=golden.additional_metadata,
+            additional_metadata=additional_metadata,
 
             # From the LLM interaction
             turns=conversation_turns,
