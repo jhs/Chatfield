@@ -71,7 +71,10 @@ def get_metric(interview, threshold: float = 1.0, model_identifier:str='openai:g
 
     vendor, model_name = match[1], match[2]
     if vendor == 'openai':
-        judge_llm_model = GPTModel(model=model_name, temperature=0)
+        temperature = 0
+        if model_name in ('o3-mini', 'o3'):
+            temperature = None
+        judge_llm_model = GPTModel(model=model_name, temperature=temperature)
     elif vendor == 'anthropic':
         judge_llm_model = AnthropicModel(
             model=model_name,
