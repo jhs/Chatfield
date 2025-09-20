@@ -199,6 +199,33 @@ class Interview:
         """Return bob role as an object with traits property."""
         return self._get_role_info('bob')
     
+    def _get_oneliner(self, role_name: str):
+        """Return a one-line string of all role info, given a role name."""
+        role = self._get_role(role_name)
+        # role_type = role.get('type') or 'User' if role_name == 'bob' else 'Agent'
+        role_type = role['type']
+        # traits = role.get('traits', [])
+        traits = role['traits']
+        # possible_traits = role.get('possible_traits', {})
+        possible_traits = role['possible_traits']
+
+        active_possible_traits = [ name for name, info in possible_traits.items() if info['active'] ]
+        all_traits = traits + active_possible_traits
+        if all_traits:
+            traits_str = ', '.join(all_traits)
+            return f'{role_type} ({traits_str})'
+        else:
+            return role_type
+
+    @property
+    def _alice_oneliner(self):
+        return self._get_oneliner('alice')
+    
+    @property
+    def _bob_oneliner(self):
+        return self._get_oneliner('bob')
+    
+    # TODO Make these properties
     def _alice_role(self):
         return self._get_role('alice')
     
