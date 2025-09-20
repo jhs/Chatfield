@@ -8,6 +8,7 @@ import os
 import re
 import json
 # import json5
+import pickle
 import argparse
 from datetime import datetime
 from typing import List, Dict, Any, Tuple
@@ -102,7 +103,7 @@ def generate_golden_dataset(dataset_name: str):
         for bob_msg in attack['messages']:
             role = 'user' # These are all "Bob" messages.
             tools_called = None
-            additional_metadata = None
+            additional_metadata = {}
             turn = Turn(
                 role=role,
                 content=bob_msg,
@@ -116,50 +117,33 @@ def generate_golden_dataset(dataset_name: str):
         golden_name = attack['name']
         scenario = exam_chatfield['type'] + ': ' + exam_chatfield['desc']
         bob_desc = exam_prototype._bob_oneliner
+        additional_metadata = {'ok':True}
         golden = ConversationalGolden(
             name=golden_name,
             expected_outcome=None,
             scenario=scenario,
             turns=turns,
             user_description=bob_desc,
+            additional_metadata=additional_metadata,
         )
         goldens.append(golden)
 
-    # Make a dataset of these goldens and save it.
     dataset = EvaluationDataset(goldens=goldens)
-    file_name = f"{dataset_name}.golden"
-    dataset.save_as(
-        file_type="json",
-        directory=get_data_dir(),
-        file_name=file_name,
-        include_test_cases=False, # The goldens are pre-test case.
-    )
+    save_raw_data(f"{dataset_name}.golden", dataset, format='pkl')
 
 def generate_conversation_dataset(dataset_name):
     generate_golden_dataset(dataset_name)
     generate_tests_dataset(dataset_name)
 
-def load_goldens_dataset(dataset_name) -> EvaluationDataset:
-    dataset = EvaluationDataset()
-    golden_file_path = get_data_path(f"{dataset_name}.golden.json")
-    dataset.add_goldens_from_json_file(file_path=golden_file_path)
-    print(f'Loaded goldens: {len(dataset.goldens)}')
-    return dataset
-
 def generate_tests_dataset(dataset_name):
     exam_prototype = create_exam_interview(hhttg=True)
     alice_oneliner = exam_prototype._alice_oneliner
 
-    dataset = load_goldens_dataset(dataset_name)
+    dataset = load_raw_data(f"{dataset_name}.golden", format='pkl')
     print(f'Found goldens: {len(dataset.goldens)}')
 
-    # Also track the raw tests which unfortunately have names which do not save out to the goldens.
-    attacks = load_raw_data(f"attacks")
-
-    # Do not track these in dataset.test_cases because I cannot get saving/loading to work.
-    dataset_test_cases = []
-
-    for i, golden in enumerate(dataset.goldens):
+    goldens = dataset.goldens
+    for golden in goldens:
         conversation_messages = run_conversation(golden)
 
         # Track "Turns" which is sort of a subset of messages.
@@ -205,54 +189,23 @@ def generate_tests_dataset(dataset_name):
             for j, tool_call in enumerate(turn.tools_called):
                 if not tool_call.output:
                     raise Exception(f"ToolCall {j} missing output: {tool_call}")
-            # Serialize the turn.
-            conversation_turns[i] = turn.model_dump()
 
-        # It is not working to dataset.add_test_case() because it seems to append
-        # the goldens with new goldens "casted" from the test cases, but losing information?
-        # For now, just prepare the kwargs it will need.
-
-        attack = attacks[i]
-        golden_name = golden.name or attack['name'] or attack['description']
-
-        test_case_kwargs = dict(
+        test_case = ConversationalTestCase(
             # Inherit from golden
+            name=golden.name,
             scenario=golden.scenario,
             user_description=golden.user_description,
             expected_outcome=golden.expected_outcome,
+            additional_metadata=golden.additional_metadata,
 
             # From the LLM interaction
-            name=golden_name,
             turns=conversation_turns,
             chatbot_role=alice_oneliner,
         )
-        dataset_test_cases.append(test_case_kwargs)
+        dataset.test_cases.append(test_case)
 
-    print(f'Added test cases: {len(dataset_test_cases)}')
-    file_name = f"{dataset_name}.tests"
-    save_raw_data(file_name, dataset_test_cases)
-    # test_case = ConversationalTestCase(
-
-    # Notes
-    # LLMTestCase must have `input` and `actual_output`
-    # * input is the human string
-    # * actual_output is the LLM response
-    # - expected_output is the ideal output to be
-    # - context is the ideal RAG context, ground truth. actual output - context = hallucination
-    # - retrieval_context is the actual RAG context used
-    # - tools_called is the actual tools called by the LLM, a list of ToolCall:
-    #    - name: str
-    #    - description
-    #    - input_parameters (the kwargs)
-    #    - output
-    #    - Note from the documentation: tools_called and expected_tools are LLM
-    #      test case parameters that are utilized only in agentic evaluation
-    #      metrics. These parameters allow you to assess the tool usage
-    #      correctness of your LLM application and ensure that it meets the
-    #      expected tool usage standards
-    # - expected_tools is the ideal tools that should have been called
-    #   TODO: I think this could be used to measure calling all params in 1 call
-    #   vs. somtimes it calls multiple times concurrently with 1 parameter each
+    print(f'Added test cases: {len(dataset.test_cases)}')
+    save_raw_data(f"{dataset_name}.tests", dataset, format='pkl')
 
 def get_deepeval_tools_called(msg: Dict[str, Any]):
     result = []
@@ -295,18 +248,34 @@ def run_conversation(golden: ConversationalGolden) -> List[Dict[str, Any]]:
     messages = [ msg.model_dump() for msg in messages ]
     return messages
 
-def load_raw_data(name:str) -> Dict[str, Any]:
+def load_raw_data(name:str, format='json') -> Dict[str, Any]:
     """Load raw conversation data from JSON file."""
-    file_path = get_data_path(f"{name}.json")
-    with open(file_path, 'r') as f:
-        data = json.load(f)
+    if format == 'json':
+        file_path = get_data_path(f"{name}.json")
+        with open(file_path, 'r') as f:
+            data = json.load(f)
+    elif format == 'pkl':
+        file_path = get_data_path(f"{name}.pkl")
+        with open(file_path, 'rb') as f:
+            data = pickle.load(f)
+    else:
+        raise ValueError(f"Unsupported format: {format}")
+    
     return data
 
-def save_raw_data(name:str, data: Any):
+def save_raw_data(name:str, data:Any, format='json'):
     """Save raw conversation data to JSON file."""
-    file_path = get_data_path(f"{name}.json")
-    with open(file_path, 'w') as f:
-        json.dump(data, f, indent=2)
+    if format == 'json':
+        file_path = get_data_path(f"{name}.json")
+        with open(file_path, 'w') as f:
+            json.dump(data, f, indent=2)
+    elif format == 'pkl':
+        file_path = get_data_path(f"{name}.pkl")
+        with open(file_path, 'wb') as f:
+            pickle.dump(data, f)
+    else:
+        raise ValueError(f"Unsupported format: {format}")
+
 
 # TODO: Explicitly have separate tests for:
 # - Casts
@@ -318,34 +287,18 @@ def save_raw_data(name:str, data: Any):
 # - (possibly combinations of the above)
 def evaluate_conversation_dataset(dataset_name:str):
     """Evaluate conversations against exam security metrics."""
-    goldens_dataset = load_goldens_dataset(dataset_name)
+    interview_prototype = create_exam_interview(hhttg=True)
+    interviewer = Interviewer(interview_prototype)
 
-    tests = load_raw_data(f"{dataset_name}.tests")
+    dataset = load_raw_data(f"{dataset_name}.tests", format='pkl')
+    print(f'Loaded test cases: {len(dataset.test_cases)}')
 
-    # Modify in place to de-serialize toolcalls, turns, and ConversationalTestCase
-    for i, test_kwargs in enumerate(tests):
-        for j, turn_kwargs in enumerate(test_kwargs['turns']):
-            for k, tool_kwargs in enumerate(turn_kwargs['tools_called']):
-                tool_call = ToolCall(**tool_kwargs)
-                turn_kwargs['tools_called'][k] = tool_call
-            
-            turn = Turn(**turn_kwargs)
-            test_kwargs['turns'][j] = turn
-        
-        test_case = ConversationalTestCase(**test_kwargs)
-        tests[i] = test_case
-
-        # Doing it the DeepEval way.
-        goldens_dataset.add_test_case(test_case)
-
-    print(f'Loaded test cases: {len(goldens_dataset.test_cases)}')
-    if len(tests) != len(goldens_dataset.goldens):
-        raise Exception(f"Mismatch test cases {len(tests)} vs. goldens {len(goldens_dataset.goldens)}")
-
+    # Build a metric for each model.
     model_ids = [
         'anthropic:claude-3-7-sonnet-latest',
         'anthropic:claude-3-5-haiku-latest',
 
+        # 'openai:o3-mini',
         # 'openai:o4-mini',
         'openai:gpt-4.1',
         'openai:gpt-4.1-mini',
@@ -353,19 +306,19 @@ def evaluate_conversation_dataset(dataset_name:str):
         'openai:gpt-4o',
         'openai:gpt-4o-mini',
 
-        # Seems like gpt-5 is throwing an error.
+        # Seems like gpt-5 has logprobs errors. It looks like DeepEval GPTModel hard-codes logprobs=True
         # 'openai:gpt-5',
         # 'openai:gpt-5-mini',
     ]
+    metrics = [ get_metric(interview=interview_prototype, model_identifier=model_id) for model_id in model_ids ]
 
-    interview_prototype = create_exam_interview(hhttg=True)
-
-    metrics = [ get_metric(interview=interview_prototype, model_identifier=model_id) for model_id in model_ids]
-
-    print(f"Evaluate test cases: {len(goldens_dataset.test_cases)}")
-
+    print(f"Evaluate {len(dataset.test_cases)} test cases: {len(metrics)} metrics")
     async_config = AsyncConfig(max_concurrent=5)
-    results = evaluate(test_cases=goldens_dataset.test_cases, metrics=metrics, async_config=async_config)
+    hyperparameters = {
+        'model_name': interviewer.llm.model_name,
+        'temperature': interviewer.llm.temperature,
+    }
+    results = evaluate(test_cases=dataset.test_cases, metrics=metrics, async_config=async_config, hyperparameters=hyperparameters)
     return results
 
 if __name__ == "__main__":
