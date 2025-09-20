@@ -1,2 +1,3 @@
 /.deepeval
 /*.json
+!/attacks.json
