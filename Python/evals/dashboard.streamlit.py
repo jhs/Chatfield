@@ -15,6 +15,9 @@ from pathlib import Path
 from typing import Dict, List, Any, Optional
 import colorsys
 
+# Define the directory which contains this script.
+BASE_DIR = Path(__file__).resolve().parent
+
 # Page config
 st.set_page_config(
     page_title="DeepEval Security Dashboard",
@@ -111,37 +114,26 @@ st.markdown("""
 
 
 @st.cache_data
-def load_results(filepath: str = "results.json") -> Dict:
+def load_results(dataset: str = "main") -> Dict:
     """Load evaluation results from JSON file"""
+    filepath = BASE_DIR.parent / f"results.{dataset}.json"
     try:
         with open(filepath, 'r') as f:
             return json.load(f)
     except FileNotFoundError:
         st.error(f"Results file not found: {filepath}")
         return {"test_results": []}
-    except json.JSONDecodeError:
-        st.error(f"Invalid JSON in file: {filepath}")
-        return {"test_results": []}
-
 
 @st.cache_data
-def load_conversations(filepath: str = "conversation.tests.pkl") -> Dict:
+def load_conversations() -> Dict:
     """Load conversation data from pickle file"""
+    filepath = BASE_DIR / "conversation.tests.pkl"
     conversations = {}
-    try:
-        with open(filepath, 'rb') as f:
-            dataset = pickle.load(f)
-            if hasattr(dataset, 'test_cases'):
-                for test_case in dataset.test_cases:
-                    if hasattr(test_case, 'name') and hasattr(test_case, 'turns'):
-                        conversations[test_case.name] = test_case.turns
-    except FileNotFoundError:
-        # Conversations are optional
-        pass
-    except Exception as e:
-        st.warning(f"Could not load conversations: {e}")
+    with open(filepath, 'rb') as f:
+        dataset = pickle.load(f)
+        for test_case in dataset.test_cases:
+            conversations[test_case.name] = test_case.turns
     return conversations
-
 
 def get_score_color(score: float) -> str:
     """Get color for score value using gradient from red to yellow to green"""
@@ -172,9 +164,12 @@ def get_score_color(score: float) -> str:
         return "#cf1322"  # Red
 
 
-def create_heatmap_data(results: Dict) -> pd.DataFrame:
-    """Create DataFrame for heatmap visualization"""
+def create_heatmap_data(results: Dict) -> tuple[pd.DataFrame, pd.DataFrame]:
+    """Create DataFrames for heatmap visualization
+    Returns: (scores_df, thresholds_df)
+    """
     data = []
+    threshold_data = []
 
     # Track costs per model for the cost row
     model_costs = {}
@@ -184,11 +179,15 @@ def create_heatmap_data(results: Dict) -> pd.DataFrame:
 
         # Group metrics by evaluation model
         model_scores = {}
+        model_thresholds = {}
         for metric in test.get("metrics_data", []):
             model = metric.get("evaluation_model", "unknown")
             score = metric.get("score", 0.0)
+            threshold = metric["threshold"]
+            # threshold = metric.get("threshold", 1.0)
             cost = metric.get("evaluation_cost", 0.0)
             model_scores[model] = score
+            model_thresholds[model] = threshold
 
             # Accumulate costs per model
             if model not in model_costs:
@@ -199,10 +198,21 @@ def create_heatmap_data(results: Dict) -> pd.DataFrame:
             "test": test_name,
             **model_scores
         })
+        threshold_data.append({
+            "test": test_name,
+            **model_thresholds
+        })
 
     df = pd.DataFrame(data)
+    thresholds_df = pd.DataFrame(threshold_data)
+
     if not df.empty:
         df = df.set_index("test")
+        thresholds_df = thresholds_df.set_index("test")
+
+        # Sort test cases alphabetically
+        df = df.sort_index()
+        thresholds_df = thresholds_df.sort_index()
 
         # Add cost row at the top
         if model_costs:
@@ -216,7 +226,11 @@ def create_heatmap_data(results: Dict) -> pd.DataFrame:
             # Prepend cost row to the dataframe
             df = pd.concat([cost_row, df])
 
-    return df
+            # Add dummy threshold row for cost (will be ignored)
+            threshold_cost_row = pd.DataFrame([{col: np.nan for col in df.columns}], index=["Cost ($)"])
+            thresholds_df = pd.concat([threshold_cost_row, thresholds_df])
+
+    return df, thresholds_df
 
 
 def display_top_metrics(results: Dict):
@@ -252,10 +266,20 @@ def display_top_metrics(results: Dict):
 
 def display_heatmap(results: Dict, selected_cell_callback):
     """Display the Test x Metric Heatmap"""
-    st.subheader("📊 Test × Metric Heatmap")
+    col1, col2 = st.columns([3, 1])
+    with col2:
+        # Toggle for color mode
+        use_threshold = st.toggle("Threshold Mode", value=True,
+                                  help="When enabled, scores below their metric-specific threshold show as red (fail). When disabled, shows gradient coloring.")
+    with col1:
+        # Change header based on mode
+        if use_threshold:
+            st.subheader("📊 Test × Metric Pass/Fail")
+        else:
+            st.subheader("📊 Test × Metric Heatmap")
 
     # Create heatmap data
-    df = create_heatmap_data(results)
+    df, thresholds_df = create_heatmap_data(results)
 
     if df.empty:
         st.warning("No data available for heatmap")
@@ -266,8 +290,10 @@ def display_heatmap(results: Dict, selected_cell_callback):
     if has_cost_row:
         cost_row = df.loc[["Cost ($)"]]
         score_df = df.drop(["Cost ($)"])
+        threshold_score_df = thresholds_df.drop(["Cost ($)"])
     else:
         score_df = df
+        threshold_score_df = thresholds_df
 
     # Create z values with normalized scores (cost row will be set to NaN for no color)
     if has_cost_row:
@@ -281,17 +307,31 @@ def display_heatmap(results: Dict, selected_cell_callback):
         z_values.append(cost_z)
         text_values.append(cost_text)
 
-        # Add score rows with normal values and text
+        # Add score rows with threshold-based coloring if enabled
         for idx in score_df.index:
             row_values = score_df.loc[idx].values
-            z_values.append(row_values.tolist())
+            threshold_values = threshold_score_df.loc[idx].values
+            if use_threshold:
+                # In threshold mode: scores < their specific threshold get max red (value 0)
+                # or otherwise, max green (value 1)
+                z_row = [0.0 if val < thresh else 1.0 for val,thresh in zip(row_values, threshold_values)]
+            else:
+                # In gradient mode: use actual values
+                z_row = row_values.tolist()
+            z_values.append(z_row)
             text_values.append([f"{val:.2f}" for val in row_values])
 
         z = np.array(z_values)
         text = text_values
     else:
-        z = df.values
-        text = df.values.round(2)
+        if use_threshold:
+            # Apply threshold coloring for scores without cost row
+            z = np.array([[0.0 if val < thresh else val
+                          for val, thresh in zip(row, threshold_row)]
+                         for row, threshold_row in zip(df.values, thresholds_df.values)])
+        else:
+            z = df.values
+        text = [[f"{val:.2f}" for val in row] for row in df.values]
 
     # Create plotly heatmap with better color scale
     fig = go.Figure(data=go.Heatmap(
@@ -300,7 +340,7 @@ def display_heatmap(results: Dict, selected_cell_callback):
         y=df.index.tolist(),
         text=text,
         texttemplate="%{text}",
-        textfont={"size": 12},
+        textfont={"size": 18},  # Increased from 12 to 18 (1.5x)
         colorscale=[
             [0, "#cf1322"],     # Deep red
             [0.2, "#ff4d4f"],   # Red
@@ -345,11 +385,11 @@ def display_heatmap(results: Dict, selected_cell_callback):
         xaxis=dict(
             tickangle=45,
             side="bottom",
-            tickfont=dict(size=11)
+            tickfont=dict(size=14)  # Increased from 11
         ),
         yaxis=dict(
             autorange="reversed",
-            tickfont=dict(size=11)
+            tickfont=dict(size=14)  # Increased from 11
         ),
         paper_bgcolor='white',
         plot_bgcolor='white'
@@ -536,7 +576,8 @@ def display_prompt_performance(results: Dict, selected_metric: Optional[str] = N
                     for i, turn in enumerate(turns):
                         role = getattr(turn, 'role', 'unknown')
                         content = getattr(turn, 'content', '')
-                        tools_called = getattr(turn, 'tools_called', None)
+                        tools_called = turn.tools_called
+                        tools_called = [ X.model_dump() for X in tools_called ]
 
                         # Role and turn number
                         if role == 'assistant':
@@ -759,7 +800,8 @@ def display_judge_performance(results: Dict, selected_test: Optional[str] = None
                     for i, turn in enumerate(turns):
                         role = getattr(turn, 'role', 'unknown')
                         content = getattr(turn, 'content', '')
-                        tools_called = getattr(turn, 'tools_called', None)
+                        tools_called = turn.tools_called
+                        tools_called = [ X.model_dump() for X in tools_called ]
 
                         # Role and turn number
                         if role == 'assistant':
@@ -815,14 +857,23 @@ def display_judge_performance(results: Dict, selected_test: Optional[str] = None
 
 def main():
     """Main dashboard function"""
-    st.title("🔒 DeepEval Security Evaluation Dashboard")
-    st.markdown("Analyze security test results from conversational AI evaluations")
+    st.title("DeepEval Dashboard")
 
-    # Load results
-    results = load_results()
+    # Dataset selector at the top
+    col1, _ = st.columns([1, 9])
+    with col1:
+        dataset = st.selectbox(
+            "Dataset",
+            ["main", "strict"],
+            index=0,
+            help="Select which evaluation dataset to view"
+        )
+
+    # Load results based on selected dataset
+    results = load_results(dataset)
 
     if not results.get("test_results"):
-        st.error("No test results available. Please run eval_cast_security.py first.")
+        st.error(f"No test results available for dataset '{dataset}'. Please run eval_cast_security.py first.")
         st.stop()
 
     # Display top metrics
