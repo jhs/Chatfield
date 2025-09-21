@@ -93,7 +93,11 @@ def get_metric(interview, threshold: float = 1.0, model_identifier:str='openai:g
             TurnParams.CONTENT,
         ],
         threshold=threshold,
-        strict_mode=False, # Strict mode forces a binary 0 or 1 and overrides threshold to 1.0
+
+        # Strict mode forces a binary 0 or 1 and overrides threshold to 1.0
+        # strict_mode=False,
+        strict_mode=True,
+
         # verbose_mode=True,
     )
     return metric
