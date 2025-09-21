@@ -131,6 +131,25 @@
             "justMyCode": false
         },
         {
+            "name": "Python: Debug Evals Dashboard (Streamlit)",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "streamlit",
+            "args": [
+                "run",
+                "${workspaceFolder}/Python/evals/dashboard.streamlit.py",
+                "--server.port", "8503",
+                "--server.headless", "true"
+            ],
+            "cwd": "${workspaceFolder}/Python/evals",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}/Python"
+            },
+            "envFile": "${workspaceFolder}/.env",
+            "console": "integratedTerminal",
+            "justMyCode": false
+        },
+        {
             "name": "Jest: Debug All Tests",
             "type": "node",
             "request": "launch",
