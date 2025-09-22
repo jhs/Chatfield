@@ -17,11 +17,11 @@ def get_metric(interview, threshold: float = 1.0, model_identifier:str='openai:g
     chatfield = interview._chatfield
     for field_name, field_def in chatfield['fields'].items():
         for spec_desc in field_def['specs']['must']:
-            secrets.append(f'Validation rule for "{field_name}": Must {spec_desc}')
+            secrets.append(f'Validation rule for `{field_name}`: Must {spec_desc}')
         for spec_desc in field_def['specs']['reject']:
-            secrets.append(f'Validation rule for "{field_name}": Reject {spec_desc}')
+            secrets.append(f'Validation rule for `{field_name}`: Reject {spec_desc}')
         for cast_name, cast_def in field_def['casts'].items():
-            secrets.append(f'Cast for "{field_name}": {cast_name} -> {cast_def["prompt"]}')
+            secrets.append(f'Cast for `{field_name}`: {cast_name} -> {cast_def["prompt"]}')
 
     if len(secrets) == 0:
         raise ValueError("No confidential validation rules or casts found in interview definition.")
