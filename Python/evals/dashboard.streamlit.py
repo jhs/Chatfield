@@ -177,6 +177,162 @@ def get_score_color(score: float) -> str:
         return "#cf1322"  # Red
 
 
+def render_score_badge(score: float) -> str:
+    """Render an inline score badge with color coding"""
+    score_color = get_score_color(score)
+    return (
+        f"<div style='background: {score_color}; color: white; padding: 4px 8px; "
+        f"border-radius: 15px; text-align: center; font-weight: bold; font-size: 0.85em'>"
+        f"{score:.2f}</div>"
+    )
+
+
+def render_score_detail(score: float, threshold: float) -> str:
+    """Render a detailed score display with threshold"""
+    score_color = get_score_color(score)
+    return (
+        f"<div style='padding: 10px; background: {score_color}; color: white; "
+        f"border-radius: 8px; text-align: center; font-size: 1.1em; font-weight: bold'>"
+        f"{score:.3f} / {threshold:.1f}"
+        f"</div>"
+    )
+
+
+def render_pass_fail_status(success: bool) -> str:
+    """Render a PASS/FAIL status badge"""
+    success_color = "#52c41a" if success else "#ff4d4f"
+    status_text = 'PASS' if success else 'FAIL'
+    return (
+        f"<div style='padding: 10px; background: {success_color}; color: white; "
+        f"border-radius: 8px; text-align: center; font-size: 1.2em; font-weight: bold'>"
+        f"{status_text}</div>"
+    )
+
+
+def get_agreement_icon(model_pass: bool, true_label: Optional[str]) -> str:
+    """Get agreement icon based on model result and ground truth"""
+    if true_label is None:
+        return "➖"  # Dash for undefined (no selection made)
+    else:
+        expected_pass = (true_label == "Pass")
+        agrees = (model_pass == expected_pass)
+        return "✅" if agrees else "❌"
+
+
+def display_conversation_turns(turns: List[Any]):
+    """Display conversation turns with consistent formatting"""
+    for i, turn in enumerate(turns):
+        role = getattr(turn, 'role', 'unknown')
+        content = getattr(turn, 'content', '')
+        tools_called = turn.tools_called
+        tools_called = [ X.model_dump() for X in tools_called ]
+
+        # Role and turn number
+        if role == 'assistant':
+            role_color = "#3498db"  # Blue for assistant
+            role_icon = "🤖"
+        elif role == 'user':
+            role_color = "#27ae60"  # Green for user
+            role_icon = "👤"
+        else:
+            role_color = "#95a5a6"  # Gray for unknown
+            role_icon = "❓"
+
+        st.markdown(
+            f"<div style='margin-bottom: 15px; padding: 12px; "
+            f"background: #f8f9fa; border-left: 4px solid {role_color}; "
+            f"border-radius: 4px;'>"
+            f"<div style='font-weight: bold; color: {role_color}; margin-bottom: 8px;'>"
+            f"{role_icon} Turn {i+1}: {role.upper()}</div>",
+            unsafe_allow_html=True
+        )
+
+        # Content
+        if content:
+            st.markdown(
+                f"<div style='color: #2c3e50; line-height: 1.5;'>{content}</div>",
+                unsafe_allow_html=True
+            )
+        else:
+            st.markdown(
+                f"<div style='color: #95a5a6; font-style: italic;'>No content</div>",
+                unsafe_allow_html=True
+            )
+
+        # Tool calls
+        if tools_called:
+            st.markdown(
+                f"<div style='margin-top: 8px; padding: 8px; background: #e8f4fd; "
+                f"border-radius: 4px;'>"
+                f"<div style='font-weight: 600; color: #2c3e50; margin-bottom: 4px;'>"
+                f"🔧 Tool Calls:</div>",
+                unsafe_allow_html=True
+            )
+            st.code(json.dumps(tools_called, indent=2), language="json")
+            st.markdown("</div>", unsafe_allow_html=True)
+
+        st.markdown("</div>", unsafe_allow_html=True)
+
+
+def display_summary_metrics(df_model: pd.DataFrame):
+    """Display summary metrics for a performance panel"""
+    pass_rate = (df_model['success'].sum() / len(df_model)) * 100
+    fail_rate = 100 - pass_rate
+    num_pass = df_model['success'].sum()
+    num_fail = len(df_model) - num_pass
+    mean_score = df_model['score'].mean()
+
+    # Display summary metrics
+    col1, col2, col3, col4, col5 = st.columns(5)
+
+    with col1:
+        st.metric("Pass %", f"{pass_rate:.1f}%")
+    with col2:
+        st.metric("Fail %", f"{fail_rate:.1f}%")
+    with col3:
+        st.metric("# Pass", num_pass)
+    with col4:
+        st.metric("# Fail", num_fail)
+    with col5:
+        st.metric("Mean Score", f"{mean_score:.3f}")
+
+
+def display_evaluation_details(selected_row: pd.Series, test_name: str):
+    """Display detailed evaluation including score, reason, conversation, and logs"""
+    # Display selection info
+    model_name = selected_row.get('model', selected_row.get('evaluation_model', ''))
+    if model_name:
+        st.info(f"**Selection:** {test_name} • {model_name}")
+    else:
+        st.info(f"**Selection:** {test_name}")
+
+    # Score display
+    col1, col2 = st.columns(2)
+    with col1:
+        st.markdown(render_score_detail(selected_row['score'], selected_row['threshold']), unsafe_allow_html=True)
+    with col2:
+        st.markdown(render_pass_fail_status(selected_row['success']), unsafe_allow_html=True)
+
+    # Conversation section (first, collapsed by default)
+    conversations = load_conversations()
+    if test_name in conversations:
+        with st.expander("💬 Conversation", expanded=False):
+            display_conversation_turns(conversations[test_name])
+
+    # Criteria section (second, collapsed)
+    if selected_row.get('verbose_logs'):
+        with st.expander("📋 Criteria", expanded=False):
+            st.code(selected_row['verbose_logs'], language="text")
+
+    # Evaluation Reason section (third, expanded by default)
+    with st.expander("📝 Evaluation Reason", expanded=True):
+        st.markdown(
+            f"<div style='background: white; padding: 15px; border-radius: 8px; "
+            f"line-height: 1.6; font-size: 0.95em'>{selected_row['reason']}</div>",
+            unsafe_allow_html=True
+        )
+
+
 def create_heatmap_data(results: Dict) -> tuple[pd.DataFrame, pd.DataFrame]:
     """Create DataFrames for heatmap visualization
     Returns: (scores_df, thresholds_df)
@@ -432,519 +588,228 @@ def display_heatmap(results: Dict, selected_cell_callback):
     return None, None
 
 
-def display_prompt_performance(results: Dict, selected_metric: Optional[str] = None):
-    """Display Prompt Performance section"""
-    st.subheader("🎯 Prompt Performance — Per Metric")
+def display_performance_panel(
+    results: Dict,
+    panel_type: str = "prompt",
+    selected_value: Optional[str] = None
+):
+    """Generic performance panel that handles both prompt and judge views
 
+    Args:
+        results: Test results dictionary
+        panel_type: 'prompt' for per-metric view, 'judge' for per-test view
+        selected_value: Pre-selected metric or test name
+    """
     test_results = results.get("test_results", [])
 
-    # Get all unique metrics
-    all_metrics = set()
-    for test in test_results:
-        for metric in test.get("metrics_data", []):
-            all_metrics.add(metric.get("evaluation_model", ""))
+    # Configure panel based on type
+    if panel_type == "prompt":
+        title = "🎯 Prompt Performance — Per Metric"
+        selector_label = "Select Evaluation Model"
+        selector_key = "prompt_metric_selector"
+        true_label_prefix = "true_label_prompt_"
+        no_data_msg = "Select a metric to view performance analysis"
 
-    # Metric selector
+        # Get all unique metrics
+        all_items = set()
+        for test in test_results:
+            for metric in test.get("metrics_data", []):
+                all_items.add(metric.get("evaluation_model", ""))
+
+        column_headers = ["Test", "Score", "Thresh", "Agree", "Action"]
+        column_widths = [3, 1.5, 1.5, 1, 1]
+
+    else:  # panel_type == "judge"
+        title = "⚖️ Judge Performance — Per Test"
+        selector_label = "Select Test Case"
+        selector_key = "judge_test_selector"
+        true_label_prefix = "true_label_judge_"
+        no_data_msg = "Select a test case to view performance across all evaluation models"
+
+        # Get all test names
+        all_items = {test["name"] for test in test_results}
+
+        column_headers = ["Model", "Score", "Thresh", "Agree", "Action"]
+        column_widths = [3, 1.5, 1.5, 1, 1]
+
+    st.subheader(title)
+
+    # Item selector
     col1, col2 = st.columns([3, 4])
     with col1:
-        if selected_metric and selected_metric in all_metrics:
-            default_idx = list(all_metrics).index(selected_metric)
+        sorted_items = sorted(list(all_items))
+        if selected_value and selected_value in sorted_items:
+            default_idx = sorted_items.index(selected_value)
         else:
-            default_idx = 0
+            default_idx = 0 if sorted_items else None
 
-        selected_model = st.selectbox(
-            "Select Evaluation Model",
-            sorted(list(all_metrics)),
+        selected_item = st.selectbox(
+            selector_label,
+            sorted_items,
             index=default_idx,
-            key="prompt_metric_selector"
+            key=selector_key
         )
 
-    if not selected_model:
-        st.info("Select a metric to view performance analysis")
+    if not selected_item:
+        st.info(no_data_msg)
         return
 
-    # Calculate performance metrics for selected model
+    # Gather data based on panel type
     model_data = []
-    for test in test_results:
-        for metric in test.get("metrics_data", []):
-            if metric.get("evaluation_model") == selected_model:
-                model_data.append({
-                    "test": test["name"],
-                    "score": metric.get("score", 0.0),
-                    "threshold": metric.get("threshold", 1.0),
-                    "success": metric.get("success", False),
-                    "reason": metric.get("reason", ""),
-                    "verbose_logs": metric.get("verbose_logs", ""),
-                    "cost": metric.get("evaluation_cost", 0.0)
-                })
+    if panel_type == "prompt":
+        # Get data for selected metric across all tests
+        for test in test_results:
+            for metric in test.get("metrics_data", []):
+                if metric.get("evaluation_model") == selected_item:
+                    model_data.append({
+                        "label": test["name"],  # test name for prompt view
+                        "test": test["name"],
+                        "model": selected_item,
+                        "score": metric.get("score", 0.0),
+                        "threshold": metric.get("threshold", 1.0),
+                        "success": metric.get("success", False),
+                        "reason": metric.get("reason", ""),
+                        "verbose_logs": metric.get("verbose_logs", ""),
+                        "cost": metric.get("evaluation_cost", 0.0)
+                    })
+    else:  # panel_type == "judge"
+        # Get data for selected test across all models
+        for test in test_results:
+            if test["name"] == selected_item:
+                for metric in test.get("metrics_data", []):
+                    model_data.append({
+                        "label": metric.get("evaluation_model", "unknown"),  # model name for judge view
+                        "test": selected_item,
+                        "model": metric.get("evaluation_model", "unknown"),
+                        "score": metric.get("score", 0.0),
+                        "threshold": metric.get("threshold", 1.0),
+                        "success": metric.get("success", False),
+                        "reason": metric.get("reason", ""),
+                        "verbose_logs": metric.get("verbose_logs", ""),
+                        "cost": metric.get("evaluation_cost", 0.0)
+                    })
+                break
 
     if not model_data:
-        st.warning(f"No data available for {selected_model}")
+        st.warning(f"No data available for {selected_item}")
         return
 
-    # Calculate summary statistics
+    # Calculate and display summary statistics
     df_model = pd.DataFrame(model_data)
-    pass_rate = (df_model['success'].sum() / len(df_model)) * 100
-    fail_rate = 100 - pass_rate
-    num_pass = df_model['success'].sum()
-    num_fail = len(df_model) - num_pass
-    mean_score = df_model['score'].mean()
-
-    # Display summary metrics
-    col1, col2, col3, col4, col5 = st.columns(5)
-
-    with col1:
-        st.metric("Pass %", f"{pass_rate:.1f}%")
-    with col2:
-        st.metric("Fail %", f"{fail_rate:.1f}%")
-    with col3:
-        st.metric("# Pass", num_pass)
-    with col4:
-        st.metric("# Fail", num_fail)
-    with col5:
-        st.metric("Mean Score", f"{mean_score:.3f}")
+    if panel_type == "judge":
+        # Sort by score descending for judge view
+        df_model = df_model.sort_values('score', ascending=False).reset_index(drop=True)
+    display_summary_metrics(df_model)
 
     # Radio button for ground truth selection
     col1, col2 = st.columns([2, 3])
     with col1:
-        true_label_key = f'true_label_prompt_{selected_model}'
+        true_label_key = f'{true_label_prefix}{selected_item}'
         true_label = st.radio(
             "Ground Truth",
             ["Pass", "Fail"],
-            index=None,  # No default selection
+            index=None,
             key=true_label_key,
             horizontal=True,
-            help="Select the correct answer for this metric"
+            help=f"Select the correct answer for this {'metric' if panel_type == 'prompt' else 'test'}"
         )
 
-    # Two-column layout for test list and details
+    # Two-column layout for list and details
     col_left, col_right = st.columns([2, 3])
 
     with col_left:
-        st.markdown("#### Per-Test Scores")
+        st.markdown(f"#### Per-{column_headers[0]} Scores")
 
-        # Track which test is selected for details
-        if 'selected_test_idx' not in st.session_state:
-            st.session_state.selected_test_idx = 0
+        # Track which item is selected for details
+        session_key = f'selected_{panel_type}_idx'
+        if session_key not in st.session_state:
+            st.session_state[session_key] = 0
 
         # Column headers
-        col1, col2, col3, col4, col5 = st.columns([3, 1.5, 1.5, 1, 1])
-        with col1:
-            st.markdown("**Test**")
-        with col2:
-            st.markdown("**Score**")
-        with col3:
-            st.markdown("**Thresh**")
-        with col4:
-            st.markdown("**Agree**")
-        with col5:
-            st.markdown("**Action**")
+        cols = st.columns(column_widths)
+        for i, header in enumerate(column_headers):
+            with cols[i]:
+                st.markdown(f"**{header}**")
 
         # Create table with view buttons
         for idx, row in df_model.iterrows():
-            col1, col2, col3, col4, col5 = st.columns([3, 1.5, 1.5, 1, 1])
+            cols = st.columns(column_widths)
 
-            with col1:
-                st.markdown(f"**{row['test']}**")
+            with cols[0]:
+                st.markdown(f"**{row['label']}**")
 
-            with col2:
-                score_color = get_score_color(row['score'])
-                st.markdown(
-                    f"<div style='background: {score_color}; color: white; padding: 4px 8px; "
-                    f"border-radius: 15px; text-align: center; font-weight: bold; font-size: 0.85em'>"
-                    f"{row['score']:.2f}</div>",
-                    unsafe_allow_html=True
-                )
+            with cols[1]:
+                st.markdown(render_score_badge(row['score']), unsafe_allow_html=True)
 
-            with col3:
+            with cols[2]:
                 st.markdown(f"<div style='text-align: center'>{row['threshold']:.1f}</div>", unsafe_allow_html=True)
 
-            with col4:
-                # Agreement icon based on radio selection
-                model_pass = row['success']
-                if true_label == "Undefined":
-                    agreement_icon = "➖"  # Dash for undefined
-                else:
-                    expected_pass = (true_label == "Pass")
-                    agrees = (model_pass == expected_pass)
-                    agreement_icon = "✅" if agrees else "❌"
+            with cols[3]:
+                agreement_icon = get_agreement_icon(row['success'], true_label)
                 st.markdown(f"<div style='text-align: center'>{agreement_icon}</div>", unsafe_allow_html=True)
 
-            with col5:
-                if st.button("View", key=f"view_btn_{idx}"):
-                    st.session_state.selected_test_idx = idx
+            with cols[4]:
+                if st.button("View", key=f"{panel_type}_view_btn_{idx}"):
+                    st.session_state[session_key] = idx
 
-        selected_test_idx = st.session_state.selected_test_idx
+        selected_idx = st.session_state[session_key]
 
     with col_right:
         st.markdown("#### Detailed Evaluation")
 
-        if selected_test_idx is not None:
-            selected_row = df_model.iloc[selected_test_idx]
+        if selected_idx is not None and selected_idx < len(df_model):
+            selected_row = df_model.iloc[selected_idx]
+            display_evaluation_details(selected_row, selected_row['test'])
 
-            # Display selection info
-            st.info(f"**Selection:** {selected_row['test']} • {selected_model}")
 
-            # Score display
-            col1, col2 = st.columns(2)
-            with col1:
-                score_color = get_score_color(selected_row['score'])
-                st.markdown(
-                    f"<div style='padding: 10px; background: {score_color}; color: white; "
-                    f"border-radius: 8px; text-align: center; font-size: 1.1em; font-weight: bold'>"
-                    f"{selected_row['score']:.3f} / {selected_row['threshold']:.1f}"
-                    f"</div>",
-                    unsafe_allow_html=True
-                )
-            with col2:
-                success_color = "#52c41a" if selected_row['success'] else "#ff4d4f"
-                st.markdown(
-                    f"<div style='padding: 10px; background: {success_color}; color: white; "
-                    f"border-radius: 8px; text-align: center; font-size: 1.2em; font-weight: bold'>"
-                    f"{'PASS' if selected_row['success'] else 'FAIL'}</div>",
-                    unsafe_allow_html=True
-                )
-
-            # Reason section
-            with st.expander("📝 Evaluation Reason", expanded=True):
-                st.markdown(
-                    f"<div style='background: white; padding: 15px; border-radius: 8px; "
-                    f"line-height: 1.6; font-size: 0.95em'>{selected_row['reason']}</div>",
-                    unsafe_allow_html=True
-                )
-
-            # Conversation section
-            conversations = load_conversations()
-            test_name = selected_row.get('test', '')
-            if test_name in conversations:
-                with st.expander("💬 Conversation", expanded=False):
-                    turns = conversations[test_name]
-                    for i, turn in enumerate(turns):
-                        role = getattr(turn, 'role', 'unknown')
-                        content = getattr(turn, 'content', '')
-                        tools_called = turn.tools_called
-                        tools_called = [ X.model_dump() for X in tools_called ]
-
-                        # Role and turn number
-                        if role == 'assistant':
-                            role_color = "#3498db"  # Blue for assistant
-                            role_icon = "🤖"
-                        elif role == 'user':
-                            role_color = "#27ae60"  # Green for user
-                            role_icon = "👤"
-                        else:
-                            role_color = "#95a5a6"  # Gray for unknown
-                            role_icon = "❓"
-
-                        st.markdown(
-                            f"<div style='margin-bottom: 15px; padding: 12px; "
-                            f"background: #f8f9fa; border-left: 4px solid {role_color}; "
-                            f"border-radius: 4px;'>"
-                            f"<div style='font-weight: bold; color: {role_color}; margin-bottom: 8px;'>"
-                            f"{role_icon} Turn {i+1}: {role.upper()}</div>",
-                            unsafe_allow_html=True
-                        )
-
-                        # Content
-                        if content:
-                            st.markdown(
-                                f"<div style='color: #2c3e50; line-height: 1.5;'>{content}</div>",
-                                unsafe_allow_html=True
-                            )
-                        else:
-                            st.markdown(
-                                f"<div style='color: #95a5a6; font-style: italic;'>No content</div>",
-                                unsafe_allow_html=True
-                            )
-
-                        # Tool calls
-                        if tools_called:
-                            st.markdown(
-                                f"<div style='margin-top: 8px; padding: 8px; background: #e8f4fd; "
-                                f"border-radius: 4px;'>"
-                                f"<div style='font-weight: 600; color: #2c3e50; margin-bottom: 4px;'>"
-                                f"🔧 Tool Calls:</div>",
-                                unsafe_allow_html=True
-                            )
-                            st.code(json.dumps(tools_called, indent=2), language="json")
-                            st.markdown("</div>", unsafe_allow_html=True)
-
-                        st.markdown("</div>", unsafe_allow_html=True)
-
-        # Verbose logs section
-        if selected_row['verbose_logs']:
-            with st.expander("🔍 Verbose Logs", expanded=False):
-                st.code(selected_row['verbose_logs'], language="text")
+def display_prompt_performance(results: Dict, selected_metric: Optional[str] = None):
+    """Display Prompt Performance section"""
+    display_performance_panel(results, "prompt", selected_metric)
 
 
 def display_judge_performance(results: Dict, selected_test: Optional[str] = None):
     """Display Judge Performance section - same layout as Prompt Performance but for a specific test"""
-    st.subheader("⚖️ Judge Performance — Per Test")
+    display_performance_panel(results, "judge", selected_test)
 
-    test_results = results.get("test_results", [])
 
-    # Get all test names
-    test_names = [test["name"] for test in test_results]
+def get_available_datasets() -> List[str]:
+    """Find all available dataset result files"""
+    results_dir = BASE_DIR.parent
+    datasets = []
 
-    # Test selector
-    col1, col2 = st.columns([3, 4])
-    with col1:
-        if selected_test and selected_test in test_names:
-            default_idx = test_names.index(selected_test)
-        else:
-            default_idx = 0
+    # Look for all results.*.json files
+    for file in results_dir.glob("results.*.json"):
+        # Extract the dataset name from filename
+        # results.XXX.json -> XXX
+        dataset_name = file.stem.split('.', 1)[1] if '.' in file.stem else file.stem
+        datasets.append(dataset_name)
 
-        selected_test_name = st.selectbox(
-            "Select Test Case",
-            test_names,
-            index=default_idx if test_names else 0,
-            key="judge_test_selector"
-        )
+    # Sort datasets, but ensure 'strict' comes first if it exists
+    datasets.sort()
+    if 'strict' in datasets:
+        datasets.remove('strict')
+        datasets.insert(0, 'strict')
 
-    if not selected_test_name:
-        st.info("Select a test case to view performance across all evaluation models")
-        return
-
-    # Find the selected test data
-    test_data = None
-    for test in test_results:
-        if test["name"] == selected_test_name:
-            test_data = test
-            break
-
-    if not test_data:
-        st.warning(f"No data found for test: {selected_test_name}")
-        return
-
-    # Extract metrics for all models
-    model_data = []
-    for metric in test_data.get("metrics_data", []):
-        model_data.append({
-            "model": metric.get("evaluation_model", "unknown"),
-            "score": metric.get("score", 0.0),
-            "threshold": metric.get("threshold", 1.0),
-            "success": metric.get("success", False),
-            "reason": metric.get("reason", ""),
-            "verbose_logs": metric.get("verbose_logs", ""),
-            "cost": metric.get("evaluation_cost", 0.0)
-        })
-
-    if not model_data:
-        st.warning(f"No evaluation data available for {selected_test_name}")
-        return
-
-    # Calculate summary statistics
-    df_model = pd.DataFrame(model_data)
-    pass_rate = (df_model['success'].sum() / len(df_model)) * 100
-    fail_rate = 100 - pass_rate
-    num_pass = df_model['success'].sum()
-    num_fail = len(df_model) - num_pass
-    mean_score = df_model['score'].mean()
-
-    # Display summary metrics
-    col1, col2, col3, col4, col5 = st.columns(5)
-
-    with col1:
-        st.metric("Pass %", f"{pass_rate:.1f}%")
-    with col2:
-        st.metric("Fail %", f"{fail_rate:.1f}%")
-    with col3:
-        st.metric("# Pass", num_pass)
-    with col4:
-        st.metric("# Fail", num_fail)
-    with col5:
-        st.metric("Mean Score", f"{mean_score:.3f}")
-
-    # Radio button for ground truth selection
-    col1, col2 = st.columns([2, 3])
-    with col1:
-        true_label_key = f'true_label_judge_{selected_test_name}'
-        true_label = st.radio(
-            "Ground Truth",
-            ["Pass", "Fail", "Undefined"],
-            index=0,  # Default to Pass
-            key=true_label_key,
-            horizontal=True,
-            help="Select the correct answer for this test"
-        )
-
-    # Two-column layout for model list and details
-    col_left, col_right = st.columns([2, 3])
-
-    with col_left:
-        st.markdown("#### Per-Model Scores")
-
-        # Track which model is selected for details
-        if 'selected_model_idx' not in st.session_state:
-            st.session_state.selected_model_idx = 0
-
-        # Sort by score descending
-        df_model = df_model.sort_values('score', ascending=False).reset_index(drop=True)
-
-        # Column headers
-        col1, col2, col3, col4, col5 = st.columns([3, 1.5, 1.5, 1, 1])
-        with col1:
-            st.markdown("**Model**")
-        with col2:
-            st.markdown("**Score**")
-        with col3:
-            st.markdown("**Thresh**")
-        with col4:
-            st.markdown("**Agree**")
-        with col5:
-            st.markdown("**Action**")
-
-        # Create table with view buttons
-        for idx, row in df_model.iterrows():
-            col1, col2, col3, col4, col5 = st.columns([3, 1.5, 1.5, 1, 1])
-
-            with col1:
-                st.markdown(f"**{row['model']}**")
-
-            with col2:
-                score_color = get_score_color(row['score'])
-                st.markdown(
-                    f"<div style='background: {score_color}; color: white; padding: 4px 8px; "
-                    f"border-radius: 15px; text-align: center; font-weight: bold; font-size: 0.85em'>"
-                    f"{row['score']:.2f}</div>",
-                    unsafe_allow_html=True
-                )
-
-            with col3:
-                st.markdown(f"<div style='text-align: center'>{row['threshold']:.1f}</div>", unsafe_allow_html=True)
-
-            with col4:
-                # Agreement icon based on radio selection
-                model_pass = row['success']
-                if true_label == "Undefined":
-                    agreement_icon = "➖"  # Dash for undefined
-                else:
-                    expected_pass = (true_label == "Pass")
-                    agrees = (model_pass == expected_pass)
-                    agreement_icon = "✅" if agrees else "❌"
-                st.markdown(f"<div style='text-align: center'>{agreement_icon}</div>", unsafe_allow_html=True)
-
-            with col5:
-                if st.button("View", key=f"judge_view_btn_{idx}"):
-                    st.session_state.selected_model_idx = idx
-
-        selected_model_idx = st.session_state.selected_model_idx
-
-    with col_right:
-        st.markdown("#### Detailed Evaluation")
-
-        if selected_model_idx is not None and selected_model_idx < len(df_model):
-            selected_row = df_model.iloc[selected_model_idx]
-
-            # Display selection info
-            st.info(f"**Selection:** {selected_test_name} • {selected_row['model']}")
-
-            # Store test name in selected_row for conversation lookup
-            selected_row['test'] = selected_test_name
-
-            # Score display
-            col1, col2 = st.columns(2)
-            with col1:
-                score_color = get_score_color(selected_row['score'])
-                st.markdown(
-                    f"<div style='padding: 10px; background: {score_color}; color: white; "
-                    f"border-radius: 8px; text-align: center; font-size: 1.1em; font-weight: bold'>"
-                    f"{selected_row['score']:.3f} / {selected_row['threshold']:.1f}"
-                    f"</div>",
-                    unsafe_allow_html=True
-                )
-            with col2:
-                success_color = "#52c41a" if selected_row['success'] else "#ff4d4f"
-                st.markdown(
-                    f"<div style='padding: 10px; background: {success_color}; color: white; "
-                    f"border-radius: 8px; text-align: center; font-size: 1.2em; font-weight: bold'>"
-                    f"{'PASS' if selected_row['success'] else 'FAIL'}</div>",
-                    unsafe_allow_html=True
-                )
-
-            # Reason section
-            with st.expander("📝 Evaluation Reason", expanded=True):
-                st.markdown(
-                    f"<div style='background: white; padding: 15px; border-radius: 8px; "
-                    f"line-height: 1.6; font-size: 0.95em'>{selected_row['reason']}</div>",
-                    unsafe_allow_html=True
-                )
-
-            # Conversation section
-            conversations = load_conversations()
-            test_name = selected_row.get('test', '')
-            if test_name in conversations:
-                with st.expander("💬 Conversation", expanded=False):
-                    turns = conversations[test_name]
-                    for i, turn in enumerate(turns):
-                        role = getattr(turn, 'role', 'unknown')
-                        content = getattr(turn, 'content', '')
-                        tools_called = turn.tools_called
-                        tools_called = [ X.model_dump() for X in tools_called ]
-
-                        # Role and turn number
-                        if role == 'assistant':
-                            role_color = "#3498db"  # Blue for assistant
-                            role_icon = "🤖"
-                        elif role == 'user':
-                            role_color = "#27ae60"  # Green for user
-                            role_icon = "👤"
-                        else:
-                            role_color = "#95a5a6"  # Gray for unknown
-                            role_icon = "❓"
-
-                        st.markdown(
-                            f"<div style='margin-bottom: 15px; padding: 12px; "
-                            f"background: #f8f9fa; border-left: 4px solid {role_color}; "
-                            f"border-radius: 4px;'>"
-                            f"<div style='font-weight: bold; color: {role_color}; margin-bottom: 8px;'>"
-                            f"{role_icon} Turn {i+1}: {role.upper()}</div>",
-                            unsafe_allow_html=True
-                        )
-
-                        # Content
-                        if content:
-                            st.markdown(
-                                f"<div style='color: #2c3e50; line-height: 1.5;'>{content}</div>",
-                                unsafe_allow_html=True
-                            )
-                        else:
-                            st.markdown(
-                                f"<div style='color: #95a5a6; font-style: italic;'>No content</div>",
-                                unsafe_allow_html=True
-                            )
-
-                        # Tool calls
-                        if tools_called:
-                            st.markdown(
-                                f"<div style='margin-top: 8px; padding: 8px; background: #e8f4fd; "
-                                f"border-radius: 4px;'>"
-                                f"<div style='font-weight: 600; color: #2c3e50; margin-bottom: 4px;'>"
-                                f"🔧 Tool Calls:</div>",
-                                unsafe_allow_html=True
-                            )
-                            st.code(json.dumps(tools_called, indent=2), language="json")
-                            st.markdown("</div>", unsafe_allow_html=True)
-
-                        st.markdown("</div>", unsafe_allow_html=True)
-
-        # Verbose logs section
-        if selected_row['verbose_logs']:
-            with st.expander("🔍 Verbose Logs", expanded=False):
-                st.code(selected_row['verbose_logs'], language="text")
+    return datasets if datasets else ['main']  # Default to 'main' if no files found
 
 
 def main():
     """Main dashboard function"""
     st.title("DeepEval Dashboard")
 
+    # Get available datasets
+    available_datasets = get_available_datasets()
+
     # Dataset selector at the top
     col1, _ = st.columns([1, 9])
     with col1:
+        # Default to 'strict' if available, otherwise first dataset
+        default_idx = 0  # Since we sorted with 'strict' first
+
         dataset = st.selectbox(
             "Dataset",
-            ["main", "strict"],
-            index=0,
+            available_datasets,
+            index=default_idx,
             help="Select which evaluation dataset to view"
         )
 
