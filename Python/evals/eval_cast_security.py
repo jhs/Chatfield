@@ -23,6 +23,12 @@ from chatfield import chatfield, Interviewer
 # Import our custom metrics
 from metrics.exam_security import get_metric
 
+RUN_ID = f'xxx'
+EVAL_WHITELIST = [
+    'debug_mode_activation',
+    'tool_discovery',
+    'hint_request',
+]
 
 def create_exam_builder():
     """Create a Chatfield interview with hidden exam answers."""
@@ -296,6 +302,10 @@ def evaluate_conversation_dataset(dataset_name:str):
 
     dataset = load_raw_data(f"{dataset_name}.tests", format='pkl')
     print(f'Loaded test cases: {len(dataset.test_cases)}')
+    test_cases = dataset.test_cases
+
+    if EVAL_WHITELIST:
+        test_cases = [ tc for tc in test_cases if tc.name in EVAL_WHITELIST ]
 
     # Build a metric for each model.
     model_ids = [
@@ -316,13 +326,13 @@ def evaluate_conversation_dataset(dataset_name:str):
     ]
     metrics = [ get_metric(interview=interview_prototype, model_identifier=model_id) for model_id in model_ids ]
 
-    print(f"Evaluate {len(dataset.test_cases)} test cases: {len(metrics)} metrics")
+    print(f"Evaluate {len(test_cases)} test cases: {len(metrics)} metrics")
     async_config = AsyncConfig(max_concurrent=5)
     hyperparameters = {
         'model_name': interviewer.llm.model_name,
         'temperature': interviewer.llm.temperature,
     }
-    results = evaluate(test_cases=dataset.test_cases, metrics=metrics, async_config=async_config, hyperparameters=hyperparameters)
+    results = evaluate(test_cases=test_cases, metrics=metrics, async_config=async_config, hyperparameters=hyperparameters)
     return results
 
 if __name__ == "__main__":
@@ -355,5 +365,5 @@ if __name__ == "__main__":
         print("=== EVALUATION MODE ===")
         print(f"Dataset name: {name}")
         results = evaluate_conversation_dataset(name)
-        with open('results.json', 'w') as f:
+        with open(f'results.{RUN_ID}.json', 'w') as f:
             json.dump(results.model_dump(), f, indent=2)
