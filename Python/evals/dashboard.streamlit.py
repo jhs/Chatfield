@@ -34,6 +34,19 @@ st.markdown("""
         padding: 1rem;
     }
 
+    /* Increase global font size */
+    .stMarkdown {
+        font-size: 1.1rem;
+    }
+
+    .stButton > button {
+        font-size: 1.1rem;
+    }
+
+    .stSelectbox > label {
+        font-size: 1.1rem;
+    }
+
     /* Heatmap cell styling */
     .heatmap-cell {
         cursor: pointer;
@@ -491,144 +504,171 @@ def display_prompt_performance(results: Dict, selected_metric: Optional[str] = N
     with col5:
         st.metric("Mean Score", f"{mean_score:.3f}")
 
-    # Two-column layout for test list and details
-    col_left, col_right = st.columns([2, 3])
+    # Stacked layout - table above, details below
+    st.markdown("#### Per-Test Scores")
 
-    with col_left:
-        st.markdown("#### Per-Test Scores")
+    # Track which test is selected for details
+    if 'selected_test_idx' not in st.session_state:
+        st.session_state.selected_test_idx = 0
 
-        # Track which test is selected for details
-        if 'selected_test_idx' not in st.session_state:
-            st.session_state.selected_test_idx = 0
+    # Initialize true labels in session state if not present
+    if f'true_labels_prompt_{selected_model}' not in st.session_state:
+        st.session_state[f'true_labels_prompt_{selected_model}'] = {}
 
-        # Create table with view buttons
-        for idx, row in df_model.iterrows():
-            col1, col2, col3, col4, col5 = st.columns([3, 1.5, 1.5, 1, 1])
+    # Column headers
+    col1, col2, col3, col4, col5, col6 = st.columns([2, 1.2, 1.2, 0.8, 0.8, 0.8])
+    with col1:
+        st.markdown("**Test**")
+    with col2:
+        st.markdown("**Score**")
+    with col3:
+        st.markdown("**Thresh**")
+    with col4:
+        st.markdown("**True**")
+    with col5:
+        st.markdown("**Agree**")
+    with col6:
+        st.markdown("**Action**")
 
-            with col1:
-                st.markdown(f"**{row['test']}**")
+    # Create table with view buttons and true label checkboxes
+    for idx, row in df_model.iterrows():
+        col1, col2, col3, col4, col5, col6 = st.columns([2, 1.2, 1.2, 0.8, 0.8, 0.8])
 
-            with col2:
-                score_color = get_score_color(row['score'])
-                st.markdown(
-                    f"<div style='background: {score_color}; color: white; padding: 4px 8px; "
-                    f"border-radius: 15px; text-align: center; font-weight: bold; font-size: 0.85em'>"
-                    f"{row['score']:.2f}</div>",
-                    unsafe_allow_html=True
-                )
+        test_key = f"{row['test']}_{selected_model}"
 
-            with col3:
-                st.markdown(f"<div style='text-align: center'>{row['threshold']:.1f}</div>", unsafe_allow_html=True)
+        with col1:
+            st.markdown(f"**{row['test']}**")
 
-            with col4:
-                success_icon = "✅" if row['success'] else "❌"
-                st.markdown(f"<div style='text-align: center'>{success_icon}</div>", unsafe_allow_html=True)
+        with col2:
+            score_color = get_score_color(row['score'])
+            st.markdown(
+                f"<div style='background: {score_color}; color: white; padding: 4px 8px; "
+                f"border-radius: 15px; text-align: center; font-weight: bold; font-size: 0.85em'>"
+                f"{row['score']:.2f}</div>",
+                unsafe_allow_html=True
+            )
 
-            with col5:
-                if st.button("View", key=f"view_btn_{idx}"):
-                    st.session_state.selected_test_idx = idx
+        with col3:
+            st.markdown(f"<div style='text-align: center'>{row['threshold']:.1f}</div>", unsafe_allow_html=True)
 
-        selected_test_idx = st.session_state.selected_test_idx
+        with col4:
+            # True label checkbox (default to True = should pass)
+            true_label = st.checkbox("", value=True, key=f"true_prompt_{test_key}")
+            st.session_state[f'true_labels_prompt_{selected_model}'][row['test']] = true_label
 
-    with col_right:
-        st.markdown("#### Detailed Evaluation")
+        with col5:
+            # Agreement icon: check if model result agrees with true label
+            model_pass = row['success']
+            agrees = (model_pass == true_label)
+            agreement_icon = "✅" if agrees else "❌"
+            st.markdown(f"<div style='text-align: center'>{agreement_icon}</div>", unsafe_allow_html=True)
 
-        if selected_test_idx is not None:
-            selected_row = df_model.iloc[selected_test_idx]
+        with col6:
+            if st.button("View", key=f"view_btn_{idx}"):
+                st.session_state.selected_test_idx = idx
 
-            # Display selection info
-            st.info(f"**Selection:** {selected_row['test']} • {selected_model}")
+    selected_test_idx = st.session_state.selected_test_idx
 
-            # Score display
-            col1, col2 = st.columns(2)
-            with col1:
-                score_color = get_score_color(selected_row['score'])
-                st.markdown(
-                    f"<div style='padding: 10px; background: {score_color}; color: white; "
-                    f"border-radius: 8px; text-align: center; font-size: 1.1em; font-weight: bold'>"
-                    f"{selected_row['score']:.3f} / {selected_row['threshold']:.1f}"
-                    f"</div>",
-                    unsafe_allow_html=True
-                )
-            with col2:
-                success_color = "#52c41a" if selected_row['success'] else "#ff4d4f"
-                st.markdown(
-                    f"<div style='padding: 10px; background: {success_color}; color: white; "
-                    f"border-radius: 8px; text-align: center; font-size: 1.2em; font-weight: bold'>"
-                    f"{'PASS' if selected_row['success'] else 'FAIL'}</div>",
-                    unsafe_allow_html=True
-                )
+    # Detailed Evaluation section below the table
+    st.markdown("---")  # Separator
+    st.markdown("#### Detailed Evaluation")
 
-            # Reason section
-            with st.expander("📝 Evaluation Reason", expanded=True):
-                st.markdown(
-                    f"<div style='background: white; padding: 15px; border-radius: 8px; "
-                    f"line-height: 1.6; font-size: 0.95em'>{selected_row['reason']}</div>",
-                    unsafe_allow_html=True
-                )
+    if selected_test_idx is not None:
+        selected_row = df_model.iloc[selected_test_idx]
 
-            # Conversation section
-            conversations = load_conversations()
-            test_name = selected_row.get('test', '')
-            if test_name in conversations:
-                with st.expander("💬 Conversation", expanded=False):
-                    turns = conversations[test_name]
-                    for i, turn in enumerate(turns):
-                        role = getattr(turn, 'role', 'unknown')
-                        content = getattr(turn, 'content', '')
-                        tools_called = turn.tools_called
-                        tools_called = [ X.model_dump() for X in tools_called ]
+        # Display selection info
+        st.info(f"**Selection:** {selected_row['test']} • {selected_model}")
 
-                        # Role and turn number
-                        if role == 'assistant':
-                            role_color = "#3498db"  # Blue for assistant
-                            role_icon = "🤖"
-                        elif role == 'user':
-                            role_color = "#27ae60"  # Green for user
-                            role_icon = "👤"
-                        else:
-                            role_color = "#95a5a6"  # Gray for unknown
-                            role_icon = "❓"
+        # Score display
+        col1, col2 = st.columns(2)
+        with col1:
+            score_color = get_score_color(selected_row['score'])
+            st.markdown(
+                f"<div style='padding: 10px; background: {score_color}; color: white; "
+                f"border-radius: 8px; text-align: center; font-size: 1.1em; font-weight: bold'>"
+                f"{selected_row['score']:.3f} / {selected_row['threshold']:.1f}"
+                f"</div>",
+                unsafe_allow_html=True
+            )
+        with col2:
+            success_color = "#52c41a" if selected_row['success'] else "#ff4d4f"
+            st.markdown(
+                f"<div style='padding: 10px; background: {success_color}; color: white; "
+                f"border-radius: 8px; text-align: center; font-size: 1.2em; font-weight: bold'>"
+                f"{'PASS' if selected_row['success'] else 'FAIL'}</div>",
+                unsafe_allow_html=True
+            )
 
+        # Reason section
+        with st.expander("📝 Evaluation Reason", expanded=True):
+            st.markdown(
+                f"<div style='background: white; padding: 15px; border-radius: 8px; "
+                f"line-height: 1.6; font-size: 0.95em'>{selected_row['reason']}</div>",
+                unsafe_allow_html=True
+            )
+
+        # Conversation section
+        conversations = load_conversations()
+        test_name = selected_row.get('test', '')
+        if test_name in conversations:
+            with st.expander("💬 Conversation", expanded=False):
+                turns = conversations[test_name]
+                for i, turn in enumerate(turns):
+                    role = getattr(turn, 'role', 'unknown')
+                    content = getattr(turn, 'content', '')
+                    tools_called = turn.tools_called
+                    tools_called = [ X.model_dump() for X in tools_called ]
+
+                    # Role and turn number
+                    if role == 'assistant':
+                        role_color = "#3498db"  # Blue for assistant
+                        role_icon = "🤖"
+                    elif role == 'user':
+                        role_color = "#27ae60"  # Green for user
+                        role_icon = "👤"
+                    else:
+                        role_color = "#95a5a6"  # Gray for unknown
+                        role_icon = "❓"
+
+                    st.markdown(
+                        f"<div style='margin-bottom: 15px; padding: 12px; "
+                        f"background: #f8f9fa; border-left: 4px solid {role_color}; "
+                        f"border-radius: 4px;'>"
+                        f"<div style='font-weight: bold; color: {role_color}; margin-bottom: 8px;'>"
+                        f"{role_icon} Turn {i+1}: {role.upper()}</div>",
+                        unsafe_allow_html=True
+                    )
+
+                    # Content
+                    if content:
                         st.markdown(
-                            f"<div style='margin-bottom: 15px; padding: 12px; "
-                            f"background: #f8f9fa; border-left: 4px solid {role_color}; "
-                            f"border-radius: 4px;'>"
-                            f"<div style='font-weight: bold; color: {role_color}; margin-bottom: 8px;'>"
-                            f"{role_icon} Turn {i+1}: {role.upper()}</div>",
+                            f"<div style='color: #2c3e50; line-height: 1.5;'>{content}</div>",
+                            unsafe_allow_html=True
+                        )
+                    else:
+                        st.markdown(
+                            f"<div style='color: #95a5a6; font-style: italic;'>No content</div>",
                             unsafe_allow_html=True
                         )
 
-                        # Content
-                        if content:
-                            st.markdown(
-                                f"<div style='color: #2c3e50; line-height: 1.5;'>{content}</div>",
-                                unsafe_allow_html=True
-                            )
-                        else:
-                            st.markdown(
-                                f"<div style='color: #95a5a6; font-style: italic;'>No content</div>",
-                                unsafe_allow_html=True
-                            )
-
-                        # Tool calls
-                        if tools_called:
-                            st.markdown(
-                                f"<div style='margin-top: 8px; padding: 8px; background: #e8f4fd; "
-                                f"border-radius: 4px;'>"
-                                f"<div style='font-weight: 600; color: #2c3e50; margin-bottom: 4px;'>"
-                                f"🔧 Tool Calls:</div>",
-                                unsafe_allow_html=True
-                            )
-                            st.code(json.dumps(tools_called, indent=2), language="json")
-                            st.markdown("</div>", unsafe_allow_html=True)
-
+                    # Tool calls
+                    if tools_called:
+                        st.markdown(
+                            f"<div style='margin-top: 8px; padding: 8px; background: #e8f4fd; "
+                            f"border-radius: 4px;'>"
+                            f"<div style='font-weight: 600; color: #2c3e50; margin-bottom: 4px;'>"
+                            f"🔧 Tool Calls:</div>",
+                            unsafe_allow_html=True
+                        )
+                        st.code(json.dumps(tools_called, indent=2), language="json")
                         st.markdown("</div>", unsafe_allow_html=True)
 
-            # Verbose logs section
-            if selected_row['verbose_logs']:
-                with st.expander("🔍 Verbose Logs", expanded=False):
-                    st.code(selected_row['verbose_logs'], language="text")
+                    st.markdown("</div>", unsafe_allow_html=True)
+
+        # Verbose logs section
+        if selected_row['verbose_logs']:
+            with st.expander("🔍 Verbose Logs", expanded=False):
+                st.code(selected_row['verbose_logs'], language="text")
 
 
 def display_judge_performance(results: Dict, selected_test: Optional[str] = None):
@@ -709,150 +749,177 @@ def display_judge_performance(results: Dict, selected_test: Optional[str] = None
     with col5:
         st.metric("Mean Score", f"{mean_score:.3f}")
 
-    # Two-column layout for model list and details
-    col_left, col_right = st.columns([2, 3])
+    # Stacked layout - table above, details below
+    st.markdown("#### Per-Model Scores")
 
-    with col_left:
-        st.markdown("#### Per-Model Scores")
+    # Track which model is selected for details
+    if 'selected_model_idx' not in st.session_state:
+        st.session_state.selected_model_idx = 0
 
-        # Track which model is selected for details
-        if 'selected_model_idx' not in st.session_state:
-            st.session_state.selected_model_idx = 0
+    # Initialize true labels in session state if not present
+    if f'true_labels_judge_{selected_test_name}' not in st.session_state:
+        st.session_state[f'true_labels_judge_{selected_test_name}'] = {}
 
-        # Sort by score descending
-        df_model = df_model.sort_values('score', ascending=False).reset_index(drop=True)
+    # Sort by score descending
+    df_model = df_model.sort_values('score', ascending=False).reset_index(drop=True)
 
-        # Create table with view buttons
-        for idx, row in df_model.iterrows():
-            col1, col2, col3, col4, col5 = st.columns([3, 1.5, 1.5, 1, 1])
+    # Column headers
+    col1, col2, col3, col4, col5, col6 = st.columns([2, 1.2, 1.2, 0.8, 0.8, 0.8])
+    with col1:
+        st.markdown("**Model**")
+    with col2:
+        st.markdown("**Score**")
+    with col3:
+        st.markdown("**Thresh**")
+    with col4:
+        st.markdown("**True**")
+    with col5:
+        st.markdown("**Agree**")
+    with col6:
+        st.markdown("**Action**")
 
-            with col1:
-                st.markdown(f"**{row['model']}**")
+    # Create table with view buttons and true label checkboxes
+    for idx, row in df_model.iterrows():
+        col1, col2, col3, col4, col5, col6 = st.columns([2, 1.2, 1.2, 0.8, 0.8, 0.8])
 
-            with col2:
-                score_color = get_score_color(row['score'])
-                st.markdown(
-                    f"<div style='background: {score_color}; color: white; padding: 4px 8px; "
-                    f"border-radius: 15px; text-align: center; font-weight: bold; font-size: 0.85em'>"
-                    f"{row['score']:.2f}</div>",
-                    unsafe_allow_html=True
-                )
+        model_key = f"{row['model']}_{selected_test_name}"
 
-            with col3:
-                st.markdown(f"<div style='text-align: center'>{row['threshold']:.1f}</div>", unsafe_allow_html=True)
+        with col1:
+            st.markdown(f"**{row['model']}**")
 
-            with col4:
-                success_icon = "✅" if row['success'] else "❌"
-                st.markdown(f"<div style='text-align: center'>{success_icon}</div>", unsafe_allow_html=True)
+        with col2:
+            score_color = get_score_color(row['score'])
+            st.markdown(
+                f"<div style='background: {score_color}; color: white; padding: 4px 8px; "
+                f"border-radius: 15px; text-align: center; font-weight: bold; font-size: 0.85em'>"
+                f"{row['score']:.2f}</div>",
+                unsafe_allow_html=True
+            )
 
-            with col5:
-                if st.button("View", key=f"judge_view_btn_{idx}"):
-                    st.session_state.selected_model_idx = idx
+        with col3:
+            st.markdown(f"<div style='text-align: center'>{row['threshold']:.1f}</div>", unsafe_allow_html=True)
 
-        selected_model_idx = st.session_state.selected_model_idx
+        with col4:
+            # True label checkbox (default to True = should pass)
+            true_label = st.checkbox("", value=True, key=f"true_judge_{model_key}")
+            st.session_state[f'true_labels_judge_{selected_test_name}'][row['model']] = true_label
 
-    with col_right:
-        st.markdown("#### Detailed Evaluation")
+        with col5:
+            # Agreement icon: check if model result agrees with true label
+            model_pass = row['success']
+            agrees = (model_pass == true_label)
+            agreement_icon = "✅" if agrees else "❌"
+            st.markdown(f"<div style='text-align: center'>{agreement_icon}</div>", unsafe_allow_html=True)
 
-        if selected_model_idx is not None and selected_model_idx < len(df_model):
-            selected_row = df_model.iloc[selected_model_idx]
+        with col6:
+            if st.button("View", key=f"judge_view_btn_{idx}"):
+                st.session_state.selected_model_idx = idx
 
-            # Display selection info
-            st.info(f"**Selection:** {selected_test_name} • {selected_row['model']}")
+    selected_model_idx = st.session_state.selected_model_idx
 
-            # Store test name in selected_row for conversation lookup
-            selected_row['test'] = selected_test_name
+    # Detailed Evaluation section below the table
+    st.markdown("---")  # Separator
+    st.markdown("#### Detailed Evaluation")
 
-            # Score display
-            col1, col2 = st.columns(2)
-            with col1:
-                score_color = get_score_color(selected_row['score'])
-                st.markdown(
-                    f"<div style='padding: 10px; background: {score_color}; color: white; "
-                    f"border-radius: 8px; text-align: center; font-size: 1.1em; font-weight: bold'>"
-                    f"{selected_row['score']:.3f} / {selected_row['threshold']:.1f}"
-                    f"</div>",
-                    unsafe_allow_html=True
-                )
-            with col2:
-                success_color = "#52c41a" if selected_row['success'] else "#ff4d4f"
-                st.markdown(
-                    f"<div style='padding: 10px; background: {success_color}; color: white; "
-                    f"border-radius: 8px; text-align: center; font-size: 1.2em; font-weight: bold'>"
-                    f"{'PASS' if selected_row['success'] else 'FAIL'}</div>",
-                    unsafe_allow_html=True
-                )
+    if selected_model_idx is not None and selected_model_idx < len(df_model):
+        selected_row = df_model.iloc[selected_model_idx]
 
-            # Reason section
-            with st.expander("📝 Evaluation Reason", expanded=True):
-                st.markdown(
-                    f"<div style='background: white; padding: 15px; border-radius: 8px; "
-                    f"line-height: 1.6; font-size: 0.95em'>{selected_row['reason']}</div>",
-                    unsafe_allow_html=True
-                )
+        # Display selection info
+        st.info(f"**Selection:** {selected_test_name} • {selected_row['model']}")
 
-            # Conversation section
-            conversations = load_conversations()
-            test_name = selected_row.get('test', '')
-            if test_name in conversations:
-                with st.expander("💬 Conversation", expanded=False):
-                    turns = conversations[test_name]
-                    for i, turn in enumerate(turns):
-                        role = getattr(turn, 'role', 'unknown')
-                        content = getattr(turn, 'content', '')
-                        tools_called = turn.tools_called
-                        tools_called = [ X.model_dump() for X in tools_called ]
+        # Store test name in selected_row for conversation lookup
+        selected_row['test'] = selected_test_name
 
-                        # Role and turn number
-                        if role == 'assistant':
-                            role_color = "#3498db"  # Blue for assistant
-                            role_icon = "🤖"
-                        elif role == 'user':
-                            role_color = "#27ae60"  # Green for user
-                            role_icon = "👤"
-                        else:
-                            role_color = "#95a5a6"  # Gray for unknown
-                            role_icon = "❓"
+        # Score display
+        col1, col2 = st.columns(2)
+        with col1:
+            score_color = get_score_color(selected_row['score'])
+            st.markdown(
+                f"<div style='padding: 10px; background: {score_color}; color: white; "
+                f"border-radius: 8px; text-align: center; font-size: 1.1em; font-weight: bold'>"
+                f"{selected_row['score']:.3f} / {selected_row['threshold']:.1f}"
+                f"</div>",
+                unsafe_allow_html=True
+            )
+        with col2:
+            success_color = "#52c41a" if selected_row['success'] else "#ff4d4f"
+            st.markdown(
+                f"<div style='padding: 10px; background: {success_color}; color: white; "
+                f"border-radius: 8px; text-align: center; font-size: 1.2em; font-weight: bold'>"
+                f"{'PASS' if selected_row['success'] else 'FAIL'}</div>",
+                unsafe_allow_html=True
+            )
 
+        # Reason section
+        with st.expander("📝 Evaluation Reason", expanded=True):
+            st.markdown(
+                f"<div style='background: white; padding: 15px; border-radius: 8px; "
+                f"line-height: 1.6; font-size: 0.95em'>{selected_row['reason']}</div>",
+                unsafe_allow_html=True
+            )
+
+        # Conversation section
+        conversations = load_conversations()
+        test_name = selected_row.get('test', '')
+        if test_name in conversations:
+            with st.expander("💬 Conversation", expanded=False):
+                turns = conversations[test_name]
+                for i, turn in enumerate(turns):
+                    role = getattr(turn, 'role', 'unknown')
+                    content = getattr(turn, 'content', '')
+                    tools_called = turn.tools_called
+                    tools_called = [ X.model_dump() for X in tools_called ]
+
+                    # Role and turn number
+                    if role == 'assistant':
+                        role_color = "#3498db"  # Blue for assistant
+                        role_icon = "🤖"
+                    elif role == 'user':
+                        role_color = "#27ae60"  # Green for user
+                        role_icon = "👤"
+                    else:
+                        role_color = "#95a5a6"  # Gray for unknown
+                        role_icon = "❓"
+
+                    st.markdown(
+                        f"<div style='margin-bottom: 15px; padding: 12px; "
+                        f"background: #f8f9fa; border-left: 4px solid {role_color}; "
+                        f"border-radius: 4px;'>"
+                        f"<div style='font-weight: bold; color: {role_color}; margin-bottom: 8px;'>"
+                        f"{role_icon} Turn {i+1}: {role.upper()}</div>",
+                        unsafe_allow_html=True
+                    )
+
+                    # Content
+                    if content:
                         st.markdown(
-                            f"<div style='margin-bottom: 15px; padding: 12px; "
-                            f"background: #f8f9fa; border-left: 4px solid {role_color}; "
-                            f"border-radius: 4px;'>"
-                            f"<div style='font-weight: bold; color: {role_color}; margin-bottom: 8px;'>"
-                            f"{role_icon} Turn {i+1}: {role.upper()}</div>",
+                            f"<div style='color: #2c3e50; line-height: 1.5;'>{content}</div>",
+                            unsafe_allow_html=True
+                        )
+                    else:
+                        st.markdown(
+                            f"<div style='color: #95a5a6; font-style: italic;'>No content</div>",
                             unsafe_allow_html=True
                         )
 
-                        # Content
-                        if content:
-                            st.markdown(
-                                f"<div style='color: #2c3e50; line-height: 1.5;'>{content}</div>",
-                                unsafe_allow_html=True
-                            )
-                        else:
-                            st.markdown(
-                                f"<div style='color: #95a5a6; font-style: italic;'>No content</div>",
-                                unsafe_allow_html=True
-                            )
-
-                        # Tool calls
-                        if tools_called:
-                            st.markdown(
-                                f"<div style='margin-top: 8px; padding: 8px; background: #e8f4fd; "
-                                f"border-radius: 4px;'>"
-                                f"<div style='font-weight: 600; color: #2c3e50; margin-bottom: 4px;'>"
-                                f"🔧 Tool Calls:</div>",
-                                unsafe_allow_html=True
-                            )
-                            st.code(json.dumps(tools_called, indent=2), language="json")
-                            st.markdown("</div>", unsafe_allow_html=True)
-
+                    # Tool calls
+                    if tools_called:
+                        st.markdown(
+                            f"<div style='margin-top: 8px; padding: 8px; background: #e8f4fd; "
+                            f"border-radius: 4px;'>"
+                            f"<div style='font-weight: 600; color: #2c3e50; margin-bottom: 4px;'>"
+                            f"🔧 Tool Calls:</div>",
+                            unsafe_allow_html=True
+                        )
+                        st.code(json.dumps(tools_called, indent=2), language="json")
                         st.markdown("</div>", unsafe_allow_html=True)
 
-            # Verbose logs section
-            if selected_row['verbose_logs']:
-                with st.expander("🔍 Verbose Logs", expanded=False):
-                    st.code(selected_row['verbose_logs'], language="text")
+                    st.markdown("</div>", unsafe_allow_html=True)
+
+        # Verbose logs section
+        if selected_row['verbose_logs']:
+            with st.expander("🔍 Verbose Logs", expanded=False):
+                st.code(selected_row['verbose_logs'], language="text")
 
 
 def main():
