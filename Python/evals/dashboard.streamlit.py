@@ -129,7 +129,7 @@ st.markdown("""
 @st.cache_data
 def load_results(dataset: str = "main") -> Dict:
     """Load evaluation results from JSON file"""
-    filepath = BASE_DIR.parent / f"results.{dataset}.json"
+    filepath = BASE_DIR / f"results.{dataset}.json"
     try:
         with open(filepath, 'r') as f:
             return json.load(f)
@@ -181,7 +181,7 @@ def render_score_badge(score: float) -> str:
     """Render an inline score badge with color coding"""
     score_color = get_score_color(score)
     return (
-        f"<div style='background: {score_color}; color: white; padding: 4px 8px; "
+        f"<div style='background: {score_color}; color: white; padding: 4px 2px; "
         f"border-radius: 15px; text-align: center; font-weight: bold; font-size: 0.85em'>"
         f"{score:.2f}</div>"
     )
@@ -333,12 +333,13 @@ def display_evaluation_details(selected_row: pd.Series, test_name: str):
         )
 
 
-def create_heatmap_data(results: Dict) -> tuple[pd.DataFrame, pd.DataFrame]:
+def create_heatmap_data(results: Dict, enabled_metrics: List[str]) -> tuple[pd.DataFrame, pd.DataFrame, Dict[str, Dict[str, bool]]]:
     """Create DataFrames for heatmap visualization
-    Returns: (scores_df, thresholds_df)
+    Returns: (scores_df, thresholds_df, strict_mode_map)
     """
     data = []
     threshold_data = []
+    strict_mode_map = {}  # Track which metrics have strict_mode
 
     # Track costs per model for the cost row
     model_costs = {}
@@ -351,12 +352,22 @@ def create_heatmap_data(results: Dict) -> tuple[pd.DataFrame, pd.DataFrame]:
         model_thresholds = {}
         for metric in test.get("metrics_data", []):
             model = metric.get("evaluation_model", "unknown")
+
+            # Skip if metric is not enabled
+            if model not in enabled_metrics:
+                continue
+
             score = metric.get("score", 0.0)
             threshold = metric["threshold"]
             # threshold = metric.get("threshold", 1.0)
             cost = metric.get("evaluation_cost", 0.0)
             model_scores[model] = score
             model_thresholds[model] = threshold
+
+            # Track strict mode status
+            if test_name not in strict_mode_map:
+                strict_mode_map[test_name] = {}
+            strict_mode_map[test_name][model] = metric.get("strict_mode", False)
 
             # Accumulate costs per model
             if model not in model_costs:
@@ -399,24 +410,36 @@ def create_heatmap_data(results: Dict) -> tuple[pd.DataFrame, pd.DataFrame]:
             threshold_cost_row = pd.DataFrame([{col: np.nan for col in df.columns}], index=["Cost ($)"])
             thresholds_df = pd.concat([threshold_cost_row, thresholds_df])
 
-    return df, thresholds_df
+    return df, thresholds_df, strict_mode_map
 
 
-def display_top_metrics(results: Dict):
+def get_all_metrics(results: Dict) -> List[str]:
+    """Extract all unique evaluation models/metrics from results"""
+    metrics = set()
+    for test in results.get("test_results", []):
+        for metric in test.get("metrics_data", []):
+            model = metric.get("evaluation_model", "unknown")
+            metrics.add(model)
+    return sorted(list(metrics))
+
+
+def display_top_metrics(results: Dict, enabled_metrics: List[str]):
     """Display top-level KPI metrics"""
     test_results = results.get("test_results", [])
 
     # Calculate metrics
     total_tests = len(test_results)
 
-    # Get unique evaluation models
+    # Get unique evaluation models (filtered)
     all_models = set()
     total_cost = 0.0
 
     for test in test_results:
         for metric in test.get("metrics_data", []):
-            all_models.add(metric.get("evaluation_model", ""))
-            total_cost += metric.get("evaluation_cost", 0.0)
+            model = metric.get("evaluation_model", "")
+            if model in enabled_metrics:
+                all_models.add(model)
+                total_cost += metric.get("evaluation_cost", 0.0)
 
     total_metrics = len(all_models)
 
@@ -433,22 +456,14 @@ def display_top_metrics(results: Dict):
         st.metric("Total Cost", f"${total_cost:.2f}")
 
 
-def display_heatmap(results: Dict, selected_cell_callback):
+def display_heatmap(results: Dict, enabled_metrics: List[str], selected_cell_callback):
     """Display the Test x Metric Heatmap"""
-    col1, col2 = st.columns([3, 1])
-    with col2:
-        # Toggle for color mode
-        use_threshold = st.toggle("Threshold Mode", value=True,
-                                  help="When enabled, scores below their metric-specific threshold show as red (fail). When disabled, shows gradient coloring.")
-    with col1:
-        # Change header based on mode
-        if use_threshold:
-            st.subheader("📊 Test × Metric Pass/Fail")
-        else:
-            st.subheader("📊 Test × Metric Heatmap")
+    st.markdown("### 📊 Test × Metric Heatmap")
+    use_threshold = st.toggle("Threshold Mode", value=False,
+                              help="When enabled, scores below their metric-specific threshold show as red (fail). When disabled, shows gradient coloring.")
 
     # Create heatmap data
-    df, thresholds_df = create_heatmap_data(results)
+    df, thresholds_df, strict_mode_map = create_heatmap_data(results, enabled_metrics)
 
     if df.empty:
         st.warning("No data available for heatmap")
@@ -488,19 +503,46 @@ def display_heatmap(results: Dict, selected_cell_callback):
                 # In gradient mode: use actual values
                 z_row = row_values.tolist()
             z_values.append(z_row)
-            text_values.append([f"{val:.2f}" for val in row_values])
+
+            # Format text based on strict_mode in normal mode
+            text_row = []
+            for col_idx, (val, col_name) in enumerate(zip(row_values, df.columns)):
+                # Check if this metric has strict_mode
+                is_strict = strict_mode_map.get(idx, {}).get(col_name, False)
+                if not use_threshold and is_strict:
+                    # In normal mode with strict_mode: show Pass/Fail
+                    text_row.append("Pass" if val >= 1.0 else "Fail")
+                else:
+                    # Default: show numeric value
+                    text_row.append(f"{val:.2f}")
+            text_values.append(text_row)
 
         z = np.array(z_values)
         text = text_values
     else:
         if use_threshold:
             # Apply threshold coloring for scores without cost row
-            z = np.array([[0.0 if val < thresh else val
+            z = np.array([[0.0 if val < thresh else 1.0
                           for val, thresh in zip(row, threshold_row)]
                          for row, threshold_row in zip(df.values, thresholds_df.values)])
         else:
             z = df.values
-        text = [[f"{val:.2f}" for val in row] for row in df.values]
+
+        # Format text based on strict_mode in normal mode
+        text = []
+        for idx in df.index:
+            text_row = []
+            for col_idx, col_name in enumerate(df.columns):
+                val = df.loc[idx, col_name]
+                # Check if this metric has strict_mode
+                is_strict = strict_mode_map.get(idx, {}).get(col_name, False)
+                if not use_threshold and is_strict:
+                    # In normal mode with strict_mode: show Pass/Fail
+                    text_row.append("Pass" if val >= 1.0 else "Fail")
+                else:
+                    # Default: show numeric value
+                    text_row.append(f"{val:.2f}")
+            text.append(text_row)
 
     # Create plotly heatmap with better color scale
     fig = go.Figure(data=go.Heatmap(
@@ -518,16 +560,8 @@ def display_heatmap(results: Dict, selected_cell_callback):
             [0.8, "#95de64"],   # Light green
             [1.0, "#52c41a"]    # Green
         ],
-        colorbar=dict(
-            title="Score",
-            thickness=20,
-            len=0.7,
-            tickmode="array",
-            tickvals=[0, 0.2, 0.4, 0.6, 0.8, 1.0],
-            ticktext=["0.0", "0.2", "0.4", "0.6", "0.8", "1.0"]
-        ),
         hovertemplate="Test: %{y}<br>Metric: %{x}<br>Value: %{text}<extra></extra>",
-        showscale=True,
+        showscale=False,  # Hide the colorbar/legend
         zmin=0,
         zmax=1
     ))
@@ -575,14 +609,12 @@ def display_heatmap(results: Dict, selected_cell_callback):
             line=dict(color="rgba(0,0,0,0.3)", width=2)
         )
 
-    # Display the heatmap without forcing full container width
-    col1, col2, col3 = st.columns([1, 6, 1])
-    with col2:
-        st.plotly_chart(
-            fig,
-            use_container_width=False,
-            key="heatmap"
-        )
+    # Display the heatmap
+    st.plotly_chart(
+        fig,
+        use_container_width=True,
+        key="heatmap"
+    )
 
     # Return None since we don't have interactive selection
     return None, None
@@ -590,6 +622,7 @@ def display_heatmap(results: Dict, selected_cell_callback):
 
 def display_performance_panel(
     results: Dict,
+    enabled_metrics: List[str],
     panel_type: str = "prompt",
     selected_value: Optional[str] = None
 ):
@@ -597,6 +630,7 @@ def display_performance_panel(
 
     Args:
         results: Test results dictionary
+        enabled_metrics: List of enabled metric names
         panel_type: 'prompt' for per-metric view, 'judge' for per-test view
         selected_value: Pre-selected metric or test name
     """
@@ -610,14 +644,16 @@ def display_performance_panel(
         true_label_prefix = "true_label_prompt_"
         no_data_msg = "Select a metric to view performance analysis"
 
-        # Get all unique metrics
+        # Get all unique metrics (filtered)
         all_items = set()
         for test in test_results:
             for metric in test.get("metrics_data", []):
-                all_items.add(metric.get("evaluation_model", ""))
+                model = metric.get("evaluation_model", "")
+                if model in enabled_metrics:
+                    all_items.add(model)
 
         column_headers = ["Test", "Score", "Thresh", "Agree", "Action"]
-        column_widths = [3, 1.5, 1.5, 1, 1]
+        column_widths = [2, 1, 1, 1, 1]
 
     else:  # panel_type == "judge"
         title = "⚖️ Judge Performance — Per Test"
@@ -630,7 +666,8 @@ def display_performance_panel(
         all_items = {test["name"] for test in test_results}
 
         column_headers = ["Model", "Score", "Thresh", "Agree", "Action"]
-        column_widths = [3, 1.5, 1.5, 1, 1]
+        # column_widths = [3, 1.5, 1.5, 1, 1]
+        column_widths = [2, 1, 1, 1, 1]
 
     st.subheader(title)
 
@@ -677,10 +714,14 @@ def display_performance_panel(
         for test in test_results:
             if test["name"] == selected_item:
                 for metric in test.get("metrics_data", []):
+                    model = metric.get("evaluation_model", "unknown")
+                    # Skip if metric is not enabled
+                    if model not in enabled_metrics:
+                        continue
                     model_data.append({
-                        "label": metric.get("evaluation_model", "unknown"),  # model name for judge view
+                        "label": model,  # model name for judge view
                         "test": selected_item,
-                        "model": metric.get("evaluation_model", "unknown"),
+                        "model": model,
                         "score": metric.get("score", 0.0),
                         "threshold": metric.get("threshold", 1.0),
                         "success": metric.get("success", False),
@@ -715,7 +756,7 @@ def display_performance_panel(
         )
 
     # Two-column layout for list and details
-    col_left, col_right = st.columns([2, 3])
+    col_left, col_right = st.columns([3, 3])
 
     with col_left:
         st.markdown(f"#### Per-{column_headers[0]} Scores")
@@ -762,19 +803,19 @@ def display_performance_panel(
             display_evaluation_details(selected_row, selected_row['test'])
 
 
-def display_prompt_performance(results: Dict, selected_metric: Optional[str] = None):
+def display_prompt_performance(results: Dict, enabled_metrics: List[str], selected_metric: Optional[str] = None):
     """Display Prompt Performance section"""
-    display_performance_panel(results, "prompt", selected_metric)
+    display_performance_panel(results, enabled_metrics, "prompt", selected_metric)
 
 
-def display_judge_performance(results: Dict, selected_test: Optional[str] = None):
+def display_judge_performance(results: Dict, enabled_metrics: List[str], selected_test: Optional[str] = None):
     """Display Judge Performance section - same layout as Prompt Performance but for a specific test"""
-    display_performance_panel(results, "judge", selected_test)
+    display_performance_panel(results, enabled_metrics, "judge", selected_test)
 
 
 def get_available_datasets() -> List[str]:
     """Find all available dataset result files"""
-    results_dir = BASE_DIR.parent
+    results_dir = BASE_DIR # .parent
     datasets = []
 
     # Look for all results.*.json files
@@ -800,43 +841,106 @@ def main():
     # Get available datasets
     available_datasets = get_available_datasets()
 
-    # Dataset selector at the top
-    col1, _ = st.columns([1, 9])
-    with col1:
-        # Default to 'strict' if available, otherwise first dataset
-        default_idx = 0  # Since we sorted with 'strict' first
+    # Load initial dataset to get metrics
+    default_idx = 0  # Since we sorted with 'strict' first
+    initial_dataset = available_datasets[default_idx] if available_datasets else 'main'
 
-        dataset = st.selectbox(
-            "Dataset",
-            available_datasets,
-            index=default_idx,
-            help="Select which evaluation dataset to view"
-        )
+    # Use session state for dataset to preserve selection
+    if 'selected_dataset' not in st.session_state:
+        st.session_state.selected_dataset = initial_dataset
 
     # Load results based on selected dataset
-    results = load_results(dataset)
+    results = load_results(st.session_state.selected_dataset)
 
     if not results.get("test_results"):
-        st.error(f"No test results available for dataset '{dataset}'. Please run eval_cast_security.py first.")
+        st.error(f"No test results available for dataset '{st.session_state.selected_dataset}'. Please run eval_cast_security.py first.")
         st.stop()
 
-    # Display top metrics
-    display_top_metrics(results)
+    # Get all available metrics
+    all_metrics = get_all_metrics(results)
+
+    # Initialize session state for metrics if not present
+    if 'enabled_metrics' not in st.session_state:
+        st.session_state.enabled_metrics = {metric: True for metric in all_metrics}
+
+    # Add/remove any new metrics that might not be in session state
+    for metric in all_metrics:
+        if metric not in st.session_state.enabled_metrics:
+            st.session_state.enabled_metrics[metric] = True
+
+    # Get list of enabled metrics
+    enabled_metrics = [metric for metric, enabled in st.session_state.enabled_metrics.items() if enabled]
+
+    if not enabled_metrics:
+        st.warning("Please select at least one metric to display.")
+        st.stop()
+
+    # Display top metrics first
+    display_top_metrics(results, enabled_metrics)
 
     st.divider()
 
-    # Test x Metric Heatmap
-    display_heatmap(results, None)
+    # Create two-column layout for controls and heatmap
+    col_left, col_right = st.columns([1, 3])
 
-    st.divider()
+    with col_left:
+        # Dataset selector
+        selected_dataset = st.selectbox(
+            "Select Dataset",
+            available_datasets,
+            index=available_datasets.index(st.session_state.selected_dataset) if st.session_state.selected_dataset in available_datasets else 0,
+            help="Select which evaluation dataset to view",
+            key="dataset_selector"
+        )
 
-    # Prompt Performance
-    display_prompt_performance(results, None)
+        # Update session state if dataset changed
+        if selected_dataset != st.session_state.selected_dataset:
+            st.session_state.selected_dataset = selected_dataset
+            st.rerun()
+
+        st.divider()
+
+        # Metric filter
+        st.markdown("### 📊 Metric Filter")
+        st.write("Select metrics to display:")
+
+        # Create checkboxes for each metric (single column in sidebar)
+        for metric in all_metrics:
+            # Shorten metric name for display if it's too long
+            display_name = metric
+            if len(metric) > 25:
+                display_name = metric[:22] + "..."
+
+            st.session_state.enabled_metrics[metric] = st.checkbox(
+                display_name,
+                value=st.session_state.enabled_metrics.get(metric, True),
+                key=f"metric_{metric}",
+                help=metric if len(metric) > 25 else None
+            )
+
+        # Select/Deselect all buttons
+        if st.button("Select All", use_container_width=True):
+            for metric in all_metrics:
+                st.session_state.enabled_metrics[metric] = True
+            st.rerun()
+        if st.button("Clear All", use_container_width=True):
+            for metric in all_metrics:
+                st.session_state.enabled_metrics[metric] = False
+            st.rerun()
+
+    with col_right:
+        # Test x Metric Heatmap
+        display_heatmap(results, enabled_metrics, None)
 
     st.divider()
 
     # Judge Performance
-    display_judge_performance(results, None)
+    display_judge_performance(results, enabled_metrics, None)
+
+    st.divider()
+
+    # Prompt Performance
+    display_prompt_performance(results, enabled_metrics, None)
 
     # Footer
     st.divider()
