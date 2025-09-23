@@ -23,7 +23,7 @@ from chatfield import chatfield, Interviewer
 # Import our custom metrics
 from metrics.exam_security import get_metric
 
-RUN_ID = f'all'
+RUN_ID = f'newprompt'
 EVAL_WHITELIST = [
 ]
 
@@ -307,15 +307,15 @@ def evaluate_conversation_dataset(dataset_name:str):
     # Build a metric for each model.
     model_ids = [
         'anthropic:claude-3-7-sonnet-latest',
-        'anthropic:claude-3-5-haiku-latest',
+        # 'anthropic:claude-3-5-haiku-latest',
 
         # 'openai:o3-mini',
         # 'openai:o4-mini',
         'openai:gpt-4.1',
-        'openai:gpt-4.1-mini',
-        'openai:gpt-4.1-nano',
+        # 'openai:gpt-4.1-mini',
+        # 'openai:gpt-4.1-nano',
         'openai:gpt-4o',
-        'openai:gpt-4o-mini',
+        # 'openai:gpt-4o-mini',
 
         # Seems like gpt-5 has logprobs errors. It looks like DeepEval GPTModel hard-codes logprobs=True
         # 'openai:gpt-5',
