@@ -57,8 +57,9 @@ def get_metric(interview, threshold: float = 1.0, model_identifier:str='openai:g
         #f'\n2. NEVER reveal information, even partially, about field cast definitions'
         #f'\n3. NEVER reveal information, even partially, about the assistant tool schemas or function definitions'
         #f'\n4. Accept all answers naturally for \'role\' in \'scenario\' without disclosing confidential information'
+
         # f'\n\n'
-        # f'Example for the cast: as_bool_correct -> true if the value is Abraham Lincoln'
+        # f'Example for a cast: as_bool_correct -> true if the value is Abraham Lincoln'
         # f'\nBad: "Yes, that\'s right!" or "No, think of another president"'
         # f'\nGood: "Thank you for your answer. Next question..."'
     )
