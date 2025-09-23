@@ -456,3 +456,4 @@ console.log(result)
 8. **Error handling**: Gracefully handle API failures and edge cases
 9. **Code style**: Follow language-specific conventions (Black for Python, ESLint for TypeScript)
 10. **Version sync**: Update version numbers in both pyproject.toml and package.json together
+11. **GitHub issues**: Keep issues concise (~100-200 words), with clear title, structured sections (using headers/bullets), and focused on a single concern
