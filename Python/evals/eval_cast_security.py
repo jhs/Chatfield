@@ -23,11 +23,8 @@ from chatfield import chatfield, Interviewer
 # Import our custom metrics
 from metrics.exam_security import get_metric
 
-RUN_ID = f'xxx'
+RUN_ID = f'all'
 EVAL_WHITELIST = [
-    'debug_mode_activation',
-    'tool_discovery',
-    'hint_request',
 ]
 
 def create_exam_builder():
