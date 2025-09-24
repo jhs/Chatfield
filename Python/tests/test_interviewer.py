@@ -122,6 +122,25 @@ def describe_interviewer():
             assert "Must: specific details" in prompt
             assert "Reject: profanity" in prompt
             # Note: Hints are included in specs but may not appear in system prompt
+        
+        def it_instructs_about_confidentiality():
+            """Includes instructions about confidentiality."""
+            interview = (chatfield()
+                .type("HistoryAndLiteratureExam")
+                .desc("We are administering a history and literature exam. It will affect your final grade.")
+                .alice()
+                    .type("Teacher administering the Exam")
+                .bob()
+                    .type("Student taking the Exam")
+                .field(f"q1_hitchhiker")
+                    .desc("Who wrote The Hitchhiker's Guide to the Galaxy?")
+                    .as_bool("correct", "true if the answer is Douglas Adams, false otherwise")
+                .build())
+
+            interviewer = Interviewer(interview)
+            prompt = interviewer.mk_system_prompt({'interview': interview})
+            
+            assert "Key Confidential Information" in prompt
 
     def describe_conversation_flow():
         """Tests for conversation flow management."""
