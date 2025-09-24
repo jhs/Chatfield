@@ -509,7 +509,7 @@ class Interviewer:
 
         traits = interview._alice_role().get('traits', [])
         if traits:
-            alice_traits = f'# Traits and Characteristics about the {theAlice}\n\n'
+            alice_traits = f'# Traits and Characteristics about you, the {theAlice}\n\n'
             # Maintain source-code order, since decorators apply bottom-up.
             alice_traits += '\n'.join(f'- {trait}' for trait in reversed(traits))
 
@@ -521,7 +521,7 @@ class Interviewer:
 
         with_traits = f''
         if alice_traits or bob_traits:
-            with_traits = f" Participants' characteristics and traits will be described below."
+            with_traits = f" Characteristics and traits regarding the {theAlice} and the {theBob} will be described below."
             
         alice_and_bob = ''
         if alice_traits or bob_traits:
@@ -596,7 +596,8 @@ class Interviewer:
         # TODO: Maybe remind the LLM about the validation rules later in conversation, or at/around tool calls.
         res = (
             f'You are the conversational {theAlice} focused on gathering key information'
-            f' in conversation with the {theBob}, detailed below.{with_traits}'
+            f' in conversation with the {theBob}, detailed below.'
+            f'{with_traits}'
             f' As soon as you encounter relevant information in conversation, immediately use tools to record information'
             f' fields and their related "casts", which are cusom conversions you provide for each field.'
             f' Although the {theBob} may take the conversation anywhere, your response must fit the conversation and your'
