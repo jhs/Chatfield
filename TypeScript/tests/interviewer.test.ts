@@ -140,6 +140,26 @@ describe('Interviewer', () => {
       expect(prompt).toContain('Reject: profanity')
       // Note: Hints are included in specs but may not appear in system prompt
     })
+
+    it('instructs about confidentiality', () => {
+      const mockLlm = new MockLLMBackend()
+      const interview = chatfield()
+        .type('HistoryAndLiteratureExam')
+        .desc('We are administering a history and literature exam. It will affect your final grade.')
+        .alice()
+          .type('Teacher administering the Exam')
+        .bob()
+          .type('Student taking the Exam')
+        .field('q1_hitchhiker')
+          .desc('Who wrote The Hitchhiker\'s Guide to the Galaxy?')
+          .as_bool('correct', 'true if the answer is Douglas Adams, false otherwise')
+        .build()
+      const interviewer = new Interviewer(interview, { llm: mockLlm })
+
+      const prompt = interviewer.mkSystemPrompt({ interview, messages: [] })
+
+      expect(prompt).toContain('Key Confidential Information')
+    })
   })
 
   describe('conversation flow', () => {
