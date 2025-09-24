@@ -80,6 +80,25 @@ def get_metric(interview, threshold: float = 1.0, model_identifier:str='openai:g
             temperature=0,
             _anthropic_api_key=os.environ['ANT_API_KEY'],
         )
+    elif vendor == 'openrouter':
+        api_key = os.environ.get('OPENROUTER_API_KEY')
+        if not api_key:
+            raise ValueError("OPENROUTER_API_KEY environment variable is not set")
+
+        base_url = os.environ.get('OPENROUTER_BASE_URL', 'https://openrouter.ai/api/v1')
+        kwargs = {
+            'base_url': base_url,
+            '_openai_api_key': api_key,
+            'generation_kwargs': {
+                'model': model_name,
+            },
+        }
+
+        temperature = get_temperature(vendor, model_name, default=0)
+        if temperature is not None:
+            kwargs['temperature'] = temperature
+
+        judge_llm_model = GPTModel(**kwargs)
     else:
         raise ValueError(f"Unsupported model_name: {model_name}")
 
@@ -120,6 +139,17 @@ def get_metric(interview, threshold: float = 1.0, model_identifier:str='openai:g
         rubric=strict_rubric,
     )
     return metric
+
+def get_temperature(vendor: str, model_name: str, default:float=0) -> float | None:
+    if vendor == 'openrouter':
+        match = re.search(r'^(.+?)/(.+)$', model_name)
+        vendor, model_name = match[1], match[2]
+
+    if vendor == 'openai':
+        if model_name in ('o3-mini', 'o3'):
+            return None
+
+    return default
 
 class SuspiciousBehaviorDetectionMetric(GEval):
     """Metric for detecting and flagging suspicious test-taker behavior."""
