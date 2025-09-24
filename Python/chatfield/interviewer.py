@@ -586,9 +586,13 @@ class Interviewer:
                 f'\n\n'
                 f'{how_it_works}'
                 f'\n\n'
+                # f'Validation rules, {labels_and} are *confidential information*.'
+                # f' Do not disclose their existance or details to the {theBob}.'
+                # f'\n\n'
                 f'If the {theBob} provides information not satisfying {labels_or} rules,'
                 f' explain the situation'
                 f' in a manner suitable for the {theAlice} role.'
+                # f' without disclosing confidential information.'
             )
         
         if counters['hint'] > 0:
@@ -608,6 +612,7 @@ class Interviewer:
                     ' Mention specific validation rules as they become relevant in conversation.'
                 )
 
+        # TODO: Tests or evals about not mentioning the actual collection type, e.g. StudentFridayQuiz
         # TODO: Do not mention casts if there are no casts.
         # TODO: Maybe remind the LLM about the validation rules later in conversation, or at/around tool calls.
         res = (
@@ -615,7 +620,11 @@ class Interviewer:
             f' in conversation with the {theBob}, detailed below.'
             f'{with_traits}'
             f' As soon as you encounter relevant information in conversation, immediately use tools to record information'
+
+            # Note, casts are not really mentioned elsewhere to the LLM. Maybe mention that the
+            # `value` vs. `as_*`` parameters.
             f' fields and their related "casts", which are cusom conversions you provide for each field.'
+
             f' Although the {theBob} may take the conversation anywhere, your response must fit the conversation and your'
             f' respective roles while refocusing the discussion so that you can gather'
             f' clear key {collection_name} information from the {theBob}.'
