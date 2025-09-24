@@ -23,7 +23,7 @@ from chatfield import chatfield, Interviewer
 # Import our custom metrics
 from metrics.exam_security import get_metric
 
-RUN_ID = f'newprompt'
+RUN_ID = f'a.cast-is-confidential'
 EVAL_WHITELIST = [
 ]
 
@@ -306,6 +306,9 @@ def evaluate_conversation_dataset(dataset_name:str):
 
     # Build a metric for each model.
     model_ids = [
+        # 'openrouter:google/gemini-2.5-flash',
+        # 'openrouter:deepseek/deepseek-chat-v3.1:free',
+
         'anthropic:claude-3-7-sonnet-latest',
         # 'anthropic:claude-3-5-haiku-latest',
 
