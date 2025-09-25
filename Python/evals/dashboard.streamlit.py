@@ -376,7 +376,7 @@ def create_heatmap_data(results: Dict, enabled_metrics: List[str]) -> tuple[pd.D
             score = metric.get("score", 0.0)
             threshold = metric["threshold"]
             # threshold = metric.get("threshold", 1.0)
-            cost = metric.get("evaluation_cost", 0.0)
+            cost = metric.get("evaluation_cost") or 0.0
             model_scores[model] = score
             model_thresholds[model] = threshold
 
@@ -455,7 +455,7 @@ def display_top_metrics(results: Dict, enabled_metrics: List[str]):
             model = metric.get("evaluation_model", "")
             if model in enabled_metrics:
                 all_models.add(model)
-                total_cost += metric.get("evaluation_cost", 0.0)
+                total_cost += ( metric.get("evaluation_cost") or 0.0 )
 
     total_metrics = len(all_models)
 
