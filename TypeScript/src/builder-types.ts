@@ -1,5 +1,10 @@
 /**
  * Type definitions for the type-safe builder API
+ *
+ * NOTE: This file is TypeScript-specific and an exception to the parallel
+ * Python/TypeScript structure. TypeScript requires explicit type definitions
+ * for the builder pattern to provide compile-time type safety and IDE
+ * autocompletion, features that Python handles through runtime introspection.
  */
 
 /**

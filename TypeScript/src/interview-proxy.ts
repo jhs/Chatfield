@@ -1,6 +1,11 @@
 /**
  * Interview proxy utility for wrapping Interview instances with field access
  * This ensures field values are returned as FieldProxy instances
+ *
+ * NOTE: This file is TypeScript-specific and an exception to the parallel
+ * Python/TypeScript structure. TypeScript lacks Python's __getattr__ magic
+ * method, so we use JavaScript Proxy objects to achieve the same dynamic
+ * field access behavior that Python provides natively.
  */
 
 import { Interview } from './interview'

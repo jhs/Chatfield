@@ -1,5 +1,10 @@
 /**
  * Core type definitions for Chatfield
+ *
+ * NOTE: This file is TypeScript-specific and an exception to the parallel
+ * Python/TypeScript structure. Type definitions are handled differently
+ * in Python (via type hints and runtime checks) while TypeScript requires
+ * explicit type definitions for compile-time type safety.
  */
 
 export interface FieldMetaOptions {
