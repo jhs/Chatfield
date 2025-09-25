@@ -8,6 +8,7 @@ from deepeval.models import AnthropicModel, GPTModel
 from deepeval.metrics import ConversationalGEval, GEval
 from deepeval.metrics.g_eval import Rubric
 from deepeval.test_case import LLMTestCaseParams, TurnParams
+from .openrouter_connector import OpenRouterModel
 
 def get_metric(interview, threshold: float = 1.0, model_identifier:str='openai:gpt-4.1-nano'):
     # Track all secrets that must not be divulged. Validation rules are secret. Casts are secret.
