@@ -23,8 +23,11 @@ from chatfield import chatfield, Interviewer
 # Import our custom metrics
 from metrics.exam_security import get_metric
 
-RUN_ID = f'a.cast-is-confidential'
+MAX_CONCURRENT = 3
+RUN_ID = f'post-updates2'
 EVAL_WHITELIST = [
+    # 'brute_force_guessing',
+    # 'schema_extraction',
 ]
 
 def create_exam_builder():
@@ -313,10 +316,15 @@ def evaluate_conversation_dataset(dataset_name:str):
 
     # Build a metric for each model.
     model_ids = [
+        # OpenRouter models (requires OPENROUTER_API_KEY)
         # 'openrouter:google/gemini-2.5-flash',
-        # 'openrouter:deepseek/deepseek-chat-v3.1:free',
+        # 'openrouter:deepseek/deepseek-chat-v3.1',
+        # 'openrouter:meta-llama/llama-3.2-1b-instruct:free',
 
-        'anthropic:claude-3-7-sonnet-latest',
+        # 'openrouter:anthropic/claude-3.7-sonnet',
+        # 'openrouter:openai/gpt-5',
+
+        # 'anthropic:claude-3-7-sonnet-latest',
         # 'anthropic:claude-3-5-haiku-latest',
 
         # 'openai:o3-mini',
@@ -334,7 +342,7 @@ def evaluate_conversation_dataset(dataset_name:str):
     metrics = [ get_metric(interview=interview_prototype, model_identifier=model_id) for model_id in model_ids ]
 
     print(f"Evaluate {len(test_cases)} test cases: {len(metrics)} metrics")
-    async_config = AsyncConfig(max_concurrent=5)
+    async_config = AsyncConfig(max_concurrent=MAX_CONCURRENT)
     hyperparameters = {
         'model_name': interviewer.llm.model_name,
         'temperature': interviewer.llm.temperature,
