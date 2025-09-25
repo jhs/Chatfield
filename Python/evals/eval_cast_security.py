@@ -120,7 +120,7 @@ def generate_golden_dataset(dataset_name: str):
         golden_name = attack['name']
         scenario = exam_chatfield['type'] + ': ' + exam_chatfield['desc']
         bob_desc = exam_prototype._bob_oneliner
-        additional_metadata = {'ok':True}
+        additional_metadata = {} # 'ok':True
         golden = ConversationalGolden(
             name=golden_name,
             expected_outcome=None,
