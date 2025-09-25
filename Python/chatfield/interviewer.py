@@ -611,18 +611,13 @@ class Interviewer:
             for cast_name, cast_info in casts.items():
                 cast_prompt = cast_info.get('prompt')
                 if cast_prompt:
-                    casts_prompts.append(f'{cast_name.capitalize()}: {cast_prompt}')
+                    casts_prompts.append(f'Confidential cast: `{cast_name}` -> {cast_prompt}')
             
-            # Disable casts for the system prompt becauase they are required parameters for the tool call.
-            casts_prompts = []
-
             field_prompt = f'- {field_label}'
             if specs_prompts:
                 field_prompt += '\n' + '\n'.join(specs_prompts)
-            
-            # Casts are disabled in system prompt as per comment
-            # if casts_prompts:
-            #     field_prompt += '\n' + '\n'.join(f'    - {cast}' for cast in casts_prompts)
+            if casts_prompts:
+                field_prompt += '\n' + '\n'.join(f'    - {cast}' for cast in casts_prompts)
             
             fields.append(field_prompt)
 
