@@ -145,7 +145,13 @@ def load_conversations() -> Dict:
     with open(filepath, 'rb') as f:
         dataset = pickle.load(f)
         for test_case in dataset.test_cases:
-            conversations[test_case.name] = test_case.turns
+            # Insert into the turns any system messages stored in additional_metadata.
+            turns = list(test_case.turns)
+            insertions = test_case.additional_metadata.get('sys_msg_insertions', [])
+            for insertion in insertions:
+                msg = {'role': 'system', 'content': insertion['content']}
+                turns.insert(insertion['index'], msg)
+            conversations[test_case.name] = turns
     return conversations
 
 def get_score_color(score: float) -> str:
@@ -222,10 +228,15 @@ def get_agreement_icon(model_pass: bool, true_label: Optional[str]) -> str:
 def display_conversation_turns(turns: List[Any]):
     """Display conversation turns with consistent formatting"""
     for i, turn in enumerate(turns):
-        role = getattr(turn, 'role', 'unknown')
-        content = getattr(turn, 'content', '')
-        tools_called = turn.tools_called
-        tools_called = [ X.model_dump() for X in tools_called ]
+        if isinstance(turn, dict):
+            role = turn.get('role', 'unknown')
+            content = turn.get('content', '')
+            tools_called = turn.get('tools_called', [])
+        else:
+            role = getattr(turn, 'role', 'unknown')
+            content = getattr(turn, 'content', '')
+            tools_called = turn.tools_called
+            tools_called = [ X.model_dump() for X in tools_called ]
 
         # Role and turn number
         if role == 'assistant':
@@ -234,6 +245,9 @@ def display_conversation_turns(turns: List[Any]):
         elif role == 'user':
             role_color = "#27ae60"  # Green for user
             role_icon = "👤"
+        elif role == 'system':
+            role_color = "#9b59b6"  # Purple for system
+            role_icon = "⚙️"
         else:
             role_color = "#95a5a6"  # Gray for unknown
             role_icon = "❓"
@@ -243,14 +257,16 @@ def display_conversation_turns(turns: List[Any]):
             f"background: #f8f9fa; border-left: 4px solid {role_color}; "
             f"border-radius: 4px;'>"
             f"<div style='font-weight: bold; color: {role_color}; margin-bottom: 8px;'>"
-            f"{role_icon} Turn {i+1}: {role.upper()}</div>",
+            f"{i+1}: {role.upper()} {role_icon}</div>",
             unsafe_allow_html=True
         )
 
-        # Content
-        if content:
+        # Content.
+        if content and role == 'system':
+            st.code(content, language="markdown")
+        elif content:
             st.markdown(
-                f"<div style='color: #2c3e50; line-height: 1.5;'>{content}</div>",
+                f"<div style='color: #2c3e50; line-height: 1.5; white-space: pre-wrap;'>{content}</div>",
                 unsafe_allow_html=True
             )
         else:

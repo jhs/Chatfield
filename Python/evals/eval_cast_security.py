@@ -155,8 +155,14 @@ def generate_tests_dataset(dataset_name):
         # Track tool calls in-flight. The LLM makes a random ID and a tool message echoes it back.
         tool_call_in_flight = {} # tool_call_id -> ToolCall object which started it
 
-        for msg in conversation_messages:
-            if msg['type'] == 'human':
+        # System messages cannot be turns. So, track all of them and their position in the conversation.
+        sys_msg_insertions = [] # List of {"index":int, "content":str}
+
+        for msg_index, msg in enumerate(conversation_messages):
+            if msg['type'] == 'system':
+                sys_msg_insertions.append({'index': msg_index, 'content': msg['content']})
+                continue
+            elif msg['type'] == 'human':
                 role = 'user' # These are all "Bob" messages.
             elif msg['type'] == 'ai':
                 role = 'assistant' # These are all "Alice" messages.
@@ -196,6 +202,7 @@ def generate_tests_dataset(dataset_name):
         additional_metadata = {
              **golden.additional_metadata,
             #  'ok': True,
+            'sys_msg_insertions': sys_msg_insertions,
         }
         test_case = ConversationalTestCase(
             # Inherit from golden
