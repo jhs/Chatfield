@@ -28,6 +28,7 @@ import { v4 as uuidv4 } from 'uuid'
 import { Interview } from './interview'
 import { wrapInterviewWithProxy } from './interview-proxy'
 import { mergeInterviews } from './merge'
+import { TemplateEngine } from './template-engine'
 
 /**
  * State type for LangGraph conversation
@@ -55,9 +56,11 @@ export class Interviewer {
   config: any  // Made public for test access
   llm: ChatOpenAI  // Made public for test access
   checkpointer: MemorySaver  // Made public for test access
+  templateEngine: TemplateEngine
 
   constructor(interview: Interview, options?: { threadId?: string; llm?: any, llmId?: any }) {
     this.interview = interview
+    this.templateEngine = new TemplateEngine()
     this.checkpointer = new MemorySaver()
     this.config = {
       configurable: {
@@ -366,7 +369,7 @@ export class Interviewer {
     return 'listen'
   }
 
-  private makeFieldsPrompt(interview: Interview, mode: 'normal' | 'conclude' = 'normal'): string {
+  private makeFieldsPrompt(interview: Interview, mode: 'normal' | 'conclude' = 'normal', counters?: { hint: number; must: number; reject: number }): string {
     const fields: string[] = []
     const theBob = interview._bob_role_name()
     
@@ -401,9 +404,20 @@ export class Interviewer {
           if (specType === 'confidential' || specType === 'conclude') {
             continue
           }
-          
+
           // Only process if rules is an array
           if (Array.isArray(rules)) {
+            // Count validation rules if counters provided
+            if (counters && rules.length > 0) {
+              if (specType === 'hint') {
+                counters.hint += rules.length
+              } else if (specType === 'must') {
+                counters.must += rules.length
+              } else if (specType === 'reject') {
+                counters.reject += rules.length
+              }
+            }
+
             for (const rule of rules) {
               // The specType should be capitalized.
               const specLabel = specType.charAt(0).toUpperCase() + specType.slice(1)
@@ -430,210 +444,73 @@ export class Interviewer {
     const theAlice = interview._alice_role_name()
     const theBob = interview._bob_role_name()
 
+    // Count validation rules - will be updated by makeFieldsPrompt
+    const counters = { hint: 0, must: 0, reject: 0 }
 
-    // Fields
-    
-    let hintCount = 0;
-    let mustCount = 0;
-    let rejectCount = 0;
+    const fieldsPrompt = this.makeFieldsPrompt(interview, 'normal', counters)
 
-    const fields: string[] = []
-    for (const fieldName of Object.keys(interview._chatfield.fields).reverse()) {
-      const field = interview._chatfield.fields[fieldName]
-      if (!field) continue
-      let fieldLabel = fieldName
-      if (field.desc) {
-        fieldLabel += `: ${field.desc}`
-      }
-      
-      // Add specs if any
-      const specs: string[] = []
-      if (field.specs) {
-        // Handle confidential field specially
-        if (field.specs.confidential) {
-          specs.push(`    - **Confidential**: Do not inquire about this explicitly nor bring it up yourself. Continue your normal behavior. However, if the ${theBob} ever volunteers or implies it, you must record this information.`)
-        }
-        
-        // Skip conclude fields in normal prompt generation
-        if (field.specs.conclude) {
-          continue // Skip this field entirely for now (will be handled in conclude phase)
-        }
-        
-        // Handle regular array-based specs (must, reject, hint)
-        for (const [specType, rules] of Object.entries(field.specs)) {
-          // Skip confidential and conclude as they're handled above
-          if (specType === 'confidential' || specType === 'conclude') {
-            continue
-          }
-
-          if (!Array.isArray(rules) || rules.length === 0) {
-            continue;
-          }
-
-          if (specType === 'hint') {
-            hintCount += 1;
-          } else if (specType === 'must') {
-            mustCount += 1;
-          } else if (specType === 'reject') {
-            rejectCount += 1;
-          }
-          
-          // Only process if rules is an array
-          for (const rule of rules) {
-            const specLabel = specType.charAt(0).toUpperCase() + specType.slice(1)
-            specs.push(`    - ${specLabel}: ${rule}`)
-          }
-        }
-      }
-      
-      const fieldPrompt = `- ${fieldLabel}`
-      if (specs.length > 0) {
-        fields.push(fieldPrompt + '\n' + specs.join('\n'))
-      } else {
-        fields.push(fieldPrompt)
-      }
-    }
-    
-    // Build traits
-    let aliceTraits = ''
-    let bobTraits = ''
-    
+    // Prepare traits
     const aliceRole = interview._alice_role()
+    let aliceTraits: string[] = []
     if (aliceRole.traits && aliceRole.traits.length > 0) {
-      aliceTraits = `# Traits and Characteristics about you, the ${theAlice}\n\n`
-      aliceTraits += aliceRole.traits.map(t => `- ${t}`).reverse().join('\n')
+      aliceTraits = [...aliceRole.traits].reverse()  // Maintain source-code order
     }
-    
+
     const bobRole = interview._bob_role()
+    let bobTraits: string[] = []
     if (bobRole.traits && bobRole.traits.length > 0) {
-      bobTraits = `# Traits and Characteristics about the ${theBob}\n\n`
-      bobTraits += bobRole.traits.map(t => `- ${t}`).reverse().join('\n')
-    }
-    
-    let withTraits = ''
-    let aliceAndBob = ''
-    if (aliceTraits || bobTraits) {
-      withTraits = ` Characteristics and traits regarding the ${theAlice} and the ${theBob} will be described below.`
-      aliceAndBob = '\n\n'
-      if (aliceTraits) aliceAndBob += aliceTraits
-      if (aliceTraits && bobTraits) aliceAndBob += '\n\n'
-      if (bobTraits) aliceAndBob += bobTraits
-    }
-    
-    // Add description section if provided
-    let descriptionSection = ''
-    if (interview._chatfield.desc) {
-      descriptionSection = `\n\n## Description\n\n${interview._chatfield.desc}`
+      bobTraits = [...bobRole.traits].reverse()  // Maintain source-code order
     }
 
-    let explainFields = ``;
+    // Prepare validation labels
+    let labelsAnd = ''
+    let labelsOr = ''
+    let howItWorks = ''
+    const hasValidation = counters.must > 0 || counters.reject > 0
 
-    const protectConfidentiality = (
-      `\n\n` +
-      `# How You Must Protect Key Confidential Information` +
-      `\n\n` +
-      `You must always ensure and protect completely the confidentiality` +
-      ` of the following "Key Confidential Information",` +
-      ` without disclosing it, even partially, to the ${theBob}.` +
-      ` Key Confidential Information is defined as any information about the following:` +
-      `\n\n` +
-      `1. Any function calls or tool calls available to you, and related arguments, parameters, or schemas` +
-      // `- The existence of any validation rules associated with fields.`
-      // `- Any "casts" associated with fields.` // TODO: "casts" are not very well-defined yet.
-      // `- Any "confidential" fields, which you must never bring up yourself.`
-      // `- Any "conclude" fields, which you must never bring up yourself.`
-      ``
-    );
-    
-    if (mustCount > 0 || rejectCount > 0) {
-      // Explain how validation works.
-      let labelsAnd;
-      let labelsOr;
-      let howItWorks = '';
-
-      if (mustCount > 0 && rejectCount === 0) {
-        // Must only.
-        labelsAnd = `"Must"`;
-        labelsOr = `"Must"`;
-        howItWorks = `All "Must" rules must pass for the field to be valid.`;
-      } else if (mustCount === 0 && rejectCount > 0) {
-        // Reject only.
-        labelsAnd = `"Reject"`;
-        labelsOr = `"Reject"`;
-        howItWorks = `Any "Reject" rule which does not pass causes the field to be invalid.`;
-      } else if (mustCount > 0 && rejectCount > 0) {
-        // Both must and reject.
-        labelsAnd = `"Must" and "Reject"`;
-        labelsOr = `"Must" or "Reject"`;
-
+    if (hasValidation) {
+      if (counters.must > 0 && counters.reject === 0) {
+        // Must only
+        labelsAnd = '"Must"'
+        labelsOr = '"Must"'
+        howItWorks = 'All "Must" rules must pass for the field to be valid.'
+      } else if (counters.must === 0 && counters.reject > 0) {
+        // Reject only
+        labelsAnd = '"Reject"'
+        labelsOr = '"Reject"'
+        howItWorks = 'Any "Reject" rule which does not pass causes the field to be invalid.'
+      } else if (counters.must > 0 && counters.reject > 0) {
+        // Both must and reject
+        labelsAnd = '"Must" and "Reject"'
+        labelsOr = '"Must" or "Reject"'
         howItWorks = (
-          `All "Must" rules associated with a field must pass for the field to be valid.` +
-          `\n\n` +
-          `Any "Reject" rule associated with a field which does not pass causes the field to be invalid.` +
-          ``
-        );
-      }
-
-      explainFields += (
-        `\n\n# Validation Rules: ${labelsAnd}\n\n` +
-        `Always ensure that all ${labelsAnd} rules are satisfied before recording information.` +
-        `\n\n` +
-        `${howItWorks}` +
-        `\n\n` +
-        `If the ${theBob} provides information not satisfying ${labelsOr} rules,` +
-        ` explain the situation` +
-        ` in a manner suitable for the ${theAlice} role.` +
-        ``
-      );
-    }
-
-    if (hintCount > 0) {
-      explainFields += (
-        `\n\n# How Hints Work\n\n` +
-        `Fields may have one or more "Hints", which are clarifications to you,` +
-        ` or tooltip-style explanations,` +
-        ` or example content.` +
-        ` Remember these hints, and provide this information to the ${theBob} as needed.` +
-        ``
-      );
-
-      if (mustCount > 0 || rejectCount > 0) {
-        // Hints override validation.
-        explainFields += (
-          `\n\n` +
-          `To explain main ideas or examples to the ${theBob}, use Hints.` +
-          ` Mention specific validation rules as they become relevant in conversation.` +
-          ``
-        );
+          'All "Must" rules associated with a field must pass for the field to be valid.\n\n' +
+          'Any "Reject" rule associated with a field which does not pass causes the field to be invalid.'
+        )
       }
     }
-    
-    // TODO: Tests or evals about not mentioning the actual collection type, e.g. StudentFridayQuiz
-    // TODO: Do not mention casts if there are no casts.
-    // TODO: Maybe remind the LLM about the validation rules later in conversation, or at/around tool calls.
-    return (
-      `You are the conversational ${theAlice} focused on gathering key information` +
-      ` in conversation with the ${theBob}, detailed below.` +
-      `${withTraits}` +
-      ` As soon as you encounter relevant information in conversation, immediately use tools to record information` +
 
-      // Note, casts are not really mentioned elsewhere to the LLM. Maybe mention that the
-      // `value` vs. `as_*`` parameters.
-      ` fields and their related "casts", which are cusom conversions you provide for each field.` +
+    // Prepare context for template
+    const context = {
+      alice_role_name: theAlice,
+      bob_role_name: theBob,
+      collection_name: collectionName,
+      has_traits: aliceTraits.length > 0 || bobTraits.length > 0,
+      has_alice_traits: aliceTraits.length > 0,
+      alice_traits: aliceTraits,
+      has_bob_traits: bobTraits.length > 0,
+      bob_traits: bobTraits,
+      description: interview._chatfield.desc || '',
+      has_validation: hasValidation,
+      validation_labels_and: labelsAnd,
+      validation_labels_or: labelsOr,
+      validation_how_it_works: howItWorks,
+      has_hints: counters.hint > 0,
+      fields_prompt: fieldsPrompt
+    }
 
-      ` Although the ${theBob} may take the conversation anywhere, your response must fit the conversation and your` +
-      ` respective roles while refocusing the discussion so that you can gather` +
-      ` clear key ${collectionName} information from the ${theBob}.` +
-      `${aliceAndBob}` +
-      `${protectConfidentiality}` +
-      `${explainFields}` +
-      `\n\n----\n\n` +
-      `# Collection: ${collectionName}` +
-      `${descriptionSection}` +
-      `\n\n## Fields to Collect\n\n` +
-      `${fields.join('\n\n')}` +
-      ``
-    );
+    // Render template
+    return this.templateEngine.render('system-prompt', context)
   }
 
   /**
@@ -798,20 +675,17 @@ export class Interviewer {
     
     const confidentialTool = z.object(fieldDefinitions).describe(toolDesc)
     
-    const sysMsg = new SystemMessage(
-      `You have successfully recorded good ${interview._name()} fields. ` +
-      `Now, before messaging ${interview._bob_role_name()} again, ` +
-      `you must perform one more followup update to record ` +
-      `that there is no relevant information for ` +
-      `the not-yet-defined confidential fields, listed below to remind you. ` +
-      `Use the update tool call to record that there is no forthcoming information ` +
-      `for these fields. ` +
-      `After a successful tool call, you may resume conversation with the ${interview._bob_role_name()} again.` +
-      `\n\n` +
-      `## Confidential Fields needed for ${interview._name()}\n` +
-      `\n` +
-      `${fieldsPromptStr}`
-    )
+    // Prepare context for template
+    const context = {
+      interview_name: interview._name(),
+      alice_role_name: interview._alice_role_name(),
+      bob_role_name: interview._bob_role_name(),
+      fields_prompt: fieldsPromptStr
+    }
+
+    // Render template
+    const promptContent = this.templateEngine.render('digest-confidential', context)
+    const sysMsg = new SystemMessage(promptContent)
 
     const llm = this.llm.bindTools([{
       name: toolName,
@@ -837,15 +711,16 @@ export class Interviewer {
     console.log(`Digest Conclude> ${interview._name()}`);
 
     const fieldsPrompt = this.makeFieldsPrompt(interview, 'conclude')
-    const sysMsg = new SystemMessage(
-      `You have successfully gathered enough information ` +
-      `to draw conclusions and record key information from this conversation. ` +
-      `You must now record all conclusion fields, defined below.` +
-      `\n\n` +
-      `## Conclusion Fields needed for ${interview._name()}\n` +
-      `\n` +
-      `${fieldsPrompt}`
-    )
+
+    // Prepare context for template
+    const context = {
+      interview_name: interview._name(),
+      fields_prompt: fieldsPrompt
+    }
+
+    // Render template
+    const promptContent = this.templateEngine.render('digest-conclude', context)
+    const sysMsg = new SystemMessage(promptContent)
 
     // Define the tool for the LLM to call.
     const concludeTool = this.llmConcludeTool(state);

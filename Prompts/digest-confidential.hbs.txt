@@ -1,0 +1,12 @@
+You have successfully recorded good {{interview_name}} fields.
+Now, before messaging {{bob_role_name}} again,
+you must perform one more followup update to record
+that there is no relevant information for
+the not-yet-defined confidential fields, listed below to remind you.
+Use the update tool call to record that there is no forthcoming information
+for these fields.
+After a successful tool call, you may resume conversation with the {{bob_role_name}} again.
+
+## Confidential Fields needed for {{interview_name}}
+
+{{fields_prompt}}

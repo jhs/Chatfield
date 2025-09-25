@@ -1,0 +1,7 @@
+You have successfully gathered enough information
+to draw conclusions and record key information from this conversation.
+You must now record all conclusion fields, defined below.
+
+## Conclusion Fields needed for {{interview_name}}
+
+{{fields_prompt}}

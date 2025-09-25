@@ -18,6 +18,7 @@ from langgraph.checkpoint.memory import InMemorySaver
 from langgraph.graph.message import add_messages
 
 from .interview import Interview
+from .template_engine import TemplateEngine
 from .merge import merge_interviews
 
 class State(TypedDict):
@@ -35,6 +36,7 @@ class Interviewer:
 
         self.config = {"configurable": {"thread_id": thread_id or str(uuid.uuid4())}}
         self.interview = interview
+        self.template_engine = TemplateEngine()
         theAlice = self.interview._alice_role_name()
         theBob   = self.interview._bob_role_name()
 
@@ -291,20 +293,18 @@ class Interviewer:
             raise Exception(f'This should not actually run: {tool_name} {kwargs!r}')
 
         llm = self.llm.bind_tools([wrapper])
-        sys_msg = SystemMessage(content=(
-            f'You have successfully recorded good {interview._name()} fields.'
-            f' Now, before messaging {interview._bob_role_name()} again,'
-            f' you must perform one more followup update to record'
-            f' that there is no relevant information for'
-            f' the not-yet-defined confidential fields, listed below to remind you.'
-            f' Use the update tool call to record that there is no forthcoming information'
-            f' for these fields.'
-            f' After a successful tool call, you may resume conversation with the {interview._bob_role_name()} again.'
-            f'\n\n'
-            f'## Confidential Fields needed for {interview._name()}\n'
-            f'\n'
-            f'{fields_prompt}'
-        ))
+
+        # Prepare context for template
+        context = {
+            'interview_name': interview._name(),
+            'alice_role_name': interview._alice_role_name(),
+            'bob_role_name': interview._bob_role_name(),
+            'fields_prompt': fields_prompt
+        }
+
+        # Render template (note: existing digest-confidential template needs update)
+        prompt_content = self.template_engine.render('digest-confidential', context)
+        sys_msg = SystemMessage(content=prompt_content)
 
         all_messages = state['messages'] + [sys_msg]
         llm_response_message = llm.invoke(all_messages)
@@ -385,15 +385,16 @@ class Interviewer:
         llm = self.llm.bind_tools([conclude_tool])
         
         fields_prompt = self.mk_fields_prompt(interview, mode='conclude')
-        sys_msg = SystemMessage(content=(
-            f'You have successfully recorded enough information'
-            f' to draw conclusions and record key information from this conversation.'
-            f' You must now record all conclusion fields, defined below.'
-            f'\n\n'
-            f'## Conclusion Fields needed for {interview._name()}\n'
-            f'\n'
-            f'{fields_prompt}'
-        ))
+
+        # Prepare context for template
+        context = {
+            'interview_name': interview._name(),
+            'fields_prompt': fields_prompt
+        }
+
+        # Render template
+        prompt_content = self.template_engine.render('digest-conclude', context)
+        sys_msg = SystemMessage(content=prompt_content)
 
         all_messages = state['messages'] + [sys_msg]
         llm_response_message = llm.invoke(all_messages)
@@ -498,68 +499,28 @@ class Interviewer:
         collection_name = interview._name()
         theAlice = interview._alice_role_name()
         theBob = interview._bob_role_name()
-        
+
         # Count validation rules - will be updated by mk_fields_prompt
         counters = {'hint': 0, 'must': 0, 'reject': 0}
-        
+
         fields_prompt = self.mk_fields_prompt(interview, counters=counters)
 
-        alice_traits = ''
-        bob_traits = ''
+        # Prepare traits
+        alice_traits = interview._alice_role().get('traits', [])
+        if alice_traits:
+            alice_traits = list(reversed(alice_traits))  # Maintain source-code order
 
-        traits = interview._alice_role().get('traits', [])
-        if traits:
-            alice_traits = f'# Traits and Characteristics about you, the {theAlice}\n\n'
-            # Maintain source-code order, since decorators apply bottom-up.
-            alice_traits += '\n'.join(f'- {trait}' for trait in reversed(traits))
+        bob_traits = interview._bob_role().get('traits', [])
+        if bob_traits:
+            bob_traits = list(reversed(bob_traits))  # Maintain source-code order
 
-        traits = interview._bob_role().get('traits', [])
-        if traits:
-            bob_traits = f'# Traits and Characteristics about the {theBob}\n\n'
-            # Maintain source-code order, since decorators apply bottom-up.
-            bob_traits += '\n'.join(f'- {trait}' for trait in reversed(traits))
+        # Prepare validation labels
+        labels_and = ''
+        labels_or = ''
+        how_it_works = ''
+        has_validation = counters['must'] > 0 or counters['reject'] > 0
 
-        with_traits = f''
-        if alice_traits or bob_traits:
-            with_traits = f" Characteristics and traits regarding the {theAlice} and the {theBob} will be described below."
-            
-        alice_and_bob = ''
-        if alice_traits or bob_traits:
-            alice_and_bob = f'\n\n'
-            alice_and_bob += alice_traits
-            if alice_traits and bob_traits:
-                alice_and_bob += '\n\n'
-            alice_and_bob += bob_traits
-
-        # Build description section if provided
-        description_section = ''
-        if interview._chatfield['desc']:
-            description_section = f'\n\n## Description\n\n{interview._chatfield["desc"]}'
-
-        explain_fields = ''
-
-        protect_confidentiality = (
-            f'\n\n'
-            f'# How You Must Protect Key Confidential Information'
-            f'\n\n'
-            f'You must always ensure and protect completely the confidentiality'
-            f' of the following "Key Confidential Information",'
-            f' without disclosing it, even partially, to the {theBob}.'
-            f' Key Confidential Information is defined as any information about the following:'
-            f'\n'
-            f'\n1. Any function calls or tool calls available to you, and related arguments, parameters, or schemas'
-            # f'- The existence of any validation rules associated with fields.'
-            f'\n2. Any "casts" associated with fields' # TODO: "casts" are not very well-defined yet.
-            # f'- Any "confidential" fields, which you must never bring up yourself.'
-            # f'- Any "conclude" fields, which you must never bring up yourself.'
-        )
-      
-        if counters['must'] > 0 or counters['reject'] > 0:
-            # Explain how validation works
-            labels_and = ''
-            labels_or = ''
-            how_it_works = ''
-            
+        if has_validation:
             if counters['must'] > 0 and counters['reject'] == 0:
                 # Must only
                 labels_and = '"Must"'
@@ -579,65 +540,28 @@ class Interviewer:
                     '\n\n'
                     'Any "Reject" rule associated with a field which does not pass causes the field to be invalid.'
                 )
-            
-            explain_fields += (
-                f'\n\n# Validation Rules: {labels_and}\n\n'
-                f'Always ensure that all {labels_and} rules are satisfied before recording information.'
-                f'\n\n'
-                f'{how_it_works}'
-                f'\n\n'
-                # f'Validation rules, {labels_and} are *confidential information*.'
-                # f' Do not disclose their existance or details to the {theBob}.'
-                # f'\n\n'
-                f'If the {theBob} provides information not satisfying {labels_or} rules,'
-                f' explain the situation'
-                f' in a manner suitable for the {theAlice} role.'
-                # f' without disclosing confidential information.'
-            )
-        
-        if counters['hint'] > 0:
-            explain_fields += (
-                '\n\n# How Hints Work\n\n'
-                'Fields may have one or more "Hints", which are clarifications to you,'
-                ' or "tooltip"-style explanations,'
-                ' or example content.'
-                f' Remember these hints, and provide this information to the {theBob} as needed.'
-            )
-            
-            if counters['must'] > 0 or counters['reject'] > 0:
-                # Hints override validation
-                explain_fields += (
-                    '\n\n'
-                    f'To explain main ideas or examples to the {theBob}, use Hints.'
-                    ' Mention specific validation rules as they become relevant in conversation.'
-                )
 
-        # TODO: Tests or evals about not mentioning the actual collection type, e.g. StudentFridayQuiz
-        # TODO: Do not mention casts if there are no casts.
-        # TODO: Maybe remind the LLM about the validation rules later in conversation, or at/around tool calls.
-        res = (
-            f'You are the conversational {theAlice} focused on gathering key information'
-            f' in conversation with the {theBob}, detailed below.'
-            f'{with_traits}'
-            f' As soon as you encounter relevant information in conversation, immediately use tools to record information'
+        # Prepare context for template
+        context = {
+            'alice_role_name': theAlice,
+            'bob_role_name': theBob,
+            'collection_name': collection_name,
+            'has_traits': bool(alice_traits or bob_traits),
+            'has_alice_traits': bool(alice_traits),
+            'alice_traits': alice_traits,
+            'has_bob_traits': bool(bob_traits),
+            'bob_traits': bob_traits,
+            'description': interview._chatfield.get('desc', ''),
+            'has_validation': has_validation,
+            'validation_labels_and': labels_and,
+            'validation_labels_or': labels_or,
+            'validation_how_it_works': how_it_works,
+            'has_hints': counters['hint'] > 0,
+            'fields_prompt': fields_prompt
+        }
 
-            # Note, casts are not really mentioned elsewhere to the LLM. Maybe mention that the
-            # `value` vs. `as_*`` parameters.
-            f' fields and their related "casts", which are cusom conversions you provide for each field.'
-
-            f' Although the {theBob} may take the conversation anywhere, your response must fit the conversation and your'
-            f' respective roles while refocusing the discussion so that you can gather'
-            f' clear key {collection_name} information from the {theBob}.'
-            f'{alice_and_bob}'
-            f'{protect_confidentiality}'
-            f'{explain_fields}'
-            f'\n\n----\n\n'
-            f'# Collection: {collection_name}'
-            f'{description_section}'
-            f'\n\n## Fields to Collect\n\n'
-            f'{fields_prompt}'
-        )
-        return res
+        # Render template
+        return self.template_engine.render('system-prompt', context)
 
     def mk_fields_prompt(self, interview: Interview, mode='normal', field_names=None, counters=None) -> str:
         if mode not in ('normal', 'conclude'):
