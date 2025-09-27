@@ -550,9 +550,12 @@ class Interviewer:
                     if predicates and isinstance(predicates, list):
                         counters[spec_name] += len(predicates)
 
+            casts = [ {'name':k, 'prompt':v["prompt"]} for k,v in chatfield['casts'].items() ]
+
             fields.append({
                 'name': field_name,
                 'desc': chatfield.get('desc', ''),
+                'casts': casts,
                 'specs': chatfield.get('specs', {})
             })
 

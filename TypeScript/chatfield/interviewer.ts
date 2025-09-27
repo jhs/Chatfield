@@ -403,9 +403,16 @@ export class Interviewer {
         }
       }
 
+      // Prepare casts data (matching Python implementation)
+      const casts = Object.entries(chatfield.casts || {}).map(([name, castData]: [string, any]) => ({
+        name,
+        prompt: castData.prompt || ''
+      }))
+
       fields.push({
         name: fieldName,
         desc: chatfield.desc || '',
+        casts: casts,
         specs: chatfield.specs || {}
       })
     }
