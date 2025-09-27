@@ -496,75 +496,34 @@ class Interviewer:
 
     def mk_system_prompt(self, state: State) -> str:
         interview = self._get_state_interview(state)
-        collection_name = interview._name()
-        theAlice = interview._alice_role_name()
-        theBob = interview._bob_role_name()
 
         # Count validation rules - will be updated by mk_fields_prompt/mk_fields_data
         counters = {'hint': 0, 'must': 0, 'reject': 0}
-
-        # Generate both structured data and legacy prompt for backward compatibility
         fields_data = self.mk_fields_data(interview, counters=counters)
 
-        # Prepare traits
-        alice_traits = interview._alice_role().get('traits', [])
-        if alice_traits:
-            alice_traits = list(reversed(alice_traits))  # Maintain source-code order
-
-        bob_traits = interview._bob_role().get('traits', [])
-        if bob_traits:
-            bob_traits = list(reversed(bob_traits))  # Maintain source-code order
-
         # Prepare validation labels
-        labels_and = ''
-        labels_or = ''
-        how_it_works = ''
         has_validation = counters['must'] > 0 or counters['reject'] > 0
-
         if has_validation:
             if counters['must'] > 0 and counters['reject'] == 0:
                 # Must only
-                labels_and = '"Must"'
-                labels_or = '"Must"'
-                how_it_works = 'All "Must" rules must pass for the field to be valid.'
+                labels = '"Must"'
             elif counters['must'] == 0 and counters['reject'] > 0:
                 # Reject only
-                labels_and = '"Reject"'
-                labels_or = '"Reject"'
-                how_it_works = 'Any "Reject" rule which does not pass causes the field to be invalid.'
+                labels = '"Reject"'
             elif counters['must'] > 0 and counters['reject'] > 0:
                 # Both must and reject
-                labels_and = '"Must" and "Reject"'
-                labels_or = '"Must" or "Reject"'
-                how_it_works = (
-                    'All "Must" rules associated with a field must pass for the field to be valid.'
-                    '\n\n'
-                    'Any "Reject" rule associated with a field which does not pass causes the field to be invalid.'
-                )
+                labels = '"Must" and "Reject"'
 
         # Prepare context for template
         context = {
-            'interview': interview,
-
-            'alice_role_name': theAlice,
-            'bob_role_name': theBob,
-            'collection_name': collection_name,
-            'has_traits': bool(alice_traits or bob_traits),
-            'has_alice_traits': bool(alice_traits),
-            'alice_traits': alice_traits,
-            'has_bob_traits': bool(bob_traits),
-            'bob_traits': bob_traits,
-            'description': interview._chatfield.get('desc', ''),
-            'has_validation': has_validation,
-            'validation_labels_and': labels_and,
-            'validation_labels_or': labels_or,
-            'validation_how_it_works': how_it_works,
-            'has_hints': counters['hint'] > 0,
-            'fields': fields_data,  # New: structured field data
+            'form': interview,
+            'labels': labels,
+            'counters': counters,
+            'fields': fields_data,
         }
 
-        # Render template
-        return self.template_engine.render('system-prompt', context)
+        prompt = self.template_engine.render('system-prompt', context)
+        return prompt
 
     def mk_fields_data(self, interview: Interview, mode='normal', field_names=None, counters=None) -> list:
         """Generate structured field data for templates."""
