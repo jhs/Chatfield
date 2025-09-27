@@ -369,6 +369,49 @@ export class Interviewer {
     return 'listen'
   }
 
+  /**
+   * Generate structured field data for templates
+   */
+  private makeFieldsData(interview: Interview, mode: 'normal' | 'conclude' = 'normal', counters?: { hint: number; must: number; reject: number }): any[] {
+    const fields: any[] = []
+
+    for (const fieldName of Object.keys(interview._chatfield.fields).reverse()) {
+      const field = interview._chatfield.fields[fieldName]
+      if (!field) continue
+
+      // Skip fields based on mode
+      if (mode === 'normal' && field.specs?.conclude) {
+        continue // Skip conclude fields in normal mode
+      }
+      if (mode === 'conclude' && !field.specs?.conclude) {
+        continue // Skip normal fields in conclude mode
+      }
+
+      // Count validation rules if counters provided
+      if (counters && field.specs) {
+        for (const [specType, rules] of Object.entries(field.specs)) {
+          if (Array.isArray(rules) && rules.length > 0) {
+            if (specType === 'hint') {
+              counters.hint += rules.length
+            } else if (specType === 'must') {
+              counters.must += rules.length
+            } else if (specType === 'reject') {
+              counters.reject += rules.length
+            }
+          }
+        }
+      }
+
+      fields.push({
+        name: fieldName,
+        desc: field.desc || '',
+        specs: field.specs || {}
+      })
+    }
+
+    return fields
+  }
+
   private makeFieldsPrompt(interview: Interview, mode: 'normal' | 'conclude' = 'normal', counters?: { hint: number; must: number; reject: number }): string {
     const fields: string[] = []
     const theBob = interview._bob_role_name()
@@ -444,10 +487,11 @@ export class Interviewer {
     const theAlice = interview._alice_role_name()
     const theBob = interview._bob_role_name()
 
-    // Count validation rules - will be updated by makeFieldsPrompt
+    // Count validation rules - will be updated by makeFieldsPrompt/makeFieldsData
     const counters = { hint: 0, must: 0, reject: 0 }
 
-    const fieldsPrompt = this.makeFieldsPrompt(interview, 'normal', counters)
+    // Generate both structured data and legacy prompt for backward compatibility
+    const fieldsData = this.makeFieldsData(interview, 'normal', counters)
 
     // Prepare traits
     const aliceRole = interview._alice_role()
@@ -506,7 +550,8 @@ export class Interviewer {
       validation_labels_or: labelsOr,
       validation_how_it_works: howItWorks,
       has_hints: counters.hint > 0,
-      fields_prompt: fieldsPrompt
+      // Include both for backward compatibility and new templates
+      fields: fieldsData,  // New: structured field data
     }
 
     // Render template
