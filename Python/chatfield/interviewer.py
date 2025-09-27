@@ -500,10 +500,12 @@ class Interviewer:
         theAlice = interview._alice_role_name()
         theBob = interview._bob_role_name()
 
-        # Count validation rules - will be updated by mk_fields_prompt
+        # Count validation rules - will be updated by mk_fields_prompt/mk_fields_data
         counters = {'hint': 0, 'must': 0, 'reject': 0}
 
-        fields_prompt = self.mk_fields_prompt(interview, counters=counters)
+        # Generate both structured data and legacy prompt for backward compatibility
+        fields_data = self.mk_fields_data(interview, counters=counters)
+        fields_prompt = self.mk_fields_prompt(interview)
 
         # Prepare traits
         alice_traits = interview._alice_role().get('traits', [])
@@ -557,11 +559,49 @@ class Interviewer:
             'validation_labels_or': labels_or,
             'validation_how_it_works': how_it_works,
             'has_hints': counters['hint'] > 0,
-            'fields_prompt': fields_prompt
+            # Include both for backward compatibility and new templates
+            'fields': fields_data,  # New: structured field data
+            'fields_prompt': fields_prompt  # Legacy: pre-formatted string
         }
 
-        # Render template
-        return self.template_engine.render('system-prompt', context)
+        # Try new template first, fall back to old if not found
+        try:
+            return self.template_engine.render('system-prompt-v2', context)
+        except FileNotFoundError:
+            # Fall back to legacy template
+            return self.template_engine.render('system-prompt', context)
+
+    def mk_fields_data(self, interview: Interview, mode='normal', field_names=None, counters=None) -> list:
+        """Generate structured field data for templates."""
+        if mode not in ('normal', 'conclude'):
+            raise ValueError(f'Bad mode: {mode!r}; must be "normal" or "conclude"')
+
+        fields = []  # Note, this should always be in source-code order.
+
+        field_keys = field_names or interview._chatfield['fields'].keys()
+        for field_name in field_keys:
+            chatfield = interview._chatfield['fields'][field_name]
+
+            if mode == 'normal' and chatfield['specs']['conclude']:
+                continue
+
+            if mode == 'conclude' and not chatfield['specs']['conclude']:
+                continue
+
+            # Count validation rules if counters provided
+            if counters is not None:
+                for spec_name in ('hint', 'must', 'reject'):
+                    predicates = chatfield['specs'].get(spec_name, [])
+                    if predicates and isinstance(predicates, list):
+                        counters[spec_name] += len(predicates)
+
+            fields.append({
+                'name': field_name,
+                'desc': chatfield.get('desc', ''),
+                'specs': chatfield.get('specs', {})
+            })
+
+        return fields
 
     def mk_fields_prompt(self, interview: Interview, mode='normal', field_names=None, counters=None) -> str:
         if mode not in ('normal', 'conclude'):
