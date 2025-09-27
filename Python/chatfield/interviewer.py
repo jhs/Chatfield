@@ -785,3 +785,139 @@ class Interviewer:
             raise Exception(f'Unexpected scenario multiple interrupts: {interrupts!r}')
 
         return interrupts[0]
+
+    @staticmethod
+    def debug_prompt(prompt: str, use_color: bool = True) -> str:
+        """
+        Make a prompt string more readable for debugging by visualizing whitespace
+        and detecting template interpolation bugs.
+
+        - Template variables like {var}, {{var}}, {{{var}}} are highlighted as ERRORS
+        - Newlines are shown with colored ↵ symbol
+        - Trailing spaces are highlighted with colored background
+        - Multiple consecutive spaces are shown with colored ␣ symbol
+        - Tabs vs spaces in indentation are visualized
+        - Invisible Unicode characters are detected
+
+        Args:
+            prompt: The prompt string to make visible
+            use_color: Whether to use ANSI color codes (default: True)
+
+        Returns:
+            A version of the prompt with visible whitespace and colored highlights
+        """
+        import re
+
+        # ANSI color codes for dark terminal backgrounds
+        if use_color:
+            # Bright colors for visibility on dark backgrounds
+            RED_BG = '\033[48;5;196m'      # Bright red background for errors
+            YELLOW_BG = '\033[48;5;226m'   # Yellow background for warnings
+            CYAN = '\033[38;5;51m'          # Bright cyan for newlines
+            MAGENTA = '\033[38;5;201m'      # Bright magenta for multiple spaces
+            BLUE = '\033[38;5;39m'          # Bright blue for tabs
+            ORANGE = '\033[38;5;208m'       # Orange for special chars
+            GRAY = '\033[38;5;242m'         # Gray for space indents
+            RESET = '\033[0m'
+            BOLD = '\033[1m'
+        else:
+            RED_BG = YELLOW_BG = CYAN = MAGENTA = BLUE = ORANGE = GRAY = RESET = BOLD = ''
+
+        lines = prompt.split('\n')
+        result = []
+
+        for i, line in enumerate(lines):
+            processed = line
+
+            # Detect template interpolation bugs - these should NOT exist in final prompts
+            # Look for {var}, {{var}}, {{{var}}} etc.
+            template_pattern = r'(\{+[^{}]+\}+)'
+            if re.search(template_pattern, processed):
+                processed = re.sub(
+                    template_pattern,
+                    lambda m: f'{RED_BG}{BOLD}⚠{m.group()}⚠{RESET}',
+                    processed
+                )
+
+            # Detect invisible Unicode characters
+            invisible_chars = {
+                '\u200b': f'{ORANGE}[ZWSP]{RESET}',      # Zero-width space
+                '\u00a0': f'{ORANGE}[NBSP]{RESET}',      # Non-breaking space
+                '\u200c': f'{ORANGE}[ZWNJ]{RESET}',      # Zero-width non-joiner
+                '\u200d': f'{ORANGE}[ZWJ]{RESET}',       # Zero-width joiner
+                '\ufeff': f'{ORANGE}[BOM]{RESET}',       # Byte order mark
+                '\u2060': f'{ORANGE}[WJ]{RESET}',        # Word joiner
+            }
+
+            for char, replacement in invisible_chars.items():
+                if char in processed:
+                    processed = processed.replace(char, replacement)
+
+            # Handle indentation (before other processing)
+            indent_match = re.match(r'^([ \t]+)', processed)
+            if indent_match:
+                indent = indent_match.group(1)
+                rest = processed[len(indent):]
+
+                # Check for mixed indentation (problematic!)
+                if ' ' in indent and '\t' in indent:
+                    # Mixed spaces and tabs - highlight as error
+                    indent_visual = ''
+                    for char in indent:
+                        if char == ' ':
+                            indent_visual += f'{RED_BG}·{RESET}'
+                        else:  # tab
+                            indent_visual += f'{RED_BG}→{RESET}'
+                    processed = indent_visual + rest
+                else:
+                    # Pure spaces or pure tabs
+                    if indent[0] == ' ':
+                        # Spaces - use subtle gray markers
+                        indent_visual = f'{GRAY}{"·" * len(indent)}{RESET}'
+                    else:
+                        # Tabs - use blue arrows
+                        indent_visual = f'{BLUE}{"→" * len(indent)}{RESET}'
+                    processed = indent_visual + rest
+
+            # Handle trailing spaces - but check the raw line, not the processed one
+            if line and line.endswith(' '):
+                # Find where the trailing spaces start
+                raw_stripped = line.rstrip(' ')
+                num_trailing = len(line) - len(raw_stripped)
+
+                # If we've already processed indentation, we need to be careful
+                if RESET in processed:
+                    # Find the actual content after all the formatting
+                    parts = processed.rsplit(RESET, 1)
+                    if len(parts) == 2 and parts[1].endswith(' ' * num_trailing):
+                        parts[1] = parts[1][:-num_trailing] + f'{YELLOW_BG}{"·" * num_trailing}{RESET}'
+                        processed = RESET.join(parts)
+                elif processed.endswith(' '):
+                    stripped = processed.rstrip(' ')
+                    actual_trailing = len(processed) - len(stripped)
+                    processed = stripped + f'{YELLOW_BG}{"·" * actual_trailing}{RESET}'
+
+            # Replace multiple consecutive spaces (not in indentation)
+            # Skip if we already processed indentation
+            if not indent_match:
+                processed = re.sub(
+                    r'  +',
+                    lambda m: f'{MAGENTA}{"␣" * len(m.group())}{RESET}',
+                    processed
+                )
+            else:
+                # For lines with indentation, only process spaces after the indent
+                parts = processed.split(f'{RESET}', 1)
+                if len(parts) == 2:
+                    indent_part, rest_part = parts
+                    rest_part = re.sub(
+                        r'  +',
+                        lambda m: f'{MAGENTA}{"␣" * len(m.group())}{RESET}',
+                        rest_part
+                    )
+                    processed = f'{indent_part}{RESET}{rest_part}'
+
+            result.append(processed)
+
+        # Join with colored newline indicator
+        return f'{CYAN}↵{RESET}\n'.join(result)

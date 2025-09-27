@@ -953,14 +953,169 @@ export class Interviewer {
   private routeFromDigest(state: InterviewStateType): string {
     const interview = this.getStateInterview(state)
     console.log(`Route from digest: ${interview._name()}`)
-    
+
     // Use toolsCondition to check for tool calls
     const result = toolsCondition(state as any)
     if (result === 'tools') {
       console.log(`Route: digest -> tools`)
       return 'tools'
     }
-    
+
     return 'think'
+  }
+
+  static debugPrompt(prompt: string, useColor: boolean = true): string {
+    /**
+     * Make a prompt string more readable for debugging by visualizing whitespace
+     * and detecting template interpolation bugs.
+     *
+     * - Template variables like {var}, {{var}}, {{{var}}} are highlighted as ERRORS
+     * - Newlines are shown with colored ↵ symbol
+     * - Trailing spaces are highlighted with colored background
+     * - Multiple consecutive spaces are shown with colored ␣ symbol
+     * - Tabs vs spaces in indentation are visualized
+     * - Invisible Unicode characters are detected
+     *
+     * @param prompt - The prompt string to make visible
+     * @param useColor - Whether to use ANSI color codes (default: true)
+     * @returns A version of the prompt with visible whitespace and colored highlights
+     */
+
+    // ANSI color codes for dark terminal backgrounds
+    let RED_BG = ''
+    let YELLOW_BG = ''
+    let CYAN = ''
+    let MAGENTA = ''
+    let BLUE = ''
+    let ORANGE = ''
+    let GRAY = ''
+    let RESET = ''
+    let BOLD = ''
+
+    if (useColor) {
+      // Bright colors for visibility on dark backgrounds
+      RED_BG = '\x1b[48;5;196m'      // Bright red background for errors
+      YELLOW_BG = '\x1b[48;5;226m'   // Yellow background for warnings
+      CYAN = '\x1b[38;5;51m'          // Bright cyan for newlines
+      MAGENTA = '\x1b[38;5;201m'      // Bright magenta for multiple spaces
+      BLUE = '\x1b[38;5;39m'          // Bright blue for tabs
+      ORANGE = '\x1b[38;5;208m'       // Orange for special chars
+      GRAY = '\x1b[38;5;242m'         // Gray for space indents
+      RESET = '\x1b[0m'
+      BOLD = '\x1b[1m'
+    }
+
+    const lines = prompt.split('\n')
+    const result: string[] = []
+
+    for (const line of lines) {
+      let processed = line
+
+      // Detect template interpolation bugs - these should NOT exist in final prompts
+      // Look for {var}, {{var}}, {{{var}}} etc.
+      const templatePattern = /(\{+[^{}]+\}+)/g
+      if (templatePattern.test(processed)) {
+        processed = processed.replace(
+          /(\{+[^{}]+\}+)/g,
+          (match) => `${RED_BG}${BOLD}⚠${match}⚠${RESET}`
+        )
+      }
+
+      // Detect invisible Unicode characters
+      const invisibleChars: Record<string, string> = {
+        '\u200b': `${ORANGE}[ZWSP]${RESET}`,      // Zero-width space
+        '\u00a0': `${ORANGE}[NBSP]${RESET}`,      // Non-breaking space
+        '\u200c': `${ORANGE}[ZWNJ]${RESET}`,      // Zero-width non-joiner
+        '\u200d': `${ORANGE}[ZWJ]${RESET}`,       // Zero-width joiner
+        '\ufeff': `${ORANGE}[BOM]${RESET}`,       // Byte order mark
+        '\u2060': `${ORANGE}[WJ]${RESET}`,        // Word joiner
+      }
+
+      for (const [char, replacement] of Object.entries(invisibleChars)) {
+        if (processed.includes(char)) {
+          processed = processed.replace(new RegExp(char, 'g'), replacement)
+        }
+      }
+
+      // Handle indentation (before other processing)
+      const indentMatch = processed.match(/^([ \t]+)/)
+      if (indentMatch) {
+        const indent = indentMatch[1]
+        const rest = processed.slice(indent.length)
+
+        // Check for mixed indentation (problematic!)
+        if (indent.includes(' ') && indent.includes('\t')) {
+          // Mixed spaces and tabs - highlight as error
+          let indentVisual = ''
+          for (const char of indent) {
+            if (char === ' ') {
+              indentVisual += `${RED_BG}·${RESET}`
+            } else {  // tab
+              indentVisual += `${RED_BG}→${RESET}`
+            }
+          }
+          processed = indentVisual + rest
+        } else {
+          // Pure spaces or pure tabs
+          if (indent[0] === ' ') {
+            // Spaces - use subtle gray markers
+            const indentVisual = `${GRAY}${'·'.repeat(indent.length)}${RESET}`
+            processed = indentVisual + rest
+          } else {
+            // Tabs - use blue arrows
+            const indentVisual = `${BLUE}${'→'.repeat(indent.length)}${RESET}`
+            processed = indentVisual + rest
+          }
+        }
+      }
+
+      // Handle trailing spaces - but check the raw line, not the processed one
+      if (line && line.endsWith(' ')) {
+        // Find where the trailing spaces start in the processed string
+        const rawStripped = line.trimEnd()
+        const numTrailing = line.length - rawStripped.length
+
+        // If we've already processed indentation, we need to be careful
+        if (processed.includes(RESET)) {
+          // Find the actual content after all the formatting
+          const parts = processed.split(RESET)
+          const lastPart = parts[parts.length - 1]
+          if (lastPart && lastPart.endsWith(' '.repeat(numTrailing))) {
+            parts[parts.length - 1] = lastPart.slice(0, -numTrailing) + `${YELLOW_BG}${'·'.repeat(numTrailing)}${RESET}`
+            processed = parts.join(RESET)
+          }
+        } else if (processed.endsWith(' ')) {
+          const stripped = processed.trimEnd()
+          const actualTrailing = processed.length - stripped.length
+          processed = stripped + `${YELLOW_BG}${'·'.repeat(actualTrailing)}${RESET}`
+        }
+      }
+
+      // Replace multiple consecutive spaces (not in indentation)
+      // Skip if we already processed indentation
+      if (!indentMatch) {
+        processed = processed.replace(
+          /  +/g,
+          (match) => `${MAGENTA}${'␣'.repeat(match.length)}${RESET}`
+        )
+      } else {
+        // For lines with indentation, only process spaces after the indent
+        const parts = processed.split(RESET, 2)
+        if (parts.length === 2) {
+          const indentPart = parts[0]
+          let restPart = parts[1]
+          restPart = restPart.replace(
+            /  +/g,
+            (match) => `${MAGENTA}${'␣'.repeat(match.length)}${RESET}`
+          )
+          processed = `${indentPart}${RESET}${restPart}`
+        }
+      }
+
+      result.push(processed)
+    }
+
+    // Join with colored newline indicator
+    return result.join(`${CYAN}↵${RESET}\n`)
   }
 }
