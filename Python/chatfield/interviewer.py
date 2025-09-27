@@ -502,6 +502,7 @@ class Interviewer:
         fields_data = self.mk_fields_data(interview, counters=counters)
 
         # Prepare validation labels
+        labels = None
         has_validation = counters['must'] > 0 or counters['reject'] > 0
         if has_validation:
             if counters['must'] > 0 and counters['reject'] == 0:
