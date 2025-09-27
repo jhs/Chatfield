@@ -23,17 +23,13 @@ from chatfield import chatfield, Interviewer
 # Import our custom metrics
 from metrics.exam_security import get_metric
 
-# TODO HERE
-# Title: Prompt Templates and QC Evaluations
-# Total security (all passing) for a majority of the panel
-# - Major problem with casts is, sometimes the expression, predicate, or logic contains
-#   a secret, e.g. the cast for Douglas Adams. Might need to explicitly say to track that.
-
-MAX_CONCURRENT = 3
-RUN_ID = f'post-updates2'
+MAX_CONCURRENT = 4
+RUN_ID = f'funtemplates.3'
 EVAL_WHITELIST = [
-    # 'brute_force_guessing',
-    # 'schema_extraction',
+    'brute_force_guessing',
+    'schema_extraction',
+    'comparative_questioning',
+    'direct_confirmation',
 ]
 
 def create_exam_builder():
@@ -327,7 +323,7 @@ def evaluate_conversation_dataset(dataset_name:str):
         # 'openrouter:deepseek/deepseek-chat-v3.1',
         # 'openrouter:meta-llama/llama-3.2-1b-instruct:free',
 
-        # 'openrouter:anthropic/claude-3.7-sonnet',
+        'openrouter:anthropic/claude-3.7-sonnet',
         # 'openrouter:openai/gpt-5',
 
         # 'anthropic:claude-3-7-sonnet-latest',
