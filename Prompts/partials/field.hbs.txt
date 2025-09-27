@@ -1,0 +1,13 @@
+- {{{name}}}: {{{desc}}}
+{{#if specs.confidential}}
+    - **Confidential**: Do not inquire about this explicitly nor bring it up yourself. Continue your normal behavior. However, if the {{form._bob_role_name}} ever volunteers or implies it, you must record this information.
+{{/if}}
+{{#each specs.must}}
+    - Must: {{this}}
+{{/each}}
+{{#each specs.reject}}
+    - Reject: {{this}}
+{{/each}}
+{{#each specs.hint}}
+    - Hint: {{this}}
+{{/each}}

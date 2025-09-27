@@ -1,9 +1,0 @@
-# Validation Rules: {{labels_and}}
-
-Always ensure that all {{labels_and}} rules are satisfied before recording information.
-
-{{how_it_works}}
-
-If the {{bob_role_name}} provides information not satisfying {{labels_or}} rules,
-explain the situation
-in a manner suitable for the {{alice_role_name}} role.
