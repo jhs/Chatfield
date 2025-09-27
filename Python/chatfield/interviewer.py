@@ -37,8 +37,8 @@ class Interviewer:
         self.config = {"configurable": {"thread_id": thread_id or str(uuid.uuid4())}}
         self.interview = interview
         self.template_engine = TemplateEngine()
-        theAlice = self.interview._alice_role_name()
-        theBob   = self.interview._bob_role_name()
+        theAlice = self.interview._alice_role_name
+        theBob   = self.interview._bob_role_name
 
         self.llm = llm
         if not self.llm:
@@ -115,7 +115,7 @@ class Interviewer:
             args_schema[field_name] = Optional[field_definition]  # Optional for update
         
         tool_name = f'update_{interview._id()}'
-        tool_desc = f'Record valid information shared by the {interview._bob_role_name()} about the {interview._name()}'
+        tool_desc = f'Record valid information shared by the {interview._bob_role_name} about the {interview._name}'
         UpdateToolArgs = create_model('UpdateToolArgs', **args_schema)
 
         # This is not identical to the TypeScript implementation.
@@ -156,9 +156,9 @@ class Interviewer:
         tool_name = f'conclude_{interview._id()}'
         tool_desc = (
             f'Record key required information'
-            f' about the {interview._name()}'
+            f' about the {interview._name}'
             f' by summarizing, synthesizing, or recalling'
-            f' the conversation so far with the {interview._bob_role_name()}'
+            f' the conversation so far with the {interview._bob_role_name}'
         )
         
         ConcludeToolArgs = create_model('ConcludeToolArgs', **args_schema)
@@ -177,7 +177,7 @@ class Interviewer:
     def tools(self, state: State):
         """Process tool calls directly without using ToolNode."""
         interview = self._get_state_interview(state)
-        print(f'Tools> {interview._name()}')
+        print(f'Tools> {interview._name}')
         
         output_messages = []
         
@@ -240,7 +240,7 @@ class Interviewer:
     # Node
     def digest(self, state: State):
         interview = self._get_state_interview(state)
-        print(f'Digest> {interview._name()}')
+        print(f'Digest> {interview._name}')
 
         # First digest undefined confidential fields. Then digest the conclude fields.
         for field_name, chatfield in interview._chatfield['fields'].items():
@@ -252,7 +252,7 @@ class Interviewer:
     
     def digest_confidential(self, state: State):
         interview = self._get_state_interview(state)
-        print(f'Digest Confidential> {interview._name()}')
+        print(f'Digest Confidential> {interview._name}')
 
         fields_prompt = []
         field_definitions = {}
@@ -276,8 +276,8 @@ class Interviewer:
         # Build a special llm object bound to a tool which explicitly requires the proper arguments.
         tool_name = f'updateConfidential_{interview._id()}'
         tool_desc = (
-            f'Record those confidential fields about the {interview._name()}'
-            f' from the {interview._bob_role_name()}'
+            f'Record those confidential fields about the {interview._name}'
+            f' from the {interview._bob_role_name}'
             f' which have no relevant information so far.'
         )
 
@@ -296,9 +296,9 @@ class Interviewer:
 
         # Prepare context for template
         context = {
-            'interview_name': interview._name(),
-            'alice_role_name': interview._alice_role_name(),
-            'bob_role_name': interview._bob_role_name(),
+            'interview_name': interview._name,
+            'alice_role_name': interview._alice_role_name,
+            'bob_role_name': interview._bob_role_name,
             'fields_prompt': fields_prompt
         }
 
@@ -319,7 +319,7 @@ class Interviewer:
         field_definition = create_model(
             field_name,
             __doc__= chatfield['desc'],
-            value  = (str, Field(title=f'Natural Value', description=f'The most typical valid representation of a {interview._name()} {field_name}')),
+            value  = (str, Field(title=f'Natural Value', description=f'The most typical valid representation of a {interview._name} {field_name}')),
             **casts_definitions,
         )
         return field_definition
@@ -378,7 +378,7 @@ class Interviewer:
 
     def digest_conclude(self, state: State):
         interview = self._get_state_interview(state)
-        print(f'Digest Conclude> {interview._name()}')
+        print(f'Digest Conclude> {interview._name}')
 
         # Define the tool for the LLM to call.
         conclude_tool = self.llm_conclude_tool(state)
@@ -388,7 +388,7 @@ class Interviewer:
 
         # Prepare context for template
         context = {
-            'interview_name': interview._name(),
+            'interview_name': interview._name,
             'fields_prompt': fields_prompt
         }
 
@@ -628,7 +628,7 @@ class Interviewer:
             if specs['confidential']:
                 specs_prompts.append(
                     f'    - **Confidential**: Do not inquire about this explicitly nor bring it up yourself. Continue your normal behavior.'
-                    f' However, if the {interview._bob_role_name()} ever volunteers or implies it, you must record this information.'
+                    f' However, if the {interview._bob_role_name} ever volunteers or implies it, you must record this information.'
                 )
 
             for spec_name, predicates in specs.items():
@@ -684,7 +684,7 @@ class Interviewer:
     
     def route_from_tools(self, state: State) -> str:
         interview = self._get_state_interview(state)
-        print(f'Route from tools: {interview._name()}')
+        print(f'Route from tools: {interview._name}')
 
         if interview._enough and not interview._done:
             print(f'Route: tools -> digest')
@@ -694,7 +694,7 @@ class Interviewer:
     
     def route_from_digest(self, state: State) -> str:
         interview = self._get_state_interview(state)
-        print(f'Route from digest: {interview._name()}')
+        print(f'Route from digest: {interview._name}')
 
         result = tools_condition(dict(state))
         if result == 'tools':
@@ -708,7 +708,7 @@ class Interviewer:
         # Ending will cause a return back to .go() caller.
         # That caller will expect the original interview object to reflect the conversation.
         interview = self._get_state_interview(state)
-        print(f'Teardown> {interview._name()}')
+        print(f'Teardown> {interview._name}')
         self.interview._copy_from(interview)
         
     # Node

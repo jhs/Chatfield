@@ -149,13 +149,14 @@ class Interview:
         # The current implementation is very minimal.
         self._chatfield = copy.deepcopy(source._chatfield)
     
+    @property
     def _name(self) -> str:
         """Return a human-readable label representing this interview data type"""
         return self._chatfield['type']
     
     def _id(self) -> str:
         """Return this interview data type as a valid identifier (lowercase, underscores)"""
-        name = self._name()
+        name = self._name
         # name = name.lower()
         name = re.sub(r'\s+', '_', name)          # Replace whitespace with underscores
         name = re.sub(r'[^a-zA-Z0-9_]', '', name) # Remove non-alphanumeric/underscore characters
@@ -225,16 +226,19 @@ class Interview:
     def _bob_oneliner(self):
         return self._get_oneliner('bob')
     
-    # TODO Make these properties
+    @property
     def _alice_role(self):
         return self._get_role('alice')
     
+    @property
     def _bob_role(self):
         return self._get_role('bob')
 
+    @property
     def _alice_role_name(self) -> str:
         return self._get_role_name(f'alice', f'Agent')
     
+    @property
     def _bob_role_name(self) -> str:
         return self._get_role_name(f'bob', f'User')
     
@@ -254,9 +258,9 @@ class Interview:
         try:
             return self._chatfield['fields'][field_name]
         except KeyError:
-            print(f'{self._name()}: Not a field: {field_name!r}, must be {self._chatfield["fields"].keys()!r}')
+            print(f'{self._name}: Not a field: {field_name!r}, must be {self._chatfield["fields"].keys()!r}')
             # print(f'Available fields: {self._fields()}')
-            raise KeyError(f'{self._name()}: Not a field: {field_name!r}')
+            raise KeyError(f'{self._name}: Not a field: {field_name!r}')
 
     def _fields(self) -> List[str]:
         """Return a list of field names defined in this interview."""
@@ -291,7 +295,7 @@ class Interview:
     
     def _pretty(self) -> str:
         """Return a pretty representation of this interview."""
-        lines = [f'{self._name()}']
+        lines = [f'{self._name}']
 
         for field_name, chatfield in self._chatfield['fields'].items():
             proxy = getattr(self, field_name)
