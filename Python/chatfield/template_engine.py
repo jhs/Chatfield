@@ -84,6 +84,34 @@ class TemplateEngine:
 
         # ===== Conditional Logic Helpers =====
 
+        def any_helper(_this, *args) -> bool:
+            """Return true if any argument is truthy."""
+            result = any(args)
+            return result
+        
+        def all_helper(_this, *args) -> bool:
+            """Return true if all arguments are truthy."""
+            result = all(args)
+            return result
+        
+        def tidy_helper(this, options, at:int=0, pre:int=0, suf:int=0) -> str:
+            """Trim and dedent block content, then re-indent."""
+            content = options['fn'](this)
+            content = str(content)
+            content = textwrap.dedent(content).strip('\n')
+
+            # Next, un-word-wrap, i.e. join lines that are not separated by blank lines.
+            paragraphs = content.split('\n\n')
+            paragraphs = [' '.join(p.splitlines()) for p in paragraphs]
+            content = '\n\n'.join(paragraphs)
+
+            indent_level = at
+            if indent_level > 0:
+                indent = '    ' * indent_level
+                lines = content.split('\n')
+                content = '\n'.join(indent + line if line else line for line in lines)
+            return (' ' * pre) + content + (' ' * suf) if content else ''
+
         def when_helper(this, condition: bool, content: str) -> str:
             """Simple conditional content helper."""
             return content if condition else ''
@@ -168,6 +196,10 @@ class TemplateEngine:
 
         # Register helpers with pybars
         self.helpers = {
+            'all': all_helper,
+            'any': any_helper,
+            'tidy': tidy_helper,
+
             # 'dedent': dedent_helper,
             # 'indent': indent_helper,
             # 'trim': trim_helper,
