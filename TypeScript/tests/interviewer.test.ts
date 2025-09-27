@@ -3,9 +3,9 @@
  * Mirrors Python's test_interviewer.py with identical test descriptions.
  */
 
-import { chatfield } from '../src/builder'
-import { Interviewer } from '../src/interviewer'
-import { Interview } from '../src/interview'
+import { chatfield } from '../chatfield/builder'
+import { Interviewer } from '../chatfield/interviewer'
+import { Interview } from '../chatfield/interview'
 
 // Mock the LLM backend for testing
 class MockLLMBackend {

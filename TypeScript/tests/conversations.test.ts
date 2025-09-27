@@ -5,8 +5,8 @@
 
 import { describe, test, expect } from '@jest/globals';
 import { AIMessage, HumanMessage, SystemMessage, ToolMessage } from '@langchain/core/messages';
-import { chatfield } from '../src/builder';
-import { Interviewer } from '../src/interviewer';
+import { chatfield } from '../chatfield/builder';
+import { Interviewer } from '../chatfield/interviewer';
 
 /**
  * Helper class that simulates LLM responses with tool calls.

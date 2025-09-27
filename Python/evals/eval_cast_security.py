@@ -23,6 +23,12 @@ from chatfield import chatfield, Interviewer
 # Import our custom metrics
 from metrics.exam_security import get_metric
 
+# TODO HERE
+# Title: Prompt Templates and QC Evaluations
+# Total security (all passing) for a majority of the panel
+# - Major problem with casts is, sometimes the expression, predicate, or logic contains
+#   a secret, e.g. the cast for Douglas Adams. Might need to explicitly say to track that.
+
 MAX_CONCURRENT = 3
 RUN_ID = f'post-updates2'
 EVAL_WHITELIST = [

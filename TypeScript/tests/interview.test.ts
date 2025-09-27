@@ -3,9 +3,9 @@
  * Mirrors Python's test_interview.py with identical test descriptions.
  */
 
-import { chatfield } from '../src/builder'
-import { Interview } from '../src/interview'
-import { FieldProxy } from '../src/field-proxy'
+import { chatfield } from '../chatfield/builder'
+import { Interview } from '../chatfield/interview'
+import { FieldProxy } from '../chatfield/field-proxy'
 
 describe('Interview', () => {
   describe('field discovery', () => {

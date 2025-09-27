@@ -3,7 +3,7 @@
  * Mirrors Python's test_builder.py with identical test descriptions.
  */
 
-import { chatfield } from '../src/builder'
+import { chatfield } from '../chatfield/builder'
 
 describe('Builder', () => {
   describe('basic usage', () => {

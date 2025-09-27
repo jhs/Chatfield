@@ -26,8 +26,8 @@ import {
   as_maybe,
   as_multi,
   as_any
-} from './src/core/interview'
-import { Interviewer } from './src/core/interviewer'
+} from './chatfield/interview'
+import { Interviewer } from './chatfield/interviewer'
 
 // Load environment variables from parent directory
 import * as path from 'path'

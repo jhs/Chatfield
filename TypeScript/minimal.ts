@@ -7,8 +7,8 @@
 import * as path from 'path'
 import * as dotenv from 'dotenv'
 import * as readline from 'readline'
-import { Interview } from './src/core/interview'
-import { Interviewer } from './src/core/interviewer'
+import { Interview } from './chatfield/interview'
+import { Interviewer } from './chatfield/interviewer'
 
 
 class NotableNumbers extends Interview {

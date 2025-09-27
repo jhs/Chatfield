@@ -3,8 +3,8 @@
  * Mirrors Python's test_field_proxy.py with identical test descriptions.
  */
 
-import { chatfield } from '../src/builder'
-import { FieldProxy } from '../src/field-proxy'
+import { chatfield } from '../chatfield/builder'
+import { FieldProxy } from '../chatfield/field-proxy'
 
 describe('FieldProxy', () => {
   describe('string behavior', () => {

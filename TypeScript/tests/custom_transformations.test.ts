@@ -4,7 +4,7 @@
  * Mirrors Python's test_custom_transformations.py with identical test descriptions.
  */
 
-import { chatfield } from '../src/builder'
+import { chatfield } from '../chatfield/builder'
 
 describe('CustomTransformations', () => {
   describe('multiple transformations', () => {

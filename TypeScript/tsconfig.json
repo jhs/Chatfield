@@ -5,7 +5,7 @@
     "module": "commonjs",
     "declaration": true,
     "outDir": "./dist",
-    "rootDir": "./src",
+    "rootDir": "./chatfield",
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
@@ -26,16 +26,16 @@
     "noUncheckedIndexedAccess": true
   },
   "include": [
-    "src/**/*"
+    "chatfield/**/*"
   ],
   "exclude": [
     "node_modules",
     "dist", 
     "**/*.test.ts",
     "**/*.spec.ts",
-    "src/integrations/react.ts",
-    "src/integrations/react-components.tsx", 
-    "src/integrations/copilotkit.tsx",
+    "chatfield/integrations/react.ts",
+    "chatfield/integrations/react-components.tsx",
+    "chatfield/integrations/copilotkit.tsx",
     "examples/**/*.tsx"
   ]
 }

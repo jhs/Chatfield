@@ -544,6 +544,8 @@ class Interviewer:
 
         # Prepare context for template
         context = {
+            'interview': interview,
+
             'alice_role_name': theAlice,
             'bob_role_name': theBob,
             'collection_name': collection_name,

@@ -3,8 +3,8 @@
  * Uses real LLM to test validation behavior.
  */
 
-import { chatfield } from '../src/builder'
-import { Interviewer } from '../src/interviewer'
+import { chatfield } from '../chatfield/builder'
+import { Interviewer } from '../chatfield/interviewer'
 
 describe('Validation', () => {
   // A few unit tests for validation. Small and simple, because testing the prompts is out of scope.

@@ -5,8 +5,8 @@
 
 import * as path from 'path'
 import * as dotenv from 'dotenv'
-import { chatfield } from '../src/builder'
-import { Interviewer } from '../src/interviewer'
+import { chatfield } from '../chatfield/builder'
+import { Interviewer } from '../chatfield/interviewer'
 
 // Load environment variables from project root .env file
 const projectRoot = path.join(__dirname, '..', '..')

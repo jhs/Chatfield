@@ -20,9 +20,9 @@
 import * as path from 'path';
 import * as dotenv from 'dotenv';
 import { parseArgs } from 'util';
-import { chatfield } from '../src/builder';
-import { Interview } from '../src/interview';
-import { Interviewer } from '../src/interviewer';
+import { chatfield } from '../chatfield/builder';
+import { Interview } from '../chatfield/interview';
+import { Interviewer } from '../chatfield/interviewer';
 
 // Load environment variables from top-level .env file
 dotenv.config({ path: path.resolve(__dirname, '../../.env') });

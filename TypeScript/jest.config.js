@@ -1,7 +1,7 @@
 module.exports = {
   preset: 'ts-jest',
   testEnvironment: 'node',
-  roots: ['<rootDir>/src', '<rootDir>/tests'],
+  roots: ['<rootDir>/chatfield', '<rootDir>/tests'],
   testMatch: [
     '**/__tests__/**/*.ts',
     '**/?(*.)+(spec|test).ts'
@@ -12,9 +12,9 @@ module.exports = {
     }]
   },
   collectCoverageFrom: [
-    'src/**/*.ts',
-    '!src/**/*.d.ts',
-    '!src/index.ts'
+    'chatfield/**/*.ts',
+    '!chatfield/**/*.d.ts',
+    '!chatfield/index.ts'
   ],
   coverageDirectory: 'coverage',
   coverageReporters: [
