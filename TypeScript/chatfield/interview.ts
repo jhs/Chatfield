@@ -56,7 +56,7 @@ export class Interview {
   /**
    * Get the name/type of this Interview
    */
-  _name(): string {
+  get _name(): string {
     return this._chatfield.type
   }
 
@@ -80,28 +80,28 @@ export class Interview {
   /**
    * Get alice role name
    */
-  _alice_role_name(): string {
+  get _alice_role_name(): string {
     return this._chatfield.roles.alice.type || 'Agent'
   }
 
   /**
    * Get bob role name
    */
-  _bob_role_name(): string {
+  get _bob_role_name(): string {
     return this._chatfield.roles.bob.type || 'User'
   }
 
   /**
    * Get alice role details (method version for Python compatibility)
    */
-  _alice_role(): { type?: string; traits: string[] } {
+  get _alice_role(): { type?: string; traits: string[] } {
     return this._chatfield.roles.alice
   }
 
   /**
    * Get bob role details (method version for Python compatibility)
    */
-  _bob_role(): { type?: string; traits: string[] } {
+  get _bob_role(): { type?: string; traits: string[] } {
     return this._chatfield.roles.bob
   }
 

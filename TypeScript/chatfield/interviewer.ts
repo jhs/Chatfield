@@ -83,7 +83,7 @@ export class Interviewer {
   }
 
   private setupGraph() {
-    const theBob = this.interview._bob_role_name()
+    const theBob = this.interview._bob_role_name
 
     // Build the state graph - matching Python structure
     const builder = new StateGraph(InterviewState)
@@ -106,13 +106,13 @@ export class Interviewer {
   }
 
   private async initialize(state: InterviewStateType) {
-    console.log(`Initialize> ${this.interview._name()}`)
+    console.log(`Initialize> ${this.interview._name}`)
     // Populate the state with the real interview object
     return { interview: this.interview }
   }
 
   private async think(state: InterviewStateType) {
-    console.log(`Think> ${this.getStateInterview(state)._name()}`)
+    console.log(`Think> ${this.getStateInterview(state)._name}`)
     
     let newSystemMessage: BaseMessage | null = null
     
@@ -173,7 +173,7 @@ export class Interviewer {
 
     const interview = this.getStateInterview(state);
     const toolName = `update_${interview._id()}`;
-    const toolDesc = `Record valid information shared by the ${interview._bob_role_name()} about the ${interview._name()}`;
+    const toolDesc = `Record valid information shared by the ${interview._bob_role_name} about the ${interview._name}`;
 
     // I think the wrapper function can no-op because the Tool node will do the real work.
     const wrapperFunc = async (input: any, config:any) => {
@@ -211,9 +211,9 @@ export class Interviewer {
     const toolName = `conclude_${interview._id()}`;
     const toolDesc = (
       `Record key required information` +
-      ` about the ${interview._name()}` +
+      ` about the ${interview._name}` +
       ` by summarizing, synthesizing, or recalling` +
-      ` the conversation so far with the ${interview._bob_role_name()}`
+      ` the conversation so far with the ${interview._bob_role_name}`
     );
 
     const schema = z.object(argsSchema); // .describe(toolDesc);
@@ -223,7 +223,7 @@ export class Interviewer {
 
   // Node
   private async tools(state: InterviewStateType) {
-    console.log(`Tools> ${this.getStateInterview(state)._name()}`);
+    console.log(`Tools> ${this.getStateInterview(state)._name}`);
     const outputMessages: ToolMessage[] = [];
 
     // First dump the interview state before anything happens, in order to detect changes later.
@@ -258,7 +258,7 @@ export class Interviewer {
 
   private async listen(state: InterviewStateType) {
     const interview = this.getStateInterview(state)
-    console.log(`Listen> ${interview._name()}`)
+    console.log(`Listen> ${interview._name}`)
     
     // Copy state back to interview for interrupt
     this.interview._copy_from(interview)
@@ -342,7 +342,7 @@ export class Interviewer {
 
   private async teardown(state: InterviewStateType) {
     const interview = this.getStateInterview(state)
-    console.log(`Teardown> ${interview._name()}`)
+    console.log(`Teardown> ${interview._name}`)
     
     // Copy final state back to the original interview object
     this.interview._copy_from(interview)
@@ -370,42 +370,43 @@ export class Interviewer {
   }
 
   /**
-   * Generate structured field data for templates
+   * Generate structured field data for templates - matching Python's mk_fields_data
    */
-  private makeFieldsData(interview: Interview, mode: 'normal' | 'conclude' = 'normal', counters?: { hint: number; must: number; reject: number }): any[] {
-    const fields: any[] = []
+  private makeFieldsData(interview: Interview, mode: 'normal' | 'conclude' = 'normal', counters?: { hint: number; must: number; reject: number }, fieldNames?: string[]): any[] {
+    if (mode !== 'normal' && mode !== 'conclude') {
+      throw new Error(`Bad mode: '${mode}'; must be "normal" or "conclude"`)
+    }
 
-    for (const fieldName of Object.keys(interview._chatfield.fields).reverse()) {
-      const field = interview._chatfield.fields[fieldName]
-      if (!field) continue
+    const fields: any[] = []  // Note: this should always be in source-code order
+
+    const fieldKeys = fieldNames || Object.keys(interview._chatfield.fields)
+    for (const fieldName of fieldKeys.reverse()) {  // Reverse to maintain source order
+      const chatfield = interview._chatfield.fields[fieldName]
+      if (!chatfield) continue
 
       // Skip fields based on mode
-      if (mode === 'normal' && field.specs?.conclude) {
-        continue // Skip conclude fields in normal mode
+      if (mode === 'normal' && chatfield.specs?.conclude) {
+        continue
       }
-      if (mode === 'conclude' && !field.specs?.conclude) {
-        continue // Skip normal fields in conclude mode
+
+      if (mode === 'conclude' && !chatfield.specs?.conclude) {
+        continue
       }
 
       // Count validation rules if counters provided
-      if (counters && field.specs) {
-        for (const [specType, rules] of Object.entries(field.specs)) {
-          if (Array.isArray(rules) && rules.length > 0) {
-            if (specType === 'hint') {
-              counters.hint += rules.length
-            } else if (specType === 'must') {
-              counters.must += rules.length
-            } else if (specType === 'reject') {
-              counters.reject += rules.length
-            }
+      if (counters) {
+        for (const specName of ['hint', 'must', 'reject'] as const) {
+          const predicates = chatfield.specs?.[specName]
+          if (predicates && Array.isArray(predicates)) {
+            counters[specName] += predicates.length
           }
         }
       }
 
       fields.push({
         name: fieldName,
-        desc: field.desc || '',
-        specs: field.specs || {}
+        desc: chatfield.desc || '',
+        specs: chatfield.specs || {}
       })
     }
 
@@ -414,7 +415,7 @@ export class Interviewer {
 
   private makeFieldsPrompt(interview: Interview, mode: 'normal' | 'conclude' = 'normal', counters?: { hint: number; must: number; reject: number }): string {
     const fields: string[] = []
-    const theBob = interview._bob_role_name()
+    const theBob = interview._bob_role_name
     
     for (const fieldName of Object.keys(interview._chatfield.fields).reverse()) {
       const field = interview._chatfield.fields[fieldName]
@@ -483,75 +484,34 @@ export class Interviewer {
 
   mkSystemPrompt(state: InterviewStateType): string {
     const interview = this.getStateInterview(state) || this.interview
-    const collectionName = interview._name()
-    const theAlice = interview._alice_role_name()
-    const theBob = interview._bob_role_name()
 
-    // Count validation rules - will be updated by makeFieldsPrompt/makeFieldsData
+    // Count validation rules - will be updated by makeFieldsData
     const counters = { hint: 0, must: 0, reject: 0 }
-
-    // Generate both structured data and legacy prompt for backward compatibility
     const fieldsData = this.makeFieldsData(interview, 'normal', counters)
 
-    // Prepare traits
-    const aliceRole = interview._alice_role()
-    let aliceTraits: string[] = []
-    if (aliceRole.traits && aliceRole.traits.length > 0) {
-      aliceTraits = [...aliceRole.traits].reverse()  // Maintain source-code order
-    }
-
-    const bobRole = interview._bob_role()
-    let bobTraits: string[] = []
-    if (bobRole.traits && bobRole.traits.length > 0) {
-      bobTraits = [...bobRole.traits].reverse()  // Maintain source-code order
-    }
-
-    // Prepare validation labels
-    let labelsAnd = ''
-    let labelsOr = ''
-    let howItWorks = ''
+    // Prepare validation labels (matching Python logic)
+    let labels = ''
     const hasValidation = counters.must > 0 || counters.reject > 0
 
     if (hasValidation) {
       if (counters.must > 0 && counters.reject === 0) {
         // Must only
-        labelsAnd = '"Must"'
-        labelsOr = '"Must"'
-        howItWorks = 'All "Must" rules must pass for the field to be valid.'
+        labels = '"Must"'
       } else if (counters.must === 0 && counters.reject > 0) {
         // Reject only
-        labelsAnd = '"Reject"'
-        labelsOr = '"Reject"'
-        howItWorks = 'Any "Reject" rule which does not pass causes the field to be invalid.'
+        labels = '"Reject"'
       } else if (counters.must > 0 && counters.reject > 0) {
         // Both must and reject
-        labelsAnd = '"Must" and "Reject"'
-        labelsOr = '"Must" or "Reject"'
-        howItWorks = (
-          'All "Must" rules associated with a field must pass for the field to be valid.\n\n' +
-          'Any "Reject" rule associated with a field which does not pass causes the field to be invalid.'
-        )
+        labels = '"Must" and "Reject"'
       }
     }
 
-    // Prepare context for template
+    // Prepare context for template - matching Python exactly
     const context = {
-      alice_role_name: theAlice,
-      bob_role_name: theBob,
-      collection_name: collectionName,
-      has_traits: aliceTraits.length > 0 || bobTraits.length > 0,
-      has_alice_traits: aliceTraits.length > 0,
-      alice_traits: aliceTraits,
-      has_bob_traits: bobTraits.length > 0,
-      bob_traits: bobTraits,
-      description: interview._chatfield.desc || '',
-      has_validation: hasValidation,
-      validation_labels_and: labelsAnd,
-      validation_labels_or: labelsOr,
-      validation_how_it_works: howItWorks,
-      has_hints: counters.hint > 0,
-      // Include both for backward compatibility and new templates
-      fields: fieldsData,  // New: structured field data
+      form: interview,  // Pass the entire interview object as 'form'
+      labels: labels,   // Single labels string, not separate and/or versions
+      counters: counters,  // Pass counters object
+      fields: fieldsData,  // Structured field data
     }
 
     // Render template
@@ -657,7 +617,7 @@ export class Interviewer {
   // Node: Handle confidential and conclude fields
   private async digest(state: InterviewStateType): Promise<Partial<InterviewStateType>> {
     const interview = this.getStateInterview(state)
-     // console.log(`Digest> ${interview?._name() || 'No interview'}`)
+     // console.log(`Digest> ${interview?._name || 'No interview'}`)
     
     if (!interview) {
        // console.log('No interview in digest state')
@@ -686,7 +646,7 @@ export class Interviewer {
       return {};
     }
     
-    console.log(`Digest Confidential: ${interview._name()}`);
+    console.log(`Digest Confidential: ${interview._name}`);
     const fieldsPrompt: string[] = []
     const fieldDefinitions: Record<string, z.ZodTypeAny> = {}
     
@@ -713,8 +673,8 @@ export class Interviewer {
     // Build a special llm object bound to a tool which explicitly requires the proper arguments
     const toolName = `updateConfidential_${interview._id()}`
     const toolDesc = (
-      `Record those confidential fields about the ${interview._name()} ` +
-      `from the ${interview._bob_role_name()} ` +
+      `Record those confidential fields about the ${interview._name} ` +
+      `from the ${interview._bob_role_name} ` +
       `which have no relevant information so far.`
     )
     
@@ -722,9 +682,9 @@ export class Interviewer {
     
     // Prepare context for template
     const context = {
-      interview_name: interview._name(),
-      alice_role_name: interview._alice_role_name(),
-      bob_role_name: interview._bob_role_name(),
+      interview_name: interview._name,
+      alice_role_name: interview._alice_role_name,
+      bob_role_name: interview._bob_role_name,
       fields_prompt: fieldsPromptStr
     }
 
@@ -753,13 +713,13 @@ export class Interviewer {
       return {}
     }
     
-    console.log(`Digest Conclude> ${interview._name()}`);
+    console.log(`Digest Conclude> ${interview._name}`);
 
     const fieldsPrompt = this.makeFieldsPrompt(interview, 'conclude')
 
     // Prepare context for template
     const context = {
-      interview_name: interview._name(),
+      interview_name: interview._name,
       fields_prompt: fieldsPrompt
     }
 
@@ -784,7 +744,7 @@ export class Interviewer {
     
     // Always include the base value field
     castsDefinitions.value = z.string().describe(
-      `The most typical valid representation of a ${this.interview._name()} ${fieldName}`
+      `The most typical valid representation of a ${this.interview._name} ${fieldName}`
     )
     
     // Add all casts
@@ -856,7 +816,7 @@ export class Interviewer {
     
     // Build the Zod schema for this field
     const fieldSchema = z.object({
-      value: z.string().describe(`The most typical valid representation of a ${interview._name()} ${fieldName}`),
+      value: z.string().describe(`The most typical valid representation of a ${interview._name} ${fieldName}`),
       ...castsDefinitions
     }).describe(chatfield.desc)
     
@@ -916,7 +876,7 @@ export class Interviewer {
 
   // Routing methods - matching Python's route_from_think
   private routeFromThink(state: InterviewStateType): string {
-    console.log(`Route from think: ${this.getStateInterview(state)._name()}`)
+    console.log(`Route from think: ${this.getStateInterview(state)._name}`)
     
     // Use toolsCondition to check for tool calls
     const result = toolsCondition(state as any)
@@ -940,7 +900,7 @@ export class Interviewer {
   
   private routeFromTools(state: InterviewStateType): string {
     const interview = this.getStateInterview(state)
-    console.log(`Route from tools: ${interview._name()}`)
+    console.log(`Route from tools: ${interview._name}`)
     
     if (interview._enough && !interview._done) {
       console.log(`Route: tools -> digest`)
@@ -952,7 +912,7 @@ export class Interviewer {
   
   private routeFromDigest(state: InterviewStateType): string {
     const interview = this.getStateInterview(state)
-    console.log(`Route from digest: ${interview._name()}`)
+    console.log(`Route from digest: ${interview._name}`)
 
     // Use toolsCondition to check for tool calls
     const result = toolsCondition(state as any)
@@ -1041,10 +1001,10 @@ export class Interviewer {
       const indentMatch = processed.match(/^([ \t]+)/)
       if (indentMatch) {
         const indent = indentMatch[1]
-        const rest = processed.slice(indent.length)
+        const rest = processed.slice(indent ? indent.length : 0)
 
         // Check for mixed indentation (problematic!)
-        if (indent.includes(' ') && indent.includes('\t')) {
+        if (indent && indent.includes(' ') && indent.includes('\t')) {
           // Mixed spaces and tabs - highlight as error
           let indentVisual = ''
           for (const char of indent) {
@@ -1057,13 +1017,13 @@ export class Interviewer {
           processed = indentVisual + rest
         } else {
           // Pure spaces or pure tabs
-          if (indent[0] === ' ') {
+          if (indent && indent[0] === ' ') {
             // Spaces - use subtle gray markers
-            const indentVisual = `${GRAY}${'·'.repeat(indent.length)}${RESET}`
+            const indentVisual = `${GRAY}${'·'.repeat(indent!.length)}${RESET}`
             processed = indentVisual + rest
           } else {
             // Tabs - use blue arrows
-            const indentVisual = `${BLUE}${'→'.repeat(indent.length)}${RESET}`
+            const indentVisual = `${BLUE}${'→'.repeat(indent!.length)}${RESET}`
             processed = indentVisual + rest
           }
         }
@@ -1103,8 +1063,8 @@ export class Interviewer {
         const parts = processed.split(RESET, 2)
         if (parts.length === 2) {
           const indentPart = parts[0]
-          let restPart = parts[1]
-          restPart = restPart.replace(
+          let restPart = parts ? parts[1] : ''
+          restPart = restPart!.replace(
             /  +/g,
             (match) => `${MAGENTA}${'␣'.repeat(match.length)}${RESET}`
           )

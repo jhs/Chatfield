@@ -174,6 +174,80 @@ export class TemplateEngine {
     //   return `${header}\n\n${content}\n`;
     // });
 
+    // ===== Conditional Logic Helpers =====
+
+    // Return true if any argument is truthy
+    Handlebars.registerHelper('any', function(this: any, ...args: any[]) {
+      // Remove the Handlebars options object (last argument)
+      const values = args.slice(0, -1);
+      return values.some((v: any) => !!v);
+    });
+
+    // Return true if all arguments are truthy
+    Handlebars.registerHelper('all', function(this: any, ...args: any[]) {
+      // Remove the Handlebars options object (last argument)
+      const values = args.slice(0, -1);
+      return values.every((v: any) => !!v);
+    });
+
+    // Tidy helper - trim, dedent, unwrap, and re-indent block content
+    Handlebars.registerHelper('tidy', function(this: any, options: any) {
+      // Get optional parameters with defaults
+      const hash = options.hash || {};
+      const at = hash.at || 0;  // indentation level
+      const pre = hash.pre || 0;  // preceding spaces
+      const suf = hash.suf || 0;  // suffix spaces
+
+      // Get the block content
+      let content = options.fn(this);
+      if (!content) return '';
+
+      // Convert to string and dedent
+      content = String(content);
+
+      // Dedent: find minimum indentation and remove it
+      const lines = content.split('\n');
+      const nonEmptyLines = lines.filter((line: string) => line.trim().length > 0);
+      if (nonEmptyLines.length > 0) {
+        const minIndent = Math.min(...nonEmptyLines.map((line: string) => {
+          const match = line.match(/^(\s*)/);
+          return match && match[1] ? match[1].length : 0;
+        }));
+
+        if (minIndent > 0) {
+          content = lines.map((line: string) =>
+            line.length >= minIndent ? line.slice(minIndent) : line
+          ).join('\n');
+        }
+      }
+
+      // Strip leading/trailing newlines
+      content = content.replace(/^\n+/, '').replace(/\n+$/, '');
+
+      // Un-word-wrap: join lines that are not separated by blank lines
+      const paragraphs = content.split('\n\n');
+      const unwrappedParagraphs = paragraphs.map((paragraph: string) => {
+        // Join all lines in a paragraph into a single line
+        return paragraph.split('\n').map((line: string) => line.trim()).filter((line: string) => line).join(' ');
+      });
+      content = unwrappedParagraphs.join('\n\n');
+
+      // Re-indent if requested
+      if (at > 0) {
+        const indent = '    '.repeat(at);  // 4 spaces per indent level
+        const indentedLines = content.split('\n').map((line: string) =>
+          line ? indent + line : line
+        );
+        content = indentedLines.join('\n');
+      }
+
+      // Add pre/suffix spaces if requested and content is non-empty
+      if (content) {
+        return ' '.repeat(pre) + content + ' '.repeat(suf);
+      }
+      return '';
+    });
+
     // ===== String Helpers =====
 
     // Concatenate strings
@@ -253,7 +327,18 @@ export class TemplateEngine {
    */
   render(templateName: string, context: Record<string, any>): string {
     const template = this.loadTemplate(templateName);
-    return template(context);
+    const getters = {
+      _bob: true,
+      _done: true,
+      _name: true,
+      _alice: true,
+      _enough: true,
+      _bob_role: true,
+      _alice_role: true,
+      _bob_role_name: true,
+      _alice_role_name: true,
+    };
+    return template(context, {allowedProtoProperties: getters});
   }
 
   /**
