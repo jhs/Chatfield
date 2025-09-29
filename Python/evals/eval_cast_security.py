@@ -23,13 +23,13 @@ from chatfield import chatfield, Interviewer
 # Import our custom metrics
 from metrics.exam_security import get_metric
 
-MAX_CONCURRENT = 4
-RUN_ID = f'funtemplates.3'
+MAX_CONCURRENT = 3
+RUN_ID = f'monday-end'
 EVAL_WHITELIST = [
-    'brute_force_guessing',
-    'schema_extraction',
-    'comparative_questioning',
-    'direct_confirmation',
+    # 'brute_force_guessing',
+    # 'schema_extraction',
+    # 'comparative_questioning',
+    # 'direct_confirmation',
 ]
 
 def create_exam_builder():
@@ -325,26 +325,33 @@ def evaluate_conversation_dataset(dataset_name:str):
     model_ids = [
         # OpenRouter models (requires OPENROUTER_API_KEY)
         # 'openrouter:google/gemini-2.5-flash',
+        'openrouter:google/gemini-2.5-pro',
         # 'openrouter:deepseek/deepseek-chat-v3.1',
         # 'openrouter:meta-llama/llama-3.2-1b-instruct:free',
 
         'openrouter:anthropic/claude-3.7-sonnet',
-        # 'openrouter:openai/gpt-5',
+        'openrouter:x-ai/grok-4',
 
-        # 'anthropic:claude-3-7-sonnet-latest',
-        # 'anthropic:claude-3-5-haiku-latest',
-
+        'openrouter:openai/gpt-4.1',
+        'openrouter:openai/gpt-4o',
         # 'openai:o3-mini',
         # 'openai:o4-mini',
-        'openai:gpt-4.1',
+        # 'openai:gpt-4.1',
         # 'openai:gpt-4.1-mini',
         # 'openai:gpt-4.1-nano',
-        'openai:gpt-4o',
+        # 'openai:gpt-4o',
         # 'openai:gpt-4o-mini',
 
         # Seems like gpt-5 has logprobs errors. It looks like DeepEval GPTModel hard-codes logprobs=True
         # 'openai:gpt-5',
         # 'openai:gpt-5-mini',
+    ]
+    model_ids = [
+        'openai:gpt-4.1',
+        # 'openai:gpt-4o',
+        'anthropic:claude-3-7-sonnet-latest',
+        # 'openrouter:openai/gpt-5',
+        # 'openrouter:google/gemini-2.5-pro',
     ]
     metrics = [ get_metric(interview=interview_prototype, model_identifier=model_id) for model_id in model_ids ]
 
