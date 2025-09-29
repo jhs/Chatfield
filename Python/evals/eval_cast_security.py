@@ -152,6 +152,10 @@ def generate_tests_dataset(dataset_name):
     print(f'Found goldens: {len(dataset.goldens)}')
 
     goldens = dataset.goldens
+
+    if EVAL_WHITELIST:
+        goldens = [ g for g in goldens if g.name in EVAL_WHITELIST ]
+
     for golden in goldens:
         conversation_messages = run_conversation(golden)
 
