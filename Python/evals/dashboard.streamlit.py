@@ -841,12 +841,15 @@ def get_available_datasets() -> List[str]:
         dataset_name = file.stem.split('.', 1)[1] if '.' in file.stem else file.stem
         datasets.append(dataset_name)
 
-    # Sort datasets, but ensure 'strict' comes first if it exists
-    datasets.sort()
-    if 'strict' in datasets:
-        datasets.remove('strict')
-        datasets.insert(0, 'strict')
-
+    # Sort by name ("bar" before "foo") but secondary sort "foo.10" comes after "foo.9"
+    def dataset_sort_key(name: str) -> tuple:
+        # Key is (name, split_number) (or 0 if no number)
+        parts = name.rsplit('.', 1)
+        if len(parts) == 2 and parts[1].isdigit():
+            return (parts[0], - int(parts[1]))
+        return (name, 0)
+    datasets = sorted(datasets, key=dataset_sort_key)
+    #datasets = list(reversed(sorted(datasets)))
     return datasets if datasets else ['main']  # Default to 'main' if no files found
 
 
