@@ -12,6 +12,6 @@
     - Reject: {{this}}
 {{/each}}
 {{#each field.casts}}
-    - Cast `{{{this.name}}}`: Confidential = {{{this.prompt}}}
+    - Confidential Cast: `{{{this.name}}}` = {{{this.prompt}}}
 
 {{/each}}
