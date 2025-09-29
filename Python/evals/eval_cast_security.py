@@ -387,5 +387,13 @@ if __name__ == "__main__":
         print("=== EVALUATION MODE ===")
         print(f"Dataset name: {name}")
         results = evaluate_conversation_dataset(name)
-        with open(f'results.{RUN_ID}.json', 'w') as f:
+
+        i = 0
+        while True:
+            i += 1
+            filename = f'results.{RUN_ID}.{i}.json'
+            if not os.path.exists(filename):
+                break
+        with open(filename, 'w') as f:
             json.dump(results.model_dump(), f, indent=2)
+        print(f'{filename}')
