@@ -1,0 +1,49 @@
+# LiteLLM Proxy Configuration for Chatfield Development
+# This configuration sets up a secure proxy for browser-based development
+# with rate limiting and usage tracking.
+
+model_list:
+  - model_name: gpt-4o
+    litellm_params:
+      model: gpt-4o
+      api_key: os.environ/OPENAI_API_KEY
+
+  - model_name: gpt-4o-mini
+    litellm_params:
+      model: gpt-4o-mini
+      api_key: os.environ/OPENAI_API_KEY
+
+  - model_name: jason
+    litellm_params:
+      model: gpt-4.1
+      api_key: os.environ/OPENAI_API_KEY
+
+# Proxy server settings
+litellm_settings:
+  # Enable simple in-memory tracking for development
+  # For production, consider using PostgreSQL backend
+  success_callback: []
+  failure_callback: []
+
+  # Disable authentication for local development
+  # For production, enable virtual keys with rate limits
+  set_verbose: true
+  drop_params: true
+
+  # Default max tokens to prevent runaway costs
+  max_tokens: 8000
+
+  # Enable CORS for browser requests
+  allowed_origins: ["http://localhost:8080", "http://127.0.0.1:8080", "http://localhost:3000", "http://localhost:8501"]
+
+# General settings
+general_settings:
+  # Master key for admin operations (optional for dev)
+  # master_key: "mk-123"
+
+  # Database for persistence (optional - SQLite for dev)
+  # database_url: "sqlite:///litellm_proxy.db"
+
+  # Logging
+  # json_logs: false
+  json_logs: true

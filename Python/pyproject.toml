@@ -62,6 +62,9 @@ dependencies = [
 [project.optional-dependencies]
 dev = [
     "deepeval==3.5.3",
+    "litellm==1.77.5",
+    "litellm-enterprise==0.1.20",
+    "litellm-proxy-extras==0.2.22",
     "python_dotenv>=1.1.1",
     "pytest>=7.0.0",
     "pytest-cov>=4.0.0",

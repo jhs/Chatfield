@@ -1,4 +1,4 @@
-.PHONY: help install install-dev test test-cov lint format typecheck clean build publish docs
+.PHONY: help install install-dev test test-cov lint format typecheck clean build publish docs proxy
 
 help:
 	@echo "Available commands:"
@@ -13,6 +13,7 @@ help:
 	@echo "  make build         Build distribution packages"
 	@echo "  make publish       Upload package to PyPI (requires credentials)"
 	@echo "  make docs          Generate documentation (if available)"
+	@echo "  make proxy         Start LiteLLM proxy server for development"
 
 install:
 	pip install -e .
@@ -71,6 +72,12 @@ publish: build
 docs:
 	@echo "Documentation generation not yet configured"
 	@echo "Consider using Sphinx or MkDocs for documentation"
+
+proxy:
+	@echo "Starting LiteLLM proxy on http://localhost:4000"
+	@echo "Make sure OPENAI_API_KEY is set in your environment"
+	@echo "Press Ctrl+C to stop"
+	python litellm_proxy.py
 
 # Development workflow shortcuts
 .PHONY: dev check ci
