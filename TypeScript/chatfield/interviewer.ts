@@ -58,7 +58,7 @@ export class Interviewer {
   checkpointer: MemorySaver  // Made public for test access
   templateEngine: TemplateEngine
 
-  constructor(interview: Interview, options?: { threadId?: string; llm?: any, llmId?: any }) {
+  constructor(interview: Interview, options?: { threadId?: string; llm?: any, llmId?: any, proxyUrl?: string }) {
     this.interview = interview
     this.templateEngine = new TemplateEngine()
     this.checkpointer = new MemorySaver()
@@ -72,10 +72,23 @@ export class Interviewer {
     if (options?.llm) {
       this.llm = options.llm
     } else {
-      this.llm = new ChatOpenAI({
+      // Support proxy URL for browser development (e.g., LiteLLM proxy)
+      // Check for proxyUrl in options or environment variable
+      const proxyUrl = options?.proxyUrl || (typeof process !== 'undefined' && process.env?.LITELLM_PROXY_URL)
+      const llmConfig: any = {
         modelName: options?.llmId || 'gpt-4o',
         temperature: 0.0
-      })
+      }
+
+      // If proxy URL is provided, pass it as baseURL
+      // LangChain's ChatOpenAI accepts baseURL in the configuration object
+      if (proxyUrl) {
+        llmConfig.configuration = {
+          baseURL: proxyUrl
+        }
+      }
+
+      this.llm = new ChatOpenAI(llmConfig)
     }
 
     // Setup tools and graph
