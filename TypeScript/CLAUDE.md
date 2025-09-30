@@ -22,17 +22,17 @@ Chatfield JS/TS is the TypeScript/JavaScript implementation (v0.1.0) of conversa
 
 ```
 TypeScript/
-├── src/                         # TypeScript source code
+├── chatfield/                   # TypeScript source code
 │   ├── index.ts                 # Main exports and public API
 │   ├── interview.ts             # Base Interview class (mirrors Python)
-│   ├── interviewer.ts           # LangGraph-based conversation orchestration  
+│   ├── interviewer.ts           # LangGraph-based conversation orchestration
 │   ├── builder.ts               # Builder pattern API (primary interface)
 │   ├── builder-types.ts         # TypeScript type definitions for builder
 │   ├── field-proxy.ts           # FieldProxy string subclass for transformations
 │   ├── types.ts                 # Core type definitions
 │   └── integrations/            # Framework integrations
 │       ├── react.ts             # React hooks (useConversation)
-│       ├── react-components.tsx # UI components  
+│       ├── react-components.tsx # UI components
 │       └── copilotkit.tsx       # CopilotKit integration
 ├── tests/                       # Test suite (*.test.ts naming, mirrors Python)
 │   ├── interview.test.ts        # Interview class tests
@@ -91,14 +91,14 @@ node dist/examples/basic-usage.js           # Run compiled example
 
 ### Core Components
 
-1. **Interview Class** (`src/interview.ts`)
+1. **Interview Class** (`chatfield/interview.ts`)
    - Mirrors Python's Interview base class exactly
    - Manages field definitions in `_chatfield` structure
    - Provides field access through getters
    - Tracks completion state with `_done` property
    - Supports serialization for LangGraph state
 
-2. **Interviewer Class** (`src/interviewer.ts`)
+2. **Interviewer Class** (`chatfield/interviewer.ts`)
    - LangGraph-based conversation orchestration
    - Uses @langchain/langgraph for state management
    - Generates Zod-based tools for field collection
@@ -106,13 +106,13 @@ node dist/examples/basic-usage.js           # Run compiled example
    - Maintains thread isolation with unique IDs
    - Accepts optional `llm` parameter for testing (mirrors Python)
 
-3. **Builder API** (`src/builder.ts`)
+3. **Builder API** (`chatfield/builder.ts`)
    - Primary interface for defining interviews
    - Fluent method chaining pattern
    - Full TypeScript type inference
    - Generates Interview instances with metadata
 
-4. **FieldProxy** (`src/field-proxy.ts`)
+4. **FieldProxy** (`chatfield/field-proxy.ts`)
    - String-like class for field values
    - Provides transformation access (`.as_int`, `.as_lang_fr`, etc.)
    - Mirrors Python's FieldProxy behavior
@@ -229,7 +229,7 @@ const interviewer = new Interviewer(interview, { llm: mockLlm })
 4. **React focus**: Built-in React hooks and components
 5. **Field definition**: Fields defined via builder pattern
 6. **Zod validation**: Uses Zod for runtime type validation in tools
-7. **Import style**: Absolute imports from `src/` directory
+7. **Import style**: Absolute imports from `chatfield/` directory
 
 ## API Key Configuration
 
@@ -243,7 +243,7 @@ Or use `.env` file in project directory.
 
 1. **Test synchronization**: Test names and descriptions must match Python
 2. **LangGraph version**: Uses @langchain/langgraph 0.4.6+ (Python uses 0.6.4+)
-3. **Import paths**: Use absolute imports from `src/`
+3. **Import paths**: Use absolute imports from `chatfield/`
 4. **Async patterns**: All LLM operations are async
 5. **Type inference**: Leverage TypeScript's type system fully
 6. **React integration**: Primary UI integration path

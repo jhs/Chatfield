@@ -51,7 +51,7 @@ Chatfield/
 │   └── CLAUDE.md                # Python-specific implementation guide
 │
 └── TypeScript/                  # TypeScript/JavaScript implementation (v0.1.0)
-    ├── src/                     # TypeScript source code
+    ├── chatfield/               # TypeScript source code
     │   ├── index.ts             # Main exports and public API
     │   ├── interview.ts         # Base Interview class (mirrors Python)
     │   ├── interviewer.ts       # LangGraph conversation orchestration
@@ -203,11 +203,11 @@ npx tsx minimal.ts                                  # Test OpenAI API connection
 - `chatfield/serialization.py`: State serialization for LangGraph
 
 ### TypeScript Core Files
-- `src/interview.ts`: Base Interview class (mirrors Python implementation)
-- `src/interviewer.ts`: LangGraph TypeScript orchestration
-- `src/builder.ts`: Primary fluent builder API
-- `src/field-proxy.ts`: FieldProxy implementation for transformations
-- `src/types.ts`: Core TypeScript type definitions
+- `chatfield/interview.ts`: Base Interview class (mirrors Python implementation)
+- `chatfield/interviewer.ts`: LangGraph TypeScript orchestration
+- `chatfield/builder.ts`: Primary fluent builder API
+- `chatfield/field-proxy.ts`: FieldProxy implementation for transformations
+- `chatfield/types.ts`: Core TypeScript type definitions
 
 ## Testing Approach
 
@@ -252,9 +252,9 @@ interviewer = Interviewer(interview, api_key="your-api-key")
 ## Common Development Tasks
 
 ### Adding a New Builder Method
-1. Add method to builder class in `src/builder.ts`
-2. Update type definitions in `src/builder-types.ts`
-3. Export from `src/index.ts`
+1. Add method to builder class in `chatfield/builder.ts`
+2. Update type definitions in `chatfield/builder-types.ts`
+3. Export from `chatfield/index.ts`
 4. Handle in interviewer tool generation
 5. Write tests in `tests/builder.test.ts`
 6. Add example to `examples/basic-usage.ts`
@@ -407,7 +407,7 @@ Both implementations use LangGraph for conversation orchestration:
 8. **Field discovery**: Both implementations use builder calls for field definition
 9. **State persistence**: LangGraph checkpointer allows conversation resumption
 10. **Prompt engineering**: Validation quality depends on prompt crafting
-11. **Import differences**: Python uses relative imports, TypeScript uses absolute from src/
+11. **Import differences**: Python uses relative imports, TypeScript uses absolute from chatfield/
 12. **Async patterns**: TypeScript uses async/await throughout, Python uses sync with async options
 
 ## Debugging Tips

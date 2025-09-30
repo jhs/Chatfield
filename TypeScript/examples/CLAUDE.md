@@ -102,10 +102,10 @@ Examples use different import styles based on use case:
 
 ```typescript
 // Builder API imports
-import { chatfield } from '../src'
+import { chatfield } from '../chatfield'
 
 // Backend imports
-import { OpenAIBackend, MockLLMBackend } from '../src'
+import { OpenAIBackend, MockLLMBackend } from '../chatfield'
 
 ```
 
@@ -211,7 +211,7 @@ When creating new examples:
 
 1. Follow naming convention (kebab-case.ts)
 2. Include comprehensive header comments explaining purpose
-3. Import from '../src' for development convenience
+3. Import from '../chatfield' for development convenience
 4. Handle missing API keys gracefully
 5. Provide clear console output showing progress
 6. Test with both real and mock backends
@@ -225,7 +225,7 @@ When creating new examples:
 - **API Key Error**: Set OPENAI_API_KEY environment variable
 - **TypeScript Errors**: Ensure tsconfig.json has correct settings
 - **Runtime Errors**: Check Node.js version (16+ required)
-- **Import Errors**: Use correct import paths ('../src' during development)
+- **Import Errors**: Use correct import paths ('../chatfield' during development)
 
 ## Integration Examples
 
@@ -238,7 +238,7 @@ app.post('/interview', async (req, res) => {
 })
 ```
 
-### With React (see src/integrations/react.ts)
+### With React (see chatfield/integrations/react.ts)
 ```typescript
 const [state, actions] = useConversation(Form)
 ```

@@ -140,8 +140,8 @@ The test suite uses Jest with the following configuration:
   "testEnvironment": "node",
   "testMatch": ["**/*.test.ts"],
   "collectCoverageFrom": [
-    "src/**/*.ts",
-    "!src/**/*.d.ts"
+    "chatfield/**/*.ts",
+    "!chatfield/**/*.d.ts"
   ]
 }
 ```
