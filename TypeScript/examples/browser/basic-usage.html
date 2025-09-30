@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chatfield Browser Example - Basic Usage</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        h1 {
+            color: #333;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        #chat-container {
+            min-height: 400px;
+            max-height: 600px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 15px;
+            margin: 20px 0;
+            background: #fafafa;
+        }
+        .message {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .ai-message {
+            background: #e3f2fd;
+            color: #0d47a1;
+        }
+        .user-message {
+            background: #f1f8e9;
+            color: #33691e;
+            text-align: right;
+        }
+        .system-message {
+            background: #fff3e0;
+            color: #e65100;
+            font-style: italic;
+        }
+        #input-container {
+            display: flex;
+            gap: 10px;
+        }
+        #user-input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        #send-btn {
+            padding: 10px 20px;
+            background: #1976d2;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        #send-btn:hover {
+            background: #1565c0;
+        }
+        #send-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        .error {
+            background: #ffebee;
+            color: #c62828;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        .results {
+            background: #e8f5e9;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 20px 0;
+        }
+        .results h3 {
+            margin-top: 0;
+            color: #2e7d32;
+        }
+        .field-result {
+            margin: 5px 0;
+            padding: 8px;
+            background: white;
+            border-radius: 4px;
+        }
+        .field-name {
+            font-weight: bold;
+            color: #1b5e20;
+        }
+        .info {
+            background: #e3f2fd;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Chatfield Browser Example</h1>
+        <p>This example demonstrates basic usage of Chatfield in a browser environment using a LiteLLM proxy.</p>
+
+        <div class="info">
+            <strong>Prerequisites:</strong>
+            <ol>
+                <li>Build the browser bundle: <code>npm run build</code></li>
+                <li>Start the LiteLLM proxy: <code>npm run proxy</code> (in another terminal)</li>
+                <li>Serve this page: <code>npm run serve:examples</code></li>
+            </ol>
+        </div>
+
+        <div id="chat-container"></div>
+
+        <div id="input-container">
+            <input
+                type="text"
+                id="user-input"
+                placeholder="Type your response..."
+                disabled
+            />
+            <button id="send-btn" disabled>Send</button>
+        </div>
+
+        <div id="results" style="display: none;" class="results">
+            <h3>Collected Data:</h3>
+            <div id="results-content"></div>
+        </div>
+    </div>
+
+    <script type="module">
+        // Import Chatfield from the ESM build
+        import { chatfield, Interviewer } from '../../dist/esm/index.js';
+
+        // Configuration
+        const PROXY_URL = 'http://localhost:4000';
+
+        // DOM elements
+        const chatContainer = document.getElementById('chat-container');
+        const userInput = document.getElementById('user-input');
+        const sendBtn = document.getElementById('send-btn');
+        const resultsDiv = document.getElementById('results');
+        const resultsContent = document.getElementById('results-content');
+
+        // State
+        let interviewer = null;
+        let isProcessing = false;
+
+        // Utility functions
+        function addMessage(content, type = 'ai') {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${type}-message`;
+            messageDiv.textContent = content;
+            chatContainer.appendChild(messageDiv);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        function showError(message) {
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'error';
+            errorDiv.textContent = `Error: ${message}`;
+            chatContainer.appendChild(errorDiv);
+        }
+
+        function showResults(interview) {
+            resultsDiv.style.display = 'block';
+            resultsContent.innerHTML = '';
+
+            for (const [fieldName, fieldData] of Object.entries(interview._chatfield.fields)) {
+                if (fieldData.value) {
+                    const fieldDiv = document.createElement('div');
+                    fieldDiv.className = 'field-result';
+                    fieldDiv.innerHTML = `
+                        <span class="field-name">${fieldName}:</span>
+                        ${fieldData.value.value || 'N/A'}
+                    `;
+                    resultsContent.appendChild(fieldDiv);
+                }
+            }
+        }
+
+        async function sendMessage() {
+            const message = userInput.value.trim();
+            if (!message || isProcessing) return;
+
+            // Disable input
+            userInput.disabled = true;
+            sendBtn.disabled = true;
+            isProcessing = true;
+
+            // Add user message
+            addMessage(message, 'user');
+            userInput.value = '';
+
+            try {
+                // Send to interviewer
+                const response = await interviewer.go(message);
+
+                if (response) {
+                    // Add AI response
+                    addMessage(response, 'ai');
+
+                    // Re-enable input
+                    userInput.disabled = false;
+                    sendBtn.disabled = false;
+                    userInput.focus();
+                } else {
+                    // Conversation complete
+                    addMessage('Thank you! The conversation is complete.', 'system');
+                    showResults(interviewer.interview);
+                    userInput.disabled = true;
+                    sendBtn.disabled = true;
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showError(error.message);
+                userInput.disabled = false;
+                sendBtn.disabled = false;
+            } finally {
+                isProcessing = false;
+            }
+        }
+
+        async function startConversation() {
+            try {
+                addMessage('Initializing conversation...', 'system');
+
+                // Define the interview
+                const interview = chatfield()
+                    .type('Contact Form')
+                    .desc('Collect basic contact information')
+                    .field('name')
+                        .desc('Your full name')
+                        .must('include first and last name')
+                    .field('email')
+                        .desc('Your email address')
+                        .must('be a valid email format')
+                    .field('age')
+                        .desc('Your age')
+                        .as_int()
+                        .must('be between 18 and 120')
+                    .build();
+
+                // Create interviewer with proxy URL
+                interviewer = new Interviewer(interview, {
+                    proxyUrl: PROXY_URL
+                });
+
+                // Start conversation
+                const firstMessage = await interviewer.go();
+
+                if (firstMessage) {
+                    addMessage(firstMessage, 'ai');
+                    userInput.disabled = false;
+                    sendBtn.disabled = false;
+                    userInput.focus();
+                }
+            } catch (error) {
+                console.error('Initialization error:', error);
+                showError(`Failed to start conversation: ${error.message}`);
+            }
+        }
+
+        // Event listeners
+        sendBtn.addEventListener('click', sendMessage);
+        userInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+
+        // Start the conversation when page loads
+        window.addEventListener('load', startConversation);
+    </script>
+</body>
+</html>
