@@ -147,6 +147,11 @@
 
     <script type="module">
         // Import Chatfield from the ESM build
+        // TODO HERE
+        // Title: TypeScript and JavaScript packages using tsc and rollup
+        // This is not resolving
+        // Uncaught TypeError: Failed to resolve module specifier "@langchain/langgraph". Relative references must start with either "/", "./", or "../".
+        // The build is talking about circular dependencies, not sure if related
         import { chatfield, Interviewer } from '../../dist/esm/index.js';
 
         // Configuration

@@ -3,23 +3,33 @@
   "version": "0.1.0",
   "description": "Conversational data collection powered by LLMs - TypeScript/JavaScript implementation",
   "main": "dist/index.js",
-  "module": "dist/esm/index.js",
-  "browser": "dist/esm/index.js",
+  "module": "dist/bundled/esm/index.js",
+  "browser": "dist/bundled/esm/index.js",
   "types": "dist/index.d.ts",
   "exports": {
     ".": {
-      "import": "./dist/esm/index.js",
+      "import": "./dist/bundled/esm/index.js",
       "require": "./dist/index.js",
-      "browser": "./dist/esm/index.js",
+      "browser": "./dist/bundled/esm/index.js",
       "node": "./dist/index.js",
       "types": "./dist/index.d.ts",
-      "default": "./dist/index.js"
+      "default": "./dist/bundled/esm/index.js"
+    },
+    "./lean": {
+      "import": "./dist/lean/esm/index.js",
+      "require": "./dist/index.js",
+      "browser": "./dist/lean/esm/index.js",
+      "node": "./dist/index.js",
+      "types": "./dist/index.d.ts",
+      "default": "./dist/lean/esm/index.js"
     }
   },
   "scripts": {
     "build": "npm run build:node && npm run build:browser",
-    "build:node": "tsc",
-    "build:browser": "rollup -c",
+    "build:node": "tsc --module commonjs",
+    "build:browser": "npm run build:browser:bundled && npm run build:browser:lean",
+    "build:browser:bundled": "VARIANT=bundled rollup --config rollup.config.mjs",
+    "build:browser:lean": "VARIANT=lean rollup --config rollup.config.mjs",
     "dev": "tsc --watch",
     "test": "jest --silent",
     "test:verbose": "jest",
@@ -28,7 +38,7 @@
     "clean": "rm -rf dist",
     "prepublishOnly": "npm run build",
     "proxy": "cd ../Python && python litellm_proxy.py",
-    "serve:examples": "http-server -p 8080 -c-1 --cors",
+    "examples": "http-server . -p 8080 -c -1",
     "build-and-run": "npx tsc minimal.ts --project tsconfig.run.json && node dist/minimal.js",
     "min": "npx tsx minimal.ts"
   },
@@ -43,11 +53,9 @@
   "author": "Claudey With a Chance of DevOps",
   "license": "Apache-2.0",
   "dependencies": {
-    "@langchain/core": "^0.3.72",
+    "@langchain/core": "^0.3.78",
     "@langchain/langgraph": "^1.0.0a3",
-    "@langchain/openai": "^0.6.9",
-    "@types/uuid": "^10.0.0",
-    "dotenv": "^17.2.1",
+    "@langchain/openai": "^0.6.14",
     "handlebars": "^4.7.8",
     "openai": "^4.70.0",
     "reflect-metadata": "^0.1.13",
@@ -61,22 +69,57 @@
     "@rollup/plugin-typescript": "^12.1.4",
     "@types/jest": "^29.5.14",
     "@types/node": "^20.0.0",
+    "@types/uuid": "^10.0.0",
     "@types/validator": "^13.15.2",
     "@typescript-eslint/eslint-plugin": "^6.0.0",
     "@typescript-eslint/parser": "^6.0.0",
+    "dotenv": "^17.2.1",
     "eslint": "^8.0.0",
     "http-server": "^14.1.1",
     "jest": "^29.7.0",
     "rollup": "^4.52.3",
+    "rollup-plugin-polyfill-node": "^0.13.0",
     "ts-jest": "^29.4.1",
     "tslib": "^2.8.1",
     "typescript": "^5.0.0"
   },
   "peerDependencies": {
-    "react": "^18.0.0 || ^19.0.0"
+    "@langchain/core": "^0.3.78",
+    "@langchain/langgraph": "^1.0.0a3",
+    "@langchain/openai": "^0.6.14",
+    "handlebars": "^4.7.8",
+    "openai": "^4.70.0",
+    "react": "^18.0.0 || ^19.0.0",
+    "reflect-metadata": "^0.1.13",
+    "uuid": "^11.1.0",
+    "zod": "^3.25.76"
   },
   "peerDependenciesMeta": {
+    "@langchain/core": {
+      "optional": true
+    },
+    "@langchain/langgraph": {
+      "optional": true
+    },
+    "@langchain/openai": {
+      "optional": true
+    },
+    "handlebars": {
+      "optional": true
+    },
+    "openai": {
+      "optional": true
+    },
     "react": {
+      "optional": true
+    },
+    "reflect-metadata": {
+      "optional": true
+    },
+    "uuid": {
+      "optional": true
+    },
+    "zod": {
       "optional": true
     }
   },

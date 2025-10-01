@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chatfield Minimal Example</title>
+</head>
+<body>
+  <h1>Chatfield Browser Example</h1>
+  <div id="output"></div>
+
+  <script type="importmap">
+  {
+    "imports": {
+      "@langchain/core/": "https://esm.sh/@langchain/core@0.3.72/",
+      "@langchain/langgraph/web": "https://esm.sh/@langchain/langgraph@0.4.6/web",
+      "@langchain/langgraph/prebuilt": "https://esm.sh/@langchain/langgraph@0.4.6/prebuilt",
+      "@langchain/openai": "https://esm.sh/@langchain/openai@0.6.9",
+      "uuid": "https://esm.sh/uuid@11.1.0",
+      "zod": "https://esm.sh/zod@3.25.76",
+      "handlebars": "https://esm.sh/handlebars@4.7.8",
+      "fs": "./node-stubs.js",
+      "path": "./node-stubs.js"
+    }
+  }
+  </script>
+
+  <script type="module">
+    console.log(`Hello world`)
+    import { chatfield } from '../../dist/lean/esm/index.js'
+
+    const output = document.getElementById('output')
+    output.innerHTML = '<p>Chatfield loaded successfully!</p>'
+
+    try {
+      // Create a simple interview
+      const interview = chatfield()
+        .field('name', 'Your name')
+        .build()
+
+      output.innerHTML += '<p>Interview created with field: ' + Object.keys(interview._chatfield.fields)[0] + '</p>'
+    } catch (e) {
+      output.innerHTML += '<p style="color: red;">Error: ' + e.message + '</p>'
+    }
+  </script>
+</body>
+</html>
