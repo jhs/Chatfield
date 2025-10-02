@@ -41,9 +41,7 @@
     "clean": "rm -rf dist",
     "prepublishOnly": "npm run build",
     "proxy": "cd ../Python && python litellm_proxy.py",
-    "examples": "http-server . -p 8080 -c -1",
-    "build-and-run": "npx tsc minimal.ts --project tsconfig.run.json && node dist/minimal.js",
-    "min": "npx tsx minimal.ts"
+    "examples": "http-server . -p 8080 -c -1"
   },
   "keywords": [
     "llm",
