@@ -23,8 +23,6 @@ const alwaysExternal = [
   '@opentelemetry/sdk-trace-node',
   '@opentelemetry/sdk-trace-web',
   '@opentelemetry/exporter-trace-otlp-http',
-  'fs',  // Node.js only - cannot polyfill for browser
-  'path'  // Node.js only - cannot polyfill for browser
 ];
 
 // Dependencies to bundle in "core" variant, external in "lean" variant
