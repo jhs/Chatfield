@@ -4,7 +4,6 @@
     "lib": ["ES2020", "DOM"],
     "module": "esnext",
     "declaration": true,
-    "outDir": "./dist",
     "rootDir": "./chatfield",
     "strict": true,
     "esModuleInterop": true,
@@ -30,12 +29,13 @@
   ],
   "exclude": [
     "node_modules",
-    "dist", 
+    "dist",
     "**/*.test.ts",
     "**/*.spec.ts",
     "chatfield/integrations/react.ts",
     "chatfield/integrations/react-components.tsx",
     "chatfield/integrations/copilotkit.tsx",
+    "chatfield/templates/loader.browser.ts",
     "examples/**/*.tsx"
   ]
 }

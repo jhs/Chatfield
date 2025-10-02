@@ -2,35 +2,38 @@
   "name": "@chatfield/core",
   "version": "0.1.0",
   "description": "Conversational data collection powered by LLMs - TypeScript/JavaScript implementation",
-  "main": "dist/index.js",
-  "module": "dist/bundled/esm/index.js",
-  "browser": "dist/bundled/esm/index.js",
-  "types": "dist/index.d.ts",
+  "main": "dist/node/cjs/index.js",
+  "module": "dist/node/esm/index.js",
+  "browser": "dist/lean/esm/index.js",
+  "types": "dist/node/types/index.d.ts",
   "exports": {
     ".": {
-      "import": "./dist/bundled/esm/index.js",
-      "require": "./dist/index.js",
-      "browser": "./dist/bundled/esm/index.js",
-      "node": "./dist/index.js",
-      "types": "./dist/index.d.ts",
-      "default": "./dist/bundled/esm/index.js"
+      "node": {
+        "import": "./dist/node/esm/index.js",
+        "require": "./dist/node/cjs/index.js"
+      },
+      "browser": "./dist/standalone/esm/index.js",
+      "types": "./dist/node/types/index.d.ts",
+      "default": "./dist/node/esm/index.js"
     },
     "./lean": {
       "import": "./dist/lean/esm/index.js",
-      "require": "./dist/index.js",
-      "browser": "./dist/lean/esm/index.js",
-      "node": "./dist/index.js",
-      "types": "./dist/index.d.ts",
-      "default": "./dist/lean/esm/index.js"
+      "types": "./dist/node/types/index.d.ts"
     }
   },
   "scripts": {
-    "build": "npm run build:node && npm run build:browser",
-    "build:node": "tsc --module commonjs",
-    "build:browser": "npm run build:browser:bundled && npm run build:browser:lean",
-    "build:browser:bundled": "VARIANT=bundled rollup --config rollup.config.mjs",
+    "build": "npm run clean && npm run build:node && npm run build:browser",
+
+    "build:node": "npm run build:node:cjs && npm run build:node:esm && npm run build:node:types",
+    "build:node:cjs": "tsc --module node16 --moduleResolution node16 --declaration false --outDir dist/node/cjs",
+    "build:node:esm": "tsc --module esnext --moduleResolution bundler --declaration false --outDir dist/node/esm",
+    "build:node:types": "tsc --declaration --emitDeclarationOnly --outDir dist/node/types",
+
+    "build:browser": "npm run build:browser:lean && npm run build:browser:standalone",
     "build:browser:lean": "VARIANT=lean rollup --config rollup.config.mjs",
-    "dev": "tsc --watch",
+    "build:browser:standalone": "VARIANT=standalone rollup --config rollup.config.mjs",
+
+    "dev": "tsc --watch --outDir dist/node/cjs",
     "test": "jest --silent",
     "test:verbose": "jest",
     "test:watch": "jest --watch",
@@ -63,6 +66,7 @@
     "zod": "^3.25.76"
   },
   "devDependencies": {
+    "@rollup/plugin-alias": "^5.1.1",
     "@rollup/plugin-commonjs": "^28.0.6",
     "@rollup/plugin-node-resolve": "^16.0.1",
     "@rollup/plugin-terser": "^0.4.4",

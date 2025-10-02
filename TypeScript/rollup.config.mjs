@@ -2,7 +2,15 @@ import typescript from '@rollup/plugin-typescript';
 import resolve from '@rollup/plugin-node-resolve';
 import commonjs from '@rollup/plugin-commonjs';
 import terser from '@rollup/plugin-terser';
-import nodePolyfills from 'rollup-plugin-polyfill-node';
+// import nodePolyfills from 'rollup-plugin-polyfill-node';
+import alias from '@rollup/plugin-alias';
+import { fileURLToPath } from 'url';
+import path from 'path';
+
+import bundleTemplates from './rollup-plugin-bundle-templates.mjs';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Dependencies that should ALWAYS be external (not bundled)
 const alwaysExternal = [
@@ -32,8 +40,25 @@ const conditionalExternal = [
   'reflect-metadata'
 ];
 
-const createPlugins = (outDir, includeBundled = false) => {
+const createPlugins = (outDir, _unusedOption = false) => {
   const plugins = [
+    // Bundle templates as strings for browser builds
+    bundleTemplates(),
+
+    // Alias template loader to use browser version
+    alias({
+      entries: [
+        {
+          find: './templates',
+          replacement: path.resolve(__dirname, 'chatfield/templates/loader.browser.ts')
+        },
+        {
+          find: './templates/index',
+          replacement: path.resolve(__dirname, 'chatfield/templates/loader.browser.ts')
+        }
+      ]
+    }),
+
     resolve({
       browser: true,
       preferBuiltins: false,
@@ -43,17 +68,10 @@ const createPlugins = (outDir, includeBundled = false) => {
       ignoreDynamicRequires: true
     }),
     typescript({
-      tsconfig: './tsconfig.json',
+      tsconfig: './tsconfig.rollup.json',
       declaration: false,
       declarationDir: undefined,
       outDir: outDir,
-      exclude: [
-        '**/*.test.ts',
-        '**/*.spec.ts',
-        'chatfield/integrations/react.ts',
-        'chatfield/integrations/react-components.tsx',
-        'chatfield/integrations/copilotkit.tsx'
-      ],
       compilerOptions: {
         // module: 'esnext',
         declaration: false
@@ -62,9 +80,9 @@ const createPlugins = (outDir, includeBundled = false) => {
   ];
 
   // Add polyfills for bundled variant (browser compatibility)
-  if (includeBundled) {
-    plugins.unshift(nodePolyfills());
-  }
+  // if (_unusedOption) {
+  //   plugins.unshift(nodePolyfills());
+  // }
 
   return plugins;
 };
@@ -80,22 +98,22 @@ const onwarn = (warning, warn) => {
 };
 
 // Build configurations
-const bundledConfigs = [
+const standaloneConfigs = [
   // ============================================================================
-  // BUNDLED VARIANT (default "core") - All dependencies bundled
+  // STANDALONE VARIANT (default "core") - All dependencies bundled
   // ============================================================================
 
   // ESM build for modern bundlers and browsers
   {
     input: 'chatfield/index.ts',
     output: {
-      file: 'dist/bundled/esm/index.js',
+      file: 'dist/standalone/esm/index.js',
       format: 'esm',
       sourcemap: true,
       exports: 'named'
     },
     external: alwaysExternal,
-    plugins: createPlugins('dist/bundled/esm', true),
+    plugins: createPlugins('dist/standalone/esm', true),
     onwarn
   },
 
@@ -103,20 +121,20 @@ const bundledConfigs = [
   // {
   //   input: 'chatfield/index.ts',
   //   output: {
-  //     file: 'dist/bundled/esm/index.min.js',
+  //     file: 'dist/standalone/esm/index.min.js',
   //     format: 'esm',
   //     sourcemap: true,
   //     exports: 'named'
   //   },
   //   external: alwaysExternal,
-  //   plugins: [...createPlugins('dist/bundled/esm', true), terser()]
+  //   plugins: [...createPlugins('dist/standalone/esm', true), terser()]
   // },
 
   // UMD build for CDN usage
   // {
   //   input: 'chatfield/index.ts',
   //   output: {
-  //     file: 'dist/bundled/umd/chatfield.js',
+  //     file: 'dist/standalone/umd/chatfield.js',
   //     format: 'umd',
   //     name: 'Chatfield',
   //     sourcemap: true,
@@ -127,14 +145,14 @@ const bundledConfigs = [
   //     }
   //   },
   //   external: alwaysExternal,
-  //   plugins: createPlugins('dist/bundled/umd', true)
+  //   plugins: createPlugins('dist/standalone/umd', true)
   // },
 
   // Minified UMD build
   // {
   //   input: 'chatfield/index.ts',
   //   output: {
-  //     file: 'dist/bundled/umd/chatfield.min.js',
+  //     file: 'dist/standalone/umd/chatfield.min.js',
   //     format: 'umd',
   //     name: 'Chatfield',
   //     sourcemap: true,
@@ -145,7 +163,7 @@ const bundledConfigs = [
   //     }
   //   },
   //   external: alwaysExternal,
-  //   plugins: [...createPlugins('dist/bundled/umd', true), terser()]
+  //   plugins: [...createPlugins('dist/standalone/umd', true), terser()]
   // }
 ];
 
@@ -238,11 +256,13 @@ const leanConfigs = [
   // }
 ];
 
-// Export based on VARIANT environment variable
-const variant = process.env.VARIANT;
-
-export default variant === 'bundled'
-  ? bundledConfigs
-  : variant === 'lean'
-    ? leanConfigs
-    : [...bundledConfigs, ...leanConfigs];
+// Export the appropriate config based on VARIANT env variable.
+let configs;
+if (process.env.VARIANT === 'standalone') {
+  configs = standaloneConfigs;
+} else if (process.env.VARIANT === 'lean') {
+  configs = leanConfigs;
+} else {
+  throw new Error(`Invalid VARIANT value: ${process.env.VARIANT}. Must be 'standalone' or 'lean'`);
+}
+export default configs;

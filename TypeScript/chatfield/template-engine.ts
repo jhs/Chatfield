@@ -2,28 +2,17 @@
  * Handlebars template engine for prompt generation.
  */
 
-import * as fs from 'fs';
-import * as path from 'path';
 import * as Handlebars from 'handlebars';
+import { getTemplate, getTemplatePartial, listTemplatePartials } from './templates';
 
 export class TemplateEngine {
-  private templatesDir: string;
   private templateCache: Map<string, HandlebarsTemplateDelegate> = new Map();
   private partialsCache: Map<string, HandlebarsTemplateDelegate> = new Map();
 
   /**
    * Initialize the template engine.
-   * @param templatesDir Path to templates directory. Defaults to /Prompts at project root.
    */
-  constructor(templatesDir?: string) {
-    if (!templatesDir) {
-      // Default to /Prompts directory at project root
-      const projectRoot = path.join(__dirname, '..', '..');
-      templatesDir = path.join(projectRoot, 'Prompts');
-    }
-
-    this.templatesDir = templatesDir;
-
+  constructor() {
     // Register custom helpers
     this.registerHelpers();
 
@@ -269,26 +258,19 @@ export class TemplateEngine {
    * Load all partial templates from partials directory.
    */
   private loadPartials(): void {
-    const partialsDir = path.join(this.templatesDir, 'partials');
+    const partialNames = listTemplatePartials();
 
-    if (!fs.existsSync(partialsDir)) {
-      return;
-    }
+    for (const partialName of partialNames) {
+      try {
+        const partialSource = getTemplatePartial(partialName);
 
-    const partialFiles = fs.readdirSync(partialsDir)
-      .filter(file => file.endsWith('.hbs.txt'));
-
-    for (const partialFile of partialFiles) {
-      // Get partial name without extension
-      const partialName = partialFile.replace('.hbs.txt', '');
-
-      const partialPath = path.join(partialsDir, partialFile);
-      const partialSource = fs.readFileSync(partialPath, 'utf-8');
-
-      // Compile and register the partial
-      const compiledPartial = Handlebars.compile(partialSource);
-      this.partialsCache.set(partialName, compiledPartial);
-      Handlebars.registerPartial(partialName, partialSource);
+        // Compile and register the partial
+        const compiledPartial = Handlebars.compile(partialSource);
+        this.partialsCache.set(partialName, compiledPartial);
+        Handlebars.registerPartial(partialName, partialSource);
+      } catch (error) {
+        console.warn(`Failed to load partial: ${partialName}`, error);
+      }
     }
   }
 
@@ -303,14 +285,8 @@ export class TemplateEngine {
       return this.templateCache.get(templateName)!;
     }
 
-    // Load template file
-    const templatePath = path.join(this.templatesDir, `${templateName}.hbs.txt`);
-
-    if (!fs.existsSync(templatePath)) {
-      throw new Error(`Template not found: ${templatePath}`);
-    }
-
-    const templateSource = fs.readFileSync(templatePath, 'utf-8');
+    // Load template content
+    const templateSource = getTemplate(templateName);
 
     // Compile and cache
     const template = Handlebars.compile(templateSource);
