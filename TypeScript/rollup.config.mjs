@@ -17,6 +17,14 @@ const alwaysExternal = [
   'react',
   'react-dom',
   'dotenv',
+];
+
+// Dependencies to bundle in "core" variant, external in "lean" variant
+const conditionalExternal = [
+  '@langchain/core',
+  '@langchain/langgraph',
+  '@langchain/langgraph/web',
+  '@langchain/openai',
 
   'langsmith',
   'langsmith/run_trees',
@@ -27,20 +35,12 @@ const alwaysExternal = [
   '@opentelemetry/sdk-trace-node',
   '@opentelemetry/sdk-trace-web',
   '@opentelemetry/exporter-trace-otlp-http',
-];
 
-// Dependencies to bundle in "core" variant, external in "lean" variant
-const conditionalExternal = [
-  '@langchain/core',
-  '@langchain/langgraph',
-  '@langchain/langgraph/web',
-  '@langchain/openai',
   'openai',
   'zod',
   'handlebars',
   'reflect-metadata',
 
-  'semver',
   'zod-to-json-schema',
 ];
 
