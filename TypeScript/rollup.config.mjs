@@ -35,10 +35,12 @@ const conditionalExternal = [
   '@langchain/openai',
   'openai',
   'zod',
-  'uuid',
   'handlebars',
   'reflect-metadata'
 ];
+
+// Dependencies deliberately bundled in all cases.
+// uuid - Small enough to just bundle.
 
 const createPlugins = (outDir, _unusedOption = false) => {
   const plugins = [
