@@ -59,14 +59,7 @@ const createPlugins = (outDir, _unusedOption = false) => {
       ]
     }),
 
-    resolve({
-      browser: true,
-      preferBuiltins: false,
-      extensions: ['.ts', '.tsx', '.js', '.jsx']
-    }),
-    commonjs({
-      ignoreDynamicRequires: true
-    }),
+    // TypeScript must come before resolve/commonjs to handle .ts files
     typescript({
       tsconfig: './tsconfig.rollup.json',
       declaration: false,
@@ -76,6 +69,16 @@ const createPlugins = (outDir, _unusedOption = false) => {
         // module: 'esnext',
         declaration: false
       }
+    }),
+
+    resolve({
+      browser: true,
+      preferBuiltins: false,
+      extensions: ['.ts', '.tsx', '.js', '.jsx']
+    }),
+    commonjs({
+      // TODO: Should this always be in all cases?
+      ignoreDynamicRequires: true
     })
   ];
 
