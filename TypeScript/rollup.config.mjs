@@ -17,7 +17,11 @@ const alwaysExternal = [
   'react',
   'react-dom',
   'dotenv',
-  'langsmith',  // LangChain tracing (dev/debugging only)
+
+  'langsmith',
+  'langsmith/run_trees',
+  'langsmith/singletons/traceable',
+
   '@opentelemetry/api',  // Optional tracing
   '@opentelemetry/sdk-trace-base',
   '@opentelemetry/sdk-trace-node',
@@ -34,7 +38,10 @@ const conditionalExternal = [
   'openai',
   'zod',
   'handlebars',
-  'reflect-metadata'
+  'reflect-metadata',
+
+  'semver',
+  'zod-to-json-schema',
 ];
 
 // Dependencies deliberately bundled in all cases.
@@ -184,13 +191,29 @@ const leanConfigs = [
       sourcemap: true,
       exports: 'named'
     },
+
+    external: [...alwaysExternal, ...conditionalExternal],
+
     // For lean build: make EVERYTHING from node_modules external
-    external: (id) => {
-      // Keep our own code (non-node_modules)
-      if (!id.includes('node_modules')) return false
-      // Make everything in node_modules external
-      return true
-    },
+    // external: (id) => {
+    //   console.log('External check for:', id)
+
+    //   const allExternals = [...alwaysExternal, ...conditionalExternal];
+
+    //   // If the ID is a member of allExternals, treat as external.
+    //   if (allExternals.includes(id)) {
+    //     console.log('  Confirmed external: ', id);
+    //     return true;
+    //   }
+
+    //   // If the ID contains the string "langsmith", throw an error.
+    //   if (id.includes('langsmith')) {
+    //     throw new Error(`Saw "langsmith": ${id}`);
+    //   }
+
+    //   return false;
+    // },
+
     plugins: createPlugins('dist/lean/esm', false),  // No polyfills for lean (uses import maps/bundler)
     onwarn
   },
