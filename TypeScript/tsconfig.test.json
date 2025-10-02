@@ -4,7 +4,7 @@
     "types": ["node", "jest"]
   },
   "include": [
-    "src/**/*",
+    "chatfield/**/*",
     "tests/**/*",
     "examples/**/*"
   ],
