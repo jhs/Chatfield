@@ -40,7 +40,7 @@ const InterviewState = Annotation.Root({
   }),
   interview: Annotation<Interview | null>({
     default: () => null,
-    reducer: (a, b) => mergeInterviews(a, b),
+    reducer: (a: Interview | null, b: Interview | null) => mergeInterviews(a, b),
   })
 })
 
@@ -130,7 +130,7 @@ export class Interviewer {
     let newSystemMessage: BaseMessage | null = null
     
     // Add system message if this is the start
-    const priorSystemMessages = (state.messages || []).filter(msg => msg instanceof SystemMessage)
+    const priorSystemMessages = (state.messages || []).filter((msg: BaseMessage) => msg instanceof SystemMessage)
     if (priorSystemMessages.length === 0) {
       console.log(`Start conversation in thread: ${this.config.configurable.thread_id}`)
       const systemPrompt = this.mkSystemPrompt(state)
