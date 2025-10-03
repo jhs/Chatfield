@@ -19,8 +19,10 @@ cd Chatfield/Python
 
 ### 2. Set Up Virtual Environment
 
+Note, **Ubuntu uses `python3`** instead of `python`. Other platforms typically use `python`. *Feedback welcome about success or failure on other platforms, thanks!*
+
 ```bash
-python -m venv .venv
+python3 -m venv .venv
 source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 ```
 
