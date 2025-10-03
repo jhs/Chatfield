@@ -44,6 +44,19 @@ const conditionalExternal = [
   'zod-to-json-schema',
 ];
 
+// Title: Solving Circular Dependencies in Rollup
+//------------------
+// TODO HERE:
+// Still have the circular dependency issues.
+// @langchain
+// langsmith
+// semver
+// zod-to-json-schema
+//
+// My suspicion is because it happens to these unrelated packages, maybe it's
+// something systematic, e.g. pulling in the wrong exports, esm vs cjs, or something else?
+//------------------
+
 // Dependencies deliberately bundled in all cases.
 // uuid - Small enough to just bundle.
 
