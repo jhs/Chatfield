@@ -29,6 +29,8 @@ npm install
 npm link
 ```
 
+**Note** Until the Rollup build works, skip to step 7.
+
 ### 4. Create Your Project Directory
 
 ```bash
@@ -62,8 +64,10 @@ OPENAI_API_KEY=sk-proj-your-actual-key-here
 
 Create a file named `my-first-form.ts`:
 
+**Important:** Until the build works, you must place this file in the Chatfield `TypeScript/` directory or anywhere deeper. You must then import using a relative path to the `chatfield/` source code directory. For example, `TypeScript/my-first-form.ts`:
+
 ```typescript
-import { chatfield, Interviewer } from '@chatfield/core';
+import { chatfield, Interviewer } from './chatfield/';
 
 // Load API key from environment
 process.env['OPENAI_API_KEY'] = process.env['OPENAI_API_KEY'] || '';
