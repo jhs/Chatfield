@@ -86,6 +86,14 @@ print(form._pretty())
 ```bash
 python my_first_form.py
 ```
+**Note,** if you need the `.env.secret` values, source the project's `env.sh` file which will load and export them in your current shell session.
+
+```bash
+# For example, from the Python folder:
+source ../env.sh
+```
+
+**You must use Bash.** (If you use `zsh` or Windows, just type `bash`.)
 
 ## What's Happening?
 
