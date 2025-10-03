@@ -14,7 +14,7 @@ This guide walks you through creating your first Chatfield project in Python.
 
 ```bash
 git clone https://github.com/jhs/Chatfield.git
-cd Chatfield
+cd Chatfield/Python
 ```
 
 ### 2. Set Up Virtual Environment
