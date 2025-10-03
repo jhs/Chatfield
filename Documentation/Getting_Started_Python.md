@@ -38,7 +38,7 @@ pip install --editable .[dev]
 
 ### 4. Configure API Key
 
-Create a `.env.secret` file in the project directory:
+Create a `.env.secret` file **in the Chatfield root folder**:
 
 ```bash
 OPENAI_API_KEY=sk-proj-your-actual-key-here
