@@ -86,18 +86,22 @@ let form = chatfield()
 let interviewer = new Interviewer(form);
 
 // Start the conversation
-let first_message;
-if (process.env['OPENAI_API_KEY']) {
-    first_message = await interviewer.go();
-} else {
-    first_message = 'No OPENAI_API_KEY set yet';
+async function main() {
+    let first_message;
+    if (process.env['OPENAI_API_KEY']) {
+        first_message = await interviewer.go();
+    } else {
+        first_message = 'No OPENAI_API_KEY set yet';
+    }
+
+    // Display the results
+    console.log('-------------');
+    console.log(first_message);
+    console.log('-------------');
+    console.log(form._pretty());
 }
 
-// Display the results
-console.log('-------------');
-console.log(first_message);
-console.log('-------------');
-console.log(form._pretty());
+main()
 ```
 
 ### 9. Run Your Script
