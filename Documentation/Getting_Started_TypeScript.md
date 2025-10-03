@@ -109,8 +109,11 @@ main()
 ```bash
 # Using tsx (TypeScript)
 npx tsx my-first-form.ts
+```
 
-# Or compile and run (TypeScript)
+Or compile TypeScript to JavaScript and run:
+
+```bash
 npx tsc my-first-form.ts
 node my-first-form.js
 ```
