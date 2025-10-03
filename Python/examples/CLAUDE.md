@@ -76,8 +76,8 @@ pip install -e .
 # Or with development dependencies
 pip install -e ".[dev]"
 
-# Load environment variables from .env file
-# Create a .env file with: OPENAI_API_KEY=your-key-here
+# Load environment variables from .env.secret file
+# Create a .env.secret file with: OPENAI_API_KEY=your-key-here
 ```
 
 ## Architecture Notes
@@ -128,7 +128,7 @@ pip install -e ".[dev]"
 - Handle both development and installed package scenarios
 
 ### Environment Variables
-- Support loading from `.env` file via python-dotenv
+- Support loading from `.env.secret` file via python-dotenv
 - Always check for OPENAI_API_KEY before running
 - Provide clear error messages if API key is missing
 
@@ -170,6 +170,6 @@ When creating new examples:
 ## Common Issues and Solutions
 
 - **ImportError**: Ensure chatfield package is installed: `pip install -e ..`
-- **API Key Error**: Set OPENAI_API_KEY environment variable or use .env file
+- **API Key Error**: Set OPENAI_API_KEY environment variable or use .env.secret file
 - **Rate Limit**: Add delays between API calls or reduce example complexity
 - **Path Issues**: Run examples from the Python directory

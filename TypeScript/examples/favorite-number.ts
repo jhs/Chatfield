@@ -24,8 +24,8 @@ import { chatfield } from '../chatfield/builder';
 import { Interview } from '../chatfield/interview';
 import { Interviewer } from '../chatfield/interviewer';
 
-// Load environment variables from top-level .env file
-dotenv.config({ path: path.resolve(__dirname, '../../.env') });
+// Load environment variables from top-level .env.secret file
+dotenv.config({ path: path.resolve(__dirname, '../../.env.secret') });
 
 function createNumberInterview(): Interview {
     /**Create an interview about favorite numbers with many transformations.**/
@@ -188,7 +188,7 @@ async function main(): Promise<void> {
     // Check for API key
     if (!process.env.OPENAI_API_KEY) {
         console.error("Error: OPENAI_API_KEY not found in environment");
-        console.error("Please set your OpenAI API key in .env file");
+        console.error("Please set your OpenAI API key in .env.secret file");
         process.exit(1);
     }
     

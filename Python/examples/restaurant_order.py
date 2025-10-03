@@ -175,7 +175,7 @@ def main():
     # Check for API key
     if not os.getenv('OPENAI_API_KEY'):
         print("Error: OPENAI_API_KEY not found in environment")
-        print("Please set your OpenAI API key in .env file")
+        print("Please set your OpenAI API key in .env.secret file")
         sys.exit(1)
     
     # Create and run the interview

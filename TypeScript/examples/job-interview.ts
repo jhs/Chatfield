@@ -23,8 +23,8 @@ import { Interviewer } from '../chatfield/interviewer'
 import * as readline from 'readline'
 import * as process from 'process'
 
-// Load environment variables from top-level .env file
-dotenv.config({ path: path.resolve(__dirname, '../../.env') })
+// Load environment variables from top-level .env.secret file
+dotenv.config({ path: path.resolve(__dirname, '../../.env.secret') })
 
 /**
  * Create a job interview for a software engineer position
@@ -281,7 +281,7 @@ async function main() {
   // Check for OpenAI API key
   if (!process.env.OPENAI_API_KEY) {
     console.error("Error: OPENAI_API_KEY environment variable is required")
-    console.error("Please set it in your environment or create a .env file")
+    console.error("Please set it in your environment or create a .env.secret file")
     process.exit(1)
   }
   

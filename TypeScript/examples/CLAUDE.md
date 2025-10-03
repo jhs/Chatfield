@@ -90,8 +90,8 @@ npm run build
 # Set up environment variables
 export OPENAI_API_KEY=your-api-key-here
 
-# Or use a .env file
-echo "OPENAI_API_KEY=your-api-key" > .env
+# Or use a .env.secret file
+echo "OPENAI_API_KEY=your-api-key" > .env.secret
 ```
 
 ## Architecture Notes
