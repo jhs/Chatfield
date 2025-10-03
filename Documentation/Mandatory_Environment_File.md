@@ -2,7 +2,7 @@
 
 Chatfield requires API keys to function. When using Chatfield, the `OPENAI_API_KEY` environment variable must be set properly.
 
-If you are working within the Chatfield project (e.g. running an [example script](../TypeScript/examples), you must create a `.env.secret` file in the project root directory.
+If you are working within the Chatfield project (e.g. running an [example script](../TypeScript/examples)), you must create a `.env.secret` file in the project root directory.
 
 Here is a sample file you can use to get started. You must paste your values for all **mandatory** keys.
 
