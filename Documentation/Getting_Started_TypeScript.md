@@ -111,13 +111,6 @@ main()
 npx tsx my-first-form.ts
 ```
 
-Or compile TypeScript to JavaScript and run:
-
-```bash
-npx tsc my-first-form.ts
-node my-first-form.js
-```
-
 ## What's Happening?
 
 1. **Form Definition**: The `chatfield()` builder creates a conversational form with two fields:
