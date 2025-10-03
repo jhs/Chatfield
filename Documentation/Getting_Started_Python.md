@@ -38,7 +38,7 @@ pip install --editable .[dev]
 
 ### 4. Configure API Key
 
-Create a `.env` file in your project directory:
+Create a `.env.secret` file in the project directory:
 
 ```bash
 OPENAI_API_KEY=sk-proj-your-actual-key-here
@@ -218,7 +218,7 @@ python -m pytest
 ### API Key Issues
 
 If you see "No OPENAI_API_KEY set yet":
-1. Verify your `.env` file exists and contains the key
+1. Verify your `.env.secret` file exists and contains the key
 2. Make sure you've activated your virtual environment
 3. Try setting the key directly: `export OPENAI_API_KEY=your-key-here`
 
