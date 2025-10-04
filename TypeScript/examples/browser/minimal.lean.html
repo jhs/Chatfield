@@ -29,22 +29,33 @@
   </script>
 
   <script type="module">
-    console.log(`Hello world`)
     import { chatfield } from '../../dist/lean/esm/index.js'
 
-    const output = document.getElementById('output')
-    output.innerHTML = '<p>Chatfield loaded successfully!</p>'
+    const output = document.getElementById('output');
+    output.innerHTML = '<p>Chatfield OK</p>';
 
-    try {
-      // Create a simple interview
-      const interview = chatfield()
-        .field('name', 'Your name')
-        .build()
+    const form = chatfield()
+      .type('Web Test')
+      .alice()
+        .type('A professional wrestler shouting on TV')
+      .field('name')
+      .field('age')
+        .as_int()
+      .build();
+    
+    const interviewer = new Interviewer(form);
 
-      output.innerHTML += '<p>Interview created with field: ' + Object.keys(interview._chatfield.fields)[0] + '</p>'
-    } catch (e) {
-      output.innerHTML += '<p style="color: red;">Error: ' + e.message + '</p>'
+    async function runInterview() {
+      let userInput;
+
+      while (! form._done) {
+        userInput = null;
+        const msg = await interviewer.go(userInput);
+        output.innerHTML += `<p><strong>Hooray!</strong> Got an AI message: ${msg}</p>`;
+      }
     }
+
+    runInterview();
   </script>
 </body>
 </html>
