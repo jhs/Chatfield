@@ -1,24 +1,20 @@
 {
   "name": "@chatfield/core",
-  "version": "0.1.0",
+  "version": "1.0.0a1",
   "description": "Conversational data collection powered by LLMs - TypeScript/JavaScript implementation",
-  "main": "dist/node/cjs/index.js",
-  "module": "dist/node/esm/index.js",
   "browser": "dist/lean/esm/index.js",
-  "types": "dist/node/types/index.d.ts",
   "exports": {
     ".": {
+      "types": "./dist/node/types/index.d.ts",
       "node": {
         "import": "./dist/node/esm/index.js",
         "require": "./dist/node/cjs/index.js"
       },
-      "browser": "./dist/standalone/esm/index.js",
-      "types": "./dist/node/types/index.d.ts",
-      "default": "./dist/node/esm/index.js"
+      "browser": "./dist/standalone/esm/index.js"
     },
     "./lean": {
-      "import": "./dist/lean/esm/index.js",
-      "types": "./dist/node/types/index.d.ts"
+      "types": "./dist/node/types/index.d.ts",
+      "import": "./chatfield/index.ts"
     }
   },
   "scripts": {
@@ -126,6 +122,7 @@
     }
   },
   "files": [
+    "chatfield",
     "dist",
     "README.md",
     "LICENSE"
