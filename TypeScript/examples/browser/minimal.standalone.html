@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chatfield Minimal Example</title>
+</head>
+<body>
+  <h1>Chatfield Browser Example</h1>
+  <div id="output"></div>
+
+  <script type="module">
+    import { chatfield, Interviewer } from '../../dist/standalone/esm/index.js';
+
+    const output = document.getElementById('output');
+    output.innerHTML = '<p>Chatfield OK</p>';
+
+    const form = chatfield()
+      .type('Web Test')
+      .alice()
+        .type('A professional wrestler shouting on TV')
+      .field('name')
+      .field('age')
+        .as_int()
+      .build();
+    
+    const interviewer = new Interviewer(form);
+
+    async function runInterview() {
+      let userInput;
+
+      while (! form._done) {
+        userInput = null;
+        const msg = await interviewer.go(userInput);
+        output.innerHTML += `<p><strong>Hooray!</strong> Got an AI message: ${msg}</p>`;
+      }
+    }
+
+    runInterview();
+  </script>
+</body>
+</html>
