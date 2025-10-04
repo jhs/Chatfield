@@ -1,13 +1,3 @@
 {
-  "extends": "./tsconfig.json",
-  "exclude": [
-    "node_modules",
-    "dist",
-    "**/*.test.ts",
-    "**/*.spec.ts",
-    "chatfield/integrations/react.ts",
-    "chatfield/integrations/react-components.tsx",
-    "chatfield/integrations/copilotkit.tsx",
-    "examples/**/*.tsx"
-  ]
+  "extends": "./tsconfig.json"
 }

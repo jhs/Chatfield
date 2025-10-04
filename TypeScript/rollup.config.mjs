@@ -85,6 +85,16 @@ const createPlugins = (outDir, _unusedOption = false) => {
       declaration: false,
       declarationDir: undefined,
       outDir: outDir,
+      exclude: [
+        'node_modules/**',
+        'dist/**',
+        '**/*.test.ts',
+        '**/*.spec.ts',
+        'chatfield/integrations/react.ts',
+        'chatfield/integrations/react-components.tsx',
+        'chatfield/integrations/copilotkit.tsx',
+        'examples/**/*.ts',
+      ],
       compilerOptions: {
         // module: 'esnext',
         declaration: false
