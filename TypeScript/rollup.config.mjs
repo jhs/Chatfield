@@ -3,7 +3,6 @@ import resolve from '@rollup/plugin-node-resolve';
 import commonjs from '@rollup/plugin-commonjs';
 import terser from '@rollup/plugin-terser';
 // import nodePolyfills from 'rollup-plugin-polyfill-node';
-import alias from '@rollup/plugin-alias';
 import { fileURLToPath } from 'url';
 import path from 'path';
 
@@ -62,22 +61,7 @@ const conditionalExternal = [
 
 const createPlugins = (outDir, _unusedOption = false) => {
   const plugins = [
-    // Bundle templates as strings for browser builds
     bundleTemplates(),
-
-    // Alias template loader to use browser version
-    alias({
-      entries: [
-        {
-          find: './templates',
-          replacement: path.resolve(__dirname, 'chatfield/templates/loader.browser.ts')
-        },
-        {
-          find: './templates/index',
-          replacement: path.resolve(__dirname, 'chatfield/templates/loader.browser.ts')
-        }
-      ]
-    }),
 
     // TypeScript must come before resolve/commonjs to handle .ts files
     typescript({
@@ -108,10 +92,11 @@ const createPlugins = (outDir, _unusedOption = false) => {
       preferBuiltins: false,
       extensions: ['.ts', '.tsx', '.js', '.jsx']
     }),
+
     commonjs({
       // TODO: Should this always be in all cases?
       ignoreDynamicRequires: true
-    })
+    }),
   ];
 
   // Add polyfills for bundled variant (browser compatibility)
