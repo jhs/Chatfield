@@ -82,8 +82,9 @@ const createPlugins = (outDir, _unusedOption = false) => {
     // TypeScript must come before resolve/commonjs to handle .ts files
     typescript({
       tsconfig: './tsconfig.rollup.json',
-      declaration: false,
-      declarationDir: undefined,
+      declaration: true,
+      declarationMap: true,
+      declarationDir: outDir,
       outDir: outDir,
       exclude: [
         'node_modules/**',
@@ -97,7 +98,8 @@ const createPlugins = (outDir, _unusedOption = false) => {
       ],
       compilerOptions: {
         // module: 'esnext',
-        declaration: false
+        declaration: true,
+        declarationMap: true
       }
     }),
 
