@@ -18,7 +18,7 @@ const alwaysExternal = [
   'dotenv',
 ];
 
-// Dependencies to bundle in "core" variant, external in "lean" variant
+// Dependencies external only in "lean" variant
 const conditionalExternal = [
   '@langchain/core',
   '@langchain/langgraph',
@@ -43,19 +43,6 @@ const conditionalExternal = [
   'zod-to-json-schema',
 ];
 
-// Title: Solving Circular Dependencies in Rollup
-//------------------
-// TODO HERE:
-// Still have the circular dependency issues.
-// @langchain
-// langsmith
-// semver
-// zod-to-json-schema
-//
-// My suspicion is because it happens to these unrelated packages, maybe it's
-// something systematic, e.g. pulling in the wrong exports, esm vs cjs, or something else?
-//------------------
-
 // Dependencies deliberately bundled in all cases.
 // uuid - Small enough to just bundle.
 
@@ -65,14 +52,15 @@ const createPlugins = (outDir, _unusedOption = false) => {
 
     // TypeScript must come before resolve/commonjs to handle .ts files
     typescript({
+      module: 'esnext',
       tsconfig: './tsconfig.rollup.json',
       declaration: true,
       declarationMap: true,
       declarationDir: outDir,
       outDir: outDir,
       exclude: [
-        'node_modules/**',
-        'dist/**',
+        // 'node_modules/**',
+        // 'dist/**',
         '**/*.test.ts',
         '**/*.spec.ts',
         'chatfield/integrations/react.ts',
@@ -80,11 +68,11 @@ const createPlugins = (outDir, _unusedOption = false) => {
         'chatfield/integrations/copilotkit.tsx',
         'examples/**/*.ts',
       ],
-      compilerOptions: {
-        // module: 'esnext',
-        declaration: true,
-        declarationMap: true
-      }
+      // compilerOptions: {
+      //   module: 'esnext',
+      //   declaration: true,
+      //   declarationMap: true
+      // },
     }),
 
     resolve({
@@ -134,7 +122,7 @@ const standaloneConfigs = [
     },
     external: alwaysExternal,
     plugins: createPlugins('dist/standalone/esm', true),
-    onwarn
+    // onwarn,
   },
 
   // Minified ESM build
