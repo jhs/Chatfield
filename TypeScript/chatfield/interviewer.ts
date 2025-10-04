@@ -106,10 +106,14 @@ export class Interviewer {
       .addNode('tools', this.tools.bind(this))
       .addNode('digest', this.digest.bind(this))
       .addNode('teardown', this.teardown.bind(this))
+
       .addEdge(START, 'initialize')
       .addEdge('initialize', 'think')
+
       .addConditionalEdges('think', this.routeFromThink.bind(this))
+
       .addEdge('listen', 'think')
+
       .addConditionalEdges('tools', this.routeFromTools.bind(this), ['think', 'digest'])
       .addConditionalEdges('digest', this.routeFromDigest.bind(this), ['tools', 'think'])
       .addEdge('teardown', END)
