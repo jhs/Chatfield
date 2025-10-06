@@ -13,7 +13,7 @@ Steps:
 5. If no changes have happened during this time frame, STOP this procedure and tell the user **There is nothing to do**.
 6. ALWAYS run a second `pwd` in case Bash configs have changed it.
 7. Change to the wiki repo and ALWAYS confirm with a `pwd`; then `git pull` any changes from its origin
-8. Create a new Markdown file for the content. The filename contains pipe characters: `Diary | Daily | YYYY_MM_DD.md`
+8. Create a new Markdown file for the content. The filename contains pipe characters: `Daily | YYYY_MM_DD.md`
 9. `git add .` (to avoid issues with pipe characters), then commit with a message and push.
 10. END OF PROCEDURE
 

@@ -10,11 +10,11 @@ Steps:
 2. Determine the week range (Sunday to Saturday) for the requested week. If no week specified, use the most recently completed week (last Sunday through last Saturday).
 3. ALWAYS run a `pwd` in case Bash configs have changed it.
 4. Change to the wiki repo and ALWAYS confirm with a `pwd`; then `git pull` any changes from its origin
-5. Read all daily diary entries for the week under analysis. The filenames follow the pattern: `Diary | Daily | YYYY_MM_DD.md`
+5. Read all daily diary entries for the week under analysis. The filenames follow the pattern: `Daily | YYYY_MM_DD.md`
 6. If no daily entries exist for this week, STOP this procedure and tell the user **There is nothing to do**.
 7. Analyze the daily entries to create a narrative summary of the high-level themes and changes for the entire week.
 8. ALWAYS run a `pwd` to confirm still in wiki directory.
-9. Create a new Markdown file for the weekly content. The filename contains pipe characters: `Diary | Weekly | YYYY_WW.md` where WW is the ISO week number (01-53).
+9. Create a new Markdown file for the weekly content. The filename contains pipe characters: `Weekly | YYYY_WW.md` where WW is the ISO week number (01-53).
 10. `git add .` (to avoid issues with pipe characters), then commit with a message and push.
 11. END OF PROCEDURE
 
