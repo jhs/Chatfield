@@ -24,7 +24,11 @@
         .as_int()
       .build();
     
-    const interviewer = new Interviewer(form);
+    const interviewer = new Interviewer(form, {
+      baseUrl: 'http://127.0.0.1:4000',
+      apiKey: 'api-key-TEST',
+      llmId: 'jason',
+    });
 
     async function runInterview() {
       let userInput;
