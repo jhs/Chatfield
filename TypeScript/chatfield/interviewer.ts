@@ -11,8 +11,27 @@ import {
   Command,
   Annotation,
   addMessages,
-  interrupt,
-} from '@langchain/langgraph'
+// // Langgraph on web: https://langchain-ai.github.io/langgraphjs/how-tos/use-in-web-environments/
+  // interrupt,
+// } from '@langchain/langgraph'
+  Interrupt,
+  INTERRUPT,
+  GraphInterrupt,
+  NodeInterrupt,
+} from '@langchain/langgraph/web';
+function interrupt(message:string) {
+  console.log(`---- XXX Yay the interrupt was called XXX ----`);
+  // console.log(`Args:`, args);
+  // const allObjects = {
+  //   INTERRUPT,
+  //   GraphInterrupt,
+  //   NodeInterrupt,
+  // }
+  // console.log(`All objects:`, allObjects);
+  debugger
+  // throw new Error(`XXX Yay the interrupt was called XXX`);
+  throw new NodeInterrupt(message);
+}
 import { 
   BaseMessage, 
   HumanMessage, 
