@@ -15,6 +15,8 @@ Steps:
 7. Analyze the daily entries to create a narrative summary of the high-level themes and changes for the entire week.
 8. ALWAYS run a `pwd` to confirm still in wiki directory.
 9. Create a new Markdown file for the weekly content. The filename contains pipe characters: `Weekly | YYYY_WW.md` where WW is the ISO week number (01-53).
+10. Concatenate all relevant daily .md files into a new file `Daily | YYYY_MM_DD to YYYY_MM_DD.md` newest content first, oldest content last.
+11. Rename using `git mv` all relevant daily `.md` files to have extension `.md_` (keeping them around but disabling from rendering).
 10. `git add .` (to avoid issues with pipe characters), then commit with a message and push.
 11. END OF PROCEDURE
 
