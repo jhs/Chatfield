@@ -37,7 +37,7 @@
     "clean": "rm -rf dist",
     "prepublishOnly": "npm run build",
     "proxy": "cd ../Python && python litellm_proxy.py",
-    "examples": "http-server . -p 8080 -c -1"
+    "examples": "http-server . -p 8080 -c-1"
   },
   "keywords": [
     "llm",
