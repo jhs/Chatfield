@@ -9,7 +9,7 @@ Steps:
 1. Confirm the local system date by running: `date +%Y-%m-%d`
 2. ALWAYS run a `pwd` in case Bash init scripts has changed it.
 3. Use `git log` and `git diff`, filtering for the time frame in scope (e.g. "24 hours ago") to see all commit messages and changes. Analyze the commits to create a narrative summary of the high-level changes made.
-4. Use `git diff` to see if I have uncommitted changes. If so, capture that as tomorrow's plan. Otherwise, tomorrow will have "No plan"
+4. Use `git diff` to see if I have uncommitted changes. If so, capture that as tomorrow's plan. Otherwise, tomorrow will have "no plan"
 5. If no changes have happened during this time frame, STOP this procedure and tell the user **There is nothing to do**.
 6. ALWAYS run a second `pwd` in case Bash configs have changed it.
 7. Change to the wiki repo and ALWAYS confirm with a `pwd`; then `git pull` any changes from its origin
@@ -36,9 +36,9 @@ The template below is default behavior, but allow the user to optionally overrid
 * <Etc>
 <^^ the above is a bullet list of one or more roughly independent changes made (e.g. CLI options vs. documentation vs. unit tests). Summarize in a few words, second person, each change.>
 
-## <Either "No Plan" if there is no plan for tomorrow or else "Plan for Tomorrow">
+## Plan for Tomorrow <But omit this entire section if there is no plan for tomorrow>
 
-<Only if there is a plan for tomorrow from uncommitted changes, provide a short summary>
+<Short summary of plan for tomorrow as apparent from uncommited changes>
 
 ## Commits
 
