@@ -77,6 +77,238 @@ describe('Interviewer', () => {
       expect(interviewer.llm).toBeDefined()
       expect(interviewer.llm).toBe(mockLlm)
     })
+
+    it('accepts api key from options', () => {
+      const interview = chatfield()
+        .type('SimpleInterview')
+        .field('name').desc('Your name')
+        .build()
+
+      // Should not throw when API key is provided in options
+      expect(() => {
+        new Interviewer(interview, {
+          apiKey: 'test-api-key',
+          baseUrl: 'https://my-proxy.com'
+        })
+      }).not.toThrow()
+    })
+
+    it('accepts api key from environment', () => {
+      const interview = chatfield()
+        .type('SimpleInterview')
+        .field('name').desc('Your name')
+        .build()
+
+      // Temporarily set environment variable
+      const originalKey = process.env.OPENAI_API_KEY
+      process.env.OPENAI_API_KEY = 'test-env-key'
+
+      try {
+        expect(() => {
+          new Interviewer(interview, {
+            baseUrl: 'https://my-proxy.com'
+          })
+        }).not.toThrow()
+      } finally {
+        // Restore original value
+        if (originalKey !== undefined) {
+          process.env.OPENAI_API_KEY = originalKey
+        } else {
+          delete process.env.OPENAI_API_KEY
+        }
+      }
+    })
+
+    it('throws when no api key provided', () => {
+      const interview = chatfield()
+        .type('SimpleInterview')
+        .field('name').desc('Your name')
+        .build()
+
+      // Temporarily remove environment variable
+      const originalKey = process.env.OPENAI_API_KEY
+      delete process.env.OPENAI_API_KEY
+
+      try {
+        expect(() => {
+          new Interviewer(interview, {
+            baseUrl: 'https://my-proxy.com'
+          })
+        }).toThrow('OPENAI_API_KEY');
+      } finally {
+        // Restore original value
+        if (originalKey !== undefined) {
+          process.env.OPENAI_API_KEY = originalKey
+        }
+      }
+    })
+
+    it('configures custom base url', () => {
+      const interview = chatfield()
+        .type('SimpleInterview')
+        .field('name').desc('Your name')
+        .build()
+
+      const interviewer = new Interviewer(interview, {
+        apiKey: 'test-key',
+        baseUrl: 'https://my-custom-proxy.com/v1'
+      })
+
+      expect(interviewer.llm).toBeDefined()
+    })
+
+    it('uses default base url when not specified', () => {
+      const interview = chatfield()
+        .type('SimpleInterview')
+        .field('name').desc('Your name')
+        .build()
+
+      const interviewer = new Interviewer(interview, {
+        apiKey: 'test-key'
+      })
+
+      expect(interviewer.llm).toBeDefined()
+    })
+  })
+
+  describe('security checks', () => {
+    it('blocks api.openai.com in browser environment', () => {
+      const interview = chatfield()
+        .type('SimpleInterview')
+        .field('name').desc('Your name')
+        .build()
+
+      // Mock browser environment
+      const originalWindow = global.window;
+      (global as any).window = {}
+
+      try {
+        expect(() => {
+          new Interviewer(interview, {
+            apiKey: 'test-key',
+            baseUrl: 'https://api.openai.com/v1'
+          })
+        }).toThrow('SECURITY ERROR')
+        expect(() => {
+          new Interviewer(interview, {
+            apiKey: 'test-key',
+            baseUrl: 'https://api.openai.com/v1'
+          })
+        }).toThrow('api.openai.com')
+      } finally {
+        // Restore original window
+        if (originalWindow !== undefined) {
+          global.window = originalWindow
+        } else {
+          delete (global as any).window
+        }
+      }
+    })
+
+    it('blocks api.anthropic.com in browser environment', () => {
+      const interview = chatfield()
+        .type('SimpleInterview')
+        .field('name').desc('Your name')
+        .build()
+
+      // Mock browser environment
+      const originalWindow = global.window;
+      (global as any).window = {};
+
+      try {
+        expect(() => {
+          new Interviewer(interview, {
+            apiKey: 'test-key',
+            baseUrl: 'https://api.anthropic.com/v1'
+          })
+        }).toThrow('SECURITY ERROR')
+        expect(() => {
+          new Interviewer(interview, {
+            apiKey: 'test-key',
+            baseUrl: 'https://api.anthropic.com/v1'
+          })
+        }).toThrow('api.anthropic.com')
+      } finally {
+        // Restore original window
+        if (originalWindow !== undefined) {
+          global.window = originalWindow
+        } else {
+          delete (global as any).window
+        }
+      }
+    })
+
+    it('allows relative urls like /chatfield/openai', () => {
+      const interview = chatfield()
+        .type('SimpleInterview')
+        .field('name').desc('Your name')
+        .build()
+
+      // Mock browser environment
+      const originalWindow = global.window
+      ;(global as any).window = {}
+
+      try {
+        expect(() => {
+          new Interviewer(interview, {
+            apiKey: 'test-key',
+            baseUrl: '/chatfield/openai'
+          })
+        }).not.toThrow()
+      } finally {
+        // Restore original window
+        if (originalWindow !== undefined) {
+          global.window = originalWindow
+        } else {
+          delete (global as any).window
+        }
+      }
+    })
+
+    it('allows custom domains like https://my-proxy.com', () => {
+      const interview = chatfield()
+        .type('SimpleInterview')
+        .field('name').desc('Your name')
+        .build()
+
+      // Mock browser environment
+      const originalWindow = global.window
+      ;(global as any).window = {}
+
+      try {
+        expect(() => {
+          new Interviewer(interview, {
+            apiKey: 'test-key',
+            baseUrl: 'https://my-proxy.com/v1'
+          })
+        }).not.toThrow()
+      } finally {
+        // Restore original window
+        if (originalWindow !== undefined) {
+          global.window = originalWindow
+        } else {
+          delete (global as any).window
+        }
+      }
+    })
+
+    it('does not check security in node environment', () => {
+      const interview = chatfield()
+        .type('SimpleInterview')
+        .field('name').desc('Your name')
+        .build()
+
+      // Ensure we're in Node environment (no window)
+      expect(typeof window).toBe('undefined')
+
+      // Should not throw even with dangerous endpoint in Node
+      expect(() => {
+        new Interviewer(interview, {
+          apiKey: 'test-key',
+          baseUrl: 'https://api.openai.com/v1'
+        })
+      }).not.toThrow()
+    })
   })
 
   describe('system prompt', () => {
