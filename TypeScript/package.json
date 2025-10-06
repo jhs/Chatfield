@@ -19,16 +19,13 @@
   },
   "scripts": {
     "build": "npm run clean && npm run build:node && npm run build:browser",
-
     "build:node": "npm run build:node:cjs && npm run build:node:esm && npm run build:node:types",
     "build:node:cjs": "tsc --module node16 --moduleResolution node16 --declaration false --outDir dist/node/cjs",
     "build:node:esm": "tsc --module esnext --moduleResolution bundler --declaration false --outDir dist/node/esm",
     "build:node:types": "tsc --declaration --emitDeclarationOnly --outDir dist/node/types",
-
     "build:browser": "npm run build:browser:lean && npm run build:browser:standalone",
     "build:browser:lean": "VARIANT=lean rollup --config rollup.config.mjs",
     "build:browser:standalone": "VARIANT=standalone rollup --config rollup.config.mjs",
-
     "dev": "tsc --watch --outDir dist/node/cjs",
     "test": "jest --silent",
     "test:verbose": "jest",
@@ -51,7 +48,7 @@
   "license": "Apache-2.0",
   "dependencies": {
     "@langchain/core": "^0.3.78",
-    "@langchain/langgraph": "^1.0.0a3",
+    "@langchain/langgraph": "^1.0.0-alpha.5",
     "@langchain/openai": "^0.6.14",
     "handlebars": "^4.7.8",
     "openai": "^4.70.0",
@@ -83,7 +80,6 @@
   },
   "peerDependencies": {
     "@langchain/core": "^0.3.78",
-    "@langchain/langgraph": "^1.0.0a3",
     "@langchain/openai": "^0.6.14",
     "handlebars": "^4.7.8",
     "openai": "^4.70.0",
