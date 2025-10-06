@@ -58,7 +58,12 @@ export class Interviewer {
   checkpointer: MemorySaver  // Made public for test access
   templateEngine: TemplateEngine
 
-  constructor(interview: Interview, options?: { threadId?: string; llm?: any, llmId?: any, proxyUrl?: string }) {
+  private readonly DANGEROUS_ENDPOINTS = [
+    'api.openai.com',
+    'api.anthropic.com',
+  ];
+
+  constructor(interview: Interview, options?: { threadId?: string; llm?: any, llmId?: any, baseUrl?: string, apiKey?: string }) {
     this.interview = interview
     this.templateEngine = new TemplateEngine()
     this.checkpointer = new MemorySaver()
@@ -72,26 +77,50 @@ export class Interviewer {
     if (options?.llm) {
       this.llm = options.llm
     } else {
-      // Support proxy URL for browser development (e.g., LiteLLM proxy)
-      // Check for proxyUrl in options or environment variable
-      const proxyUrl = options?.proxyUrl || (typeof process !== 'undefined' && process.env?.LITELLM_PROXY_URL)
-      const llmConfig: any = {
-        modelName: options?.llmId || 'gpt-4o',
-        temperature: 0.0
+      const win = this.getWindow();
+      let baseUrl = options?.baseUrl;
+      if (win) {
+        // Browser environment
+        if (!baseUrl || baseUrl.trim() === '') {
+          // Use a "chatfield" service as the base.
+          // Placeholder until we work on a decent reference implementation.
+          const path = '/chatfield/openai';
+          baseUrl = `${win.location.protocol}//${win.location.host}${path}`;
+        }
+      } else {
+        // Server environment.
+        // OPENAI_BASE_URL already works due to the underlying OpenAI client.
       }
 
-      // If proxy URL is provided, pass it as baseURL
-      // LangChain's ChatOpenAI accepts baseURL in the configuration object
-      if (proxyUrl) {
-        llmConfig.configuration = {
-          baseURL: proxyUrl
+      // Resolve API key
+      let apiKey = options?.apiKey;
+      if (!apiKey && typeof process !== 'undefined' && process.env?.OPENAI_API_KEY) {
+        apiKey = process.env.OPENAI_API_KEY;
+      }
+
+      if (!apiKey) {
+        if (win) {
+          console.log(`No API key OK in browser environment`);
+        } else {
+          throw new Error(
+            'Must pass apiKey or set OPENAI_API_KEY environment variable.'
+          );
+        }
+      }
+
+      const llmConfig: any = {
+        apiKey: apiKey,
+        modelName: options?.llmId || 'gpt-4o',
+        temperature: 0.0,
+        configuration: {
+          baseURL: baseUrl,
         }
       }
 
       this.llm = new ChatOpenAI(llmConfig)
     }
 
-    // Setup tools and graph
+    this.detectDangerousEndpoint(this.llm);
     this.setupGraph()
   }
 
@@ -120,6 +149,44 @@ export class Interviewer {
 
     // Compile the graph
     this.graph = builder.compile({ checkpointer: this.checkpointer })
+  }
+
+  private getWindow(): any {
+    if (typeof window !== 'undefined') {
+      return window;
+    }
+
+    if (typeof global !== 'undefined' && (global as any).window !== undefined) {
+      return (global as any).window;
+    }
+
+    return null;
+  }
+
+  private detectDangerousEndpoint(llm: ChatOpenAI) {
+    // Only check in browser environment (set via global in Node.js tests)
+    const isBrowser = ( typeof window !== 'undefined' );
+    const isGlobal  = ( typeof global !== 'undefined' && (global as any).window !== undefined );
+    if (isBrowser || isGlobal) {
+      let url: URL;
+      try {
+        // Parse as absolute URL to extract hostname
+        const urlString = llm.clientConfig?.baseURL || '';
+        url = new URL(urlString);
+      } catch (e) {
+        console.log(`Safe LLM baseURL: relative or invalid: ${llm.clientConfig?.baseURL}`);
+        return; // Relative URLs are safe
+      }
+
+      for (const endpoint of this.DANGEROUS_ENDPOINTS) {
+        if (url.hostname === endpoint) {
+          throw new Error(
+            `SECURITY ERROR: Detected API endpoint call from browser (${endpoint}). ` +
+            `This may expose your API key to end users. Use a backend proxy instead.`
+          )
+        }
+      }
+    } // if browser
   }
 
   private async initialize(state: InterviewStateType) {
