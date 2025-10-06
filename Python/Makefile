@@ -75,9 +75,8 @@ docs:
 
 proxy:
 	@echo "Starting LiteLLM proxy on http://localhost:4000"
-	@echo "Make sure OPENAI_API_KEY is set in your environment"
 	@echo "Press Ctrl+C to stop"
-	python litellm_proxy.py
+	litellm --config litellm_config.yaml --detailed_debug
 
 # Development workflow shortcuts
 .PHONY: dev check ci
