@@ -18,7 +18,9 @@
     const form = chatfield()
       .type('Web Test')
       .alice()
-        .type('A mouse hiding from a cat')
+        .type('A terse interviewer')
+        .trait('Speaks in as few words as possible')
+        .trait('Always starts sentences with the preface "No way!"')
       .field('name')
       .field('age')
         .as_int()
@@ -31,13 +33,39 @@
     });
 
     async function runInterview() {
-      let userInput;
+      let userInput = null;;
 
-      while (! form._done) {
-        userInput = null;
+      while (true) {
         const msg = await interviewer.go(userInput);
-        output.innerHTML += `<p><strong>Hooray!</strong> Got an AI message: ${msg}</p>`;
+
+        output.innerHTML += `<p><strong>AI</strong>: ${msg}</p>`;
+        output.innerHTML += `<textarea rows="4" cols="50" placeholder="Your response here..."></textarea><br>`;
+
+        if (form._done) {
+          output.innerHTML += `<p><strong>Form completed:</strong> ${JSON.stringify(form.values())}</p>`;
+          break;
+        }
+
+        userInput = await getUserInput();
       }
+    }
+
+    async function getUserInput() {
+      return new Promise((resolve) => {
+        const textarea = output.querySelector('textarea');
+        textarea.focus();
+        textarea.addEventListener('keydown', (event) => {
+          if (event.key === 'Enter' && !event.shiftKey) {
+            event.preventDefault();
+            const value = textarea.value.trim();
+            if (value) {
+              output.innerHTML += `<p><strong>You</strong>: ${value}</p>`;
+              textarea.remove();
+              resolve(value);
+            }
+          }
+        });
+      });
     }
 
     runInterview();
