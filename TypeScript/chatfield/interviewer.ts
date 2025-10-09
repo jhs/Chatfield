@@ -3,118 +3,32 @@
  * Manages conversation flow and state using LangGraph.js
  */
 
-import { 
-  StateGraph, 
+import {
+  StateGraph,
   MemorySaver,
   START,
   END,
   Command,
   Annotation,
   addMessages,
-// // Langgraph on web: https://langchain-ai.github.io/langgraphjs/how-tos/use-in-web-environments/
-  // interrupt,
-// } from '@langchain/langgraph'
   Interrupt,
   INTERRUPT,
   GraphInterrupt,
-  NodeInterrupt,
   GraphValueError,
-} from '@langchain/langgraph/web';
+} from './langgraph';
+
 import { RunnableConfig } from "@langchain/core/runnables";
-import type { PendingWrite } from "@langchain/langgraph-checkpoint";
+import { interrupt } from './interrupt';
 
-// import {
-//   CONFIG_KEY_CHECKPOINT_NS,
-//   CONFIG_KEY_SCRATCHPAD,
-//   CONFIG_KEY_SEND,
-//   CONFIG_KEY_CHECKPOINTER,
-//   CHECKPOINT_NAMESPACE_SEPARATOR,
-//   RESUME,
-// } from "@langchain/langgraph";
-// Internal config keys (not exported from web.ts, so we hardcode them)
-const CONFIG_KEY_CHECKPOINTER = "__pregel_checkpointer";
-const CONFIG_KEY_SCRATCHPAD = "__pregel_scratchpad";
-const CONFIG_KEY_SEND = "__pregel_send";
-const CHECKPOINT_NAMESPACE_SEPARATOR = "|";
-const RESUME = "__resume__";
-
-
-// For now, leave the ids as-is without hashing, so no need for sha256.
-// import { sha256 } from 'js-sha256';
-
-// function interrupt(message:string, config:RunnableConfig) {
-function interrupt<I = unknown, R = any>(value: I, config: RunnableConfig): R {
-  if (!config?.configurable) {
-    throw new Error(
-      "Called browserInterrupt() without config. " +
-      "Make sure your node function accepts config as the second parameter: " +
-      "(state: State, config?: RunnableConfig) => {...}"
-    );
-  }
-
-  const conf = config.configurable;
-
-  // Check for checkpointer
-  const checkpointer = conf[CONFIG_KEY_CHECKPOINTER];
-  if (!checkpointer) {
-    throw new GraphValueError(
-      "No checkpointer set. Use MemorySaver: " +
-      "graph.compile({ checkpointer: new MemorySaver() })"
-    );
-  }
-
-  // Get scratchpad
-  const scratchpad = conf[CONFIG_KEY_SCRATCHPAD];
-  if (!scratchpad) {
-    throw new Error("No scratchpad found in config");
-  }
-
-  // Track interrupt index
-  scratchpad.interruptCounter += 1;
-  const idx = scratchpad.interruptCounter;
-
-  // Find previous resume values (from earlier runs)
-  if (scratchpad.resume.length > 0 && idx < scratchpad.resume.length) {
-    // Write resume array back to channel.
-    const pendingWrites = [ [RESUME, scratchpad.resume] as PendingWrite ];
-    conf[CONFIG_KEY_SEND]?.(pendingWrites);
-    return scratchpad.resume[idx] as R;
-  }
-
-  if (scratchpad.nullResume === undefined) {
-    // No resume value found; throw interrupt.
-    const ns: string = conf.checkpoint_ns;
-    const id = ns ? hash_namespace(ns) : undefined;
-    throw new GraphInterrupt([{ id, value }]);
-  }
-
-  // Find current resume value from Command({ resume })
-  if (scratchpad.resume.length !== idx) {
-    throw new Error(`Resume length mismatch: ${scratchpad.resume.length} !== ${idx}`);
-  }
-
-  const val = scratchpad.consumeNullResume();
-  scratchpad.resume.push(val);
-
-  const pendingWrites = [ [RESUME, scratchpad.resume] as PendingWrite ];
-  conf[CONFIG_KEY_SEND]?.(pendingWrites);
-
-  return val as R;
-}
-
-function hash_namespace(ns: string): string {
-  // For now, just return the namespace as-is.
-  // const hash = sha256(ns);
-  return ns;
-}
-
-import { 
-  BaseMessage, 
-  HumanMessage, 
-  AIMessage, 
+import {
+  BaseMessage,
+  HumanMessage,
+  AIMessage,
   SystemMessage,
-  ToolMessage 
+  ToolMessage
 } from '@langchain/core/messages'
+// Note: toolsCondition still needs direct import from langgraph/prebuilt
+// as our wrapper doesn't re-export /prebuilt submodule
 // @ts-ignore - module resolution issue
 import { toolsCondition } from '@langchain/langgraph/prebuilt'
 import { ChatOpenAI } from '@langchain/openai'
@@ -124,7 +38,6 @@ import { Interview } from './interview'
 import { wrapInterviewWithProxy } from './interview-proxy'
 import { mergeInterviews } from './merge'
 import { TemplateEngine } from './template-engine'
-import { sha256 } from 'js-sha256';
 
 /**
  * State type for LangGraph conversation

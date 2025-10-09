@@ -7,6 +7,7 @@ import { fileURLToPath } from 'url';
 import path from 'path';
 
 import bundleTemplates from './rollup-plugin-bundle-templates.mjs';
+import browserNodeAlias from './rollup-plugin-browser-node-alias.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -49,6 +50,7 @@ const conditionalExternal = [
 const createPlugins = (outDir, _unusedOption = false) => {
   const plugins = [
     bundleTemplates(),
+    browserNodeAlias(),
 
     // TypeScript must come before resolve/commonjs to handle .ts files
     typescript({
