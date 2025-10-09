@@ -2,8 +2,18 @@
  * Browser-side interrupt implementation for LangGraph
  *
  * This custom implementation provides interrupt functionality for browser environments
- * where the standard LangGraph interrupt may not work properly. It uses the scratchpad
- * pattern to manage resume values without requiring persistent storage.
+ * where the standard LangGraph interrupt is not available from the web entry point.
+ *
+ * LangGraph web entry ponit:
+ * https://langchain-ai.github.io/langgraphjs/how-tos/use-in-web-environments/
+ * 
+ * From https://github.com/langchain-ai/langgraphjs/pull/211#issuecomment-2694835005
+ * "It's currently unsupported in web as it requires AsyncLocalStorage features"
+ * 
+ * This implementation uses the same "scratchpad" object that the server
+ * implementation uses to track interrupts and resume values, but without storing
+ * data or checkpointing. It throws a GraphInterrupt to pause execution, just as
+ * the server implementation does.
  */
 
 import { RunnableConfig } from "@langchain/core/runnables";
