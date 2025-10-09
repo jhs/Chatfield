@@ -81,33 +81,25 @@ function interrupt<I = unknown, R = any>(value: I, config: RunnableConfig): R {
     return scratchpad.resume[idx] as R;
   }
 
-  // Find current resume value (from Command({ resume }))
-  if (scratchpad.nullResume !== undefined) {
-    if (scratchpad.resume.length !== idx) {
-      throw new Error(`Resume length mismatch: ${scratchpad.resume.length} !== ${idx}`);
-    }
-    const v = scratchpad.consumeNullResume();
-    scratchpad.resume.push(v);
-
-    const pendingWrites = [ [RESUME, scratchpad.resume] as PendingWrite ];
-    conf[CONFIG_KEY_SEND]?.(pendingWrites);
-    return v as R;
+  if (scratchpad.nullResume === undefined) {
+    // No resume value found; throw interrupt.
+    const ns: string = conf.checkpoint_ns;
+    const id = ns ? hash_namespace(ns) : undefined;
+    throw new GraphInterrupt([{ id, value }]);
   }
 
-  // No resume value found - throw interrupt
-  const ns: string | undefined = conf.checkpoint_ns;
-  const id = ns ? hash_namespace(ns) : undefined;
-  // I think it is NodeInterrupt?
-  throw new GraphInterrupt([{ id, value }]);
-  // console.log(`RunnableConfig:`, RunnableConfig);
-  // throw new Error(`XXX Yay the interrupt was called XXX`);
-  // Primary key
-  // [ graph/subgraph ID, node name, interrupt call number ]
-  // ["", "listen", 0]
-  // ["", "listen", 1]
-  // ["", "listen", 2]
-  // ["sub1|subsub1", "listen", 0]
-  throw new NodeInterrupt(value);
+  // Find current resume value from Command({ resume })
+  if (scratchpad.resume.length !== idx) {
+    throw new Error(`Resume length mismatch: ${scratchpad.resume.length} !== ${idx}`);
+  }
+
+  const val = scratchpad.consumeNullResume();
+  scratchpad.resume.push(val);
+
+  const pendingWrites = [ [RESUME, scratchpad.resume] as PendingWrite ];
+  conf[CONFIG_KEY_SEND]?.(pendingWrites);
+
+  return val as R;
 }
 
 function hash_namespace(ns: string): string {
