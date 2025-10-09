@@ -25,18 +25,3 @@ export function interrupt<I = unknown, R = any>(value: I, config: RunnableConfig
   // We accept config for API compatibility but don't use it
   return langgraphInterrupt(value) as R;
 }
-
-/**
- * Hash a namespace string
- *
- * For now, this is a no-op that returns the namespace as-is.
- * Could be enhanced to use actual hashing (e.g., sha256) if needed.
- *
- * @param ns - The namespace string to hash
- * @returns The hashed (or pass-through) namespace
- */
-export function hash_namespace(ns: string): string {
-  // For now, just return the namespace as-is.
-  // const hash = sha256(ns);
-  return ns;
-}

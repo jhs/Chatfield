@@ -15,10 +15,10 @@ import {
   INTERRUPT,
   GraphInterrupt,
   GraphValueError,
-} from './langgraph';
+} from './langgraph/langgraph.server';
 
 import { RunnableConfig } from "@langchain/core/runnables";
-import { interrupt } from './interrupt';
+import { interrupt } from './interrupt/interrupt.server';
 
 import {
   BaseMessage,

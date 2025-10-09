@@ -6,6 +6,8 @@ import terser from '@rollup/plugin-terser';
 import { fileURLToPath } from 'url';
 import path from 'path';
 
+import alias from '@rollup/plugin-alias';
+
 import bundleTemplates from './rollup-plugin-bundle-templates.mjs';
 import browserNodeAlias from './rollup-plugin-browser-node-alias.mjs';
 
@@ -50,7 +52,19 @@ const conditionalExternal = [
 const createPlugins = (outDir, _unusedOption = false) => {
   const plugins = [
     bundleTemplates(),
-    browserNodeAlias(),
+
+    alias({
+      entries: [
+        {
+          find: './langgraph/langgraph.server',
+          replacement: path.resolve(__dirname, 'chatfield', 'langgraph', 'langgraph.browser.ts'),
+        },
+        {
+          find: './interrupt/interrupt.server',
+          replacement: path.resolve(__dirname, 'chatfield', 'interrupt', 'interrupt.browser.ts'),
+        },
+      ],
+    }),
 
     // TypeScript must come before resolve/commonjs to handle .ts files
     typescript({
