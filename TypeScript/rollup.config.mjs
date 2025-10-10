@@ -9,7 +9,6 @@ import path from 'path';
 import alias from '@rollup/plugin-alias';
 
 import bundleTemplates from './rollup-plugin-bundle-templates.mjs';
-import browserNodeAlias from './rollup-plugin-browser-node-alias.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
