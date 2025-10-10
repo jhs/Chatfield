@@ -214,30 +214,29 @@ const leanConfigs = [
       exports: 'named'
     },
 
-    external: [...alwaysExternal, ...conditionalExternal],
+    // external: [...alwaysExternal, ...conditionalExternal],
+    external: (id) => {
+      // console.log('External check for:', id)
+      const allExternals = [...alwaysExternal, ...conditionalExternal];
 
-    // For lean build: make EVERYTHING from node_modules external
-    // external: (id) => {
-    //   console.log('External check for:', id)
+      // If the ID is a member of allExternals, treat as external.
+      if (allExternals.includes(id)) {
+        console.log('  Confirmed external: ', id);
+        return true;
+      }
 
-    //   const allExternals = [...alwaysExternal, ...conditionalExternal];
+      // If the ID starts with any of the externals + '/', treat as external.
+      if (allExternals.some(ext => id.startsWith(`${ext}/`))) {
+        console.log('  Confirmed external subpath: ', id);
+        return true;
+      }
 
-    //   // If the ID is a member of allExternals, treat as external.
-    //   if (allExternals.includes(id)) {
-    //     console.log('  Confirmed external: ', id);
-    //     return true;
-    //   }
-
-    //   // If the ID contains the string "langsmith", throw an error.
-    //   if (id.includes('langsmith')) {
-    //     throw new Error(`Saw "langsmith": ${id}`);
-    //   }
-
-    //   return false;
-    // },
+      console.log('  Bundling: ', id);
+      return false;
+    },
 
     plugins: createPlugins('dist/lean/esm', false),  // No polyfills for lean (uses import maps/bundler)
-    onwarn
+    onwarn,
   },
 
   // // Minified ESM build
