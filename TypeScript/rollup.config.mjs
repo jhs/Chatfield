@@ -239,7 +239,7 @@ const leanConfigs = [
     onwarn,
   },
 
-  // // Minified ESM build
+  // Minified ESM build
   // {
   //   input: 'chatfield/index.ts',
   //   output: {
@@ -249,8 +249,10 @@ const leanConfigs = [
   //     exports: 'named'
   //   },
   //   external: [...alwaysExternal, ...conditionalExternal],
-  //   plugins: [...createPlugins('dist/lean/esm', false), terser()]
+  //   plugins: [...createPlugins('dist/lean/esm', false), terser()],
+  //   onwarn,
   // },
+
   // // UMD build for CDN usage
   // {
   //   input: 'chatfield/index.ts',
