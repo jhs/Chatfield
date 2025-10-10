@@ -39,6 +39,8 @@ import { wrapInterviewWithProxy } from './interview-proxy'
 import { mergeInterviews } from './merge'
 import { TemplateEngine } from './template-engine'
 
+export type EndpointSecurityMode = 'strict' | 'warn' | 'disabled'
+
 /**
  * State type for LangGraph conversation
  */
@@ -72,7 +74,7 @@ export class Interviewer {
     'api.anthropic.com',
   ];
 
-  constructor(interview: Interview, options?: { threadId?: string; llm?: any, llmId?: any, baseUrl?: string, apiKey?: string }) {
+  constructor(interview: Interview, options?: { threadId?: string; llm?: any, llmId?: any, baseUrl?: string, apiKey?: string, endpointSecurity?: EndpointSecurityMode }) {
     this.interview = interview
     this.templateEngine = new TemplateEngine()
     this.checkpointer = new MemorySaver()
@@ -129,7 +131,14 @@ export class Interviewer {
       this.llm = new ChatOpenAI(llmConfig)
     }
 
-    this.detectDangerousEndpoint(this.llm);
+    // Determine default security mode
+    let securityMode = options?.endpointSecurity
+    if (!securityMode) {
+      const isBrowser = this.getWindow() !== null
+      securityMode = isBrowser ? 'strict' : 'disabled'
+    }
+
+    this.detectDangerousEndpoint(this.llm, securityMode);
     this.setupGraph()
   }
 
@@ -172,30 +181,52 @@ export class Interviewer {
     return null;
   }
 
-  private detectDangerousEndpoint(llm: ChatOpenAI) {
-    // Only check in browser environment (set via global in Node.js tests)
-    const isBrowser = ( typeof window !== 'undefined' );
-    const isGlobal  = ( typeof global !== 'undefined' && (global as any).window !== undefined );
-    if (isBrowser || isGlobal) {
-      let url: URL;
-      try {
-        // Parse as absolute URL to extract hostname
-        const urlString = llm.clientConfig?.baseURL || '';
-        url = new URL(urlString);
-      } catch (e) {
-        console.log(`Safe LLM baseURL: relative or invalid: ${llm.clientConfig?.baseURL}`);
-        return; // Relative URLs are safe
-      }
+  private detectDangerousEndpoint(llm: ChatOpenAI, mode: EndpointSecurityMode) {
+    const isBrowser = this.getWindow() !== null
 
-      for (const endpoint of this.DANGEROUS_ENDPOINTS) {
-        if (url.hostname === endpoint) {
+    // Enforce: Cannot disable security in browser
+    if (isBrowser && mode === 'disabled') {
+      throw new Error(
+        'SECURITY ERROR: Cannot disable endpoint security checks in browser environment. ' +
+        'Use endpointSecurity: "warn" for development or use a proxy.'
+      )
+    }
+
+    // Parse URL - always parse, even in disabled mode
+    let url: URL
+    try {
+      const urlString = llm.clientConfig?.baseURL || ''
+      url = new URL(urlString)
+    } catch (e) {
+      console.log(`Safe LLM baseURL: relative or invalid: ${llm.clientConfig?.baseURL}`)
+      return // Relative URLs are always safe
+    }
+
+    // Check against dangerous endpoints - ALWAYS run this logic
+    for (const endpoint of this.DANGEROUS_ENDPOINTS) {
+      if (url.hostname === endpoint) {
+        const message = `Detected official API endpoint: ${endpoint}`
+
+        if (mode === 'disabled') {
+          // Debug log - helpful for understanding what's happening
+          console.log(`Endpoint security disabled. ${message} (allowed)`)
+        } else if (mode === 'strict') {
+          // Error - block the operation
           throw new Error(
-            `SECURITY ERROR: Detected API endpoint call from browser (${endpoint}). ` +
+            `SECURITY ERROR: ${message}. ` +
             `This may expose your API key to end users. Use a backend proxy instead.`
           )
+        } else if (mode === 'warn') {
+          // Warning - allow but notify
+          console.warn(`⚠️  WARNING: ${message}. Your API key may be exposed to end users.`)
         }
+
+        return // Found a match, no need to check other endpoints
       }
-    } // if browser
+    }
+
+    // If we get here, the endpoint is not in the dangerous list
+    console.log(`Safe endpoint: ${url.hostname}`)
   }
 
   private async initialize(state: InterviewStateType) {

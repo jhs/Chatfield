@@ -3,6 +3,8 @@
 import re
 import uuid
 import traceback
+import warnings
+from urllib.parse import urlparse
 
 from pydantic import BaseModel, Field, conset, create_model
 from deepdiff import DeepDiff
@@ -21,6 +23,9 @@ from .interview import Interview
 from .template_engine import TemplateEngine
 from .merge import merge_interviews
 
+# Endpoint security mode type
+EndpointSecurityMode = Literal['strict', 'warn', 'disabled']
+
 class State(TypedDict):
     messages: Annotated[List[Any] , add_messages    ]
     interview: Annotated[Interview, merge_interviews]
@@ -30,8 +35,24 @@ class Interviewer:
     """
     Interviewer that manages conversation flow.
     """
-    
-    def __init__(self, interview: Interview, thread_id: Optional[str]=None, llm=None, llm_id=None, temperature=None):
+
+    # List of official API endpoints that should trigger security warnings/errors
+    DANGEROUS_ENDPOINTS = [
+        'api.openai.com',
+        'api.anthropic.com',
+    ]
+
+    def __init__(
+        self,
+        interview: Interview,
+        thread_id: Optional[str] = None,
+        llm = None,
+        llm_id = None,
+        temperature = None,
+        base_url: Optional[str] = None,
+        api_key: Optional[str] = None,
+        endpoint_security: Optional[EndpointSecurityMode] = None
+    ):
         self.checkpointer = InMemorySaver()
 
         self.config = {"configurable": {"thread_id": thread_id or str(uuid.uuid4())}}
@@ -50,7 +71,26 @@ class Interviewer:
             temperature = temperature or 0.0
             if llm_id in ('openai:o3-mini', 'openai:o3'):
                 temperature = None
-            self.llm = init_chat_model(llm_id, temperature=temperature)
+
+            # Build configuration dict for init_chat_model
+            config_params = {}
+            if base_url is not None:
+                config_params['base_url'] = base_url
+            if api_key is not None:
+                config_params['api_key'] = api_key
+
+            # Initialize LLM with optional configuration
+            if config_params:
+                self.llm = init_chat_model(llm_id, temperature=temperature, configurable=config_params)
+            else:
+                self.llm = init_chat_model(llm_id, temperature=temperature)
+
+        # Determine default security mode
+        # Python is server-side only, so default to 'disabled'
+        security_mode = endpoint_security or 'disabled'
+
+        # Run endpoint security check
+        self._detect_dangerous_endpoint(base_url, security_mode)
 
         builder = StateGraph(State)
 
@@ -70,7 +110,65 @@ class Interviewer:
         builder.add_edge             ('teardown'  , END    )
 
         self.graph = builder.compile(checkpointer=self.checkpointer)
-        
+
+    def _detect_dangerous_endpoint(self, base_url: Optional[str], mode: EndpointSecurityMode) -> None:
+        """Check for dangerous API endpoints based on security mode.
+
+        Always runs the detection logic, but behavior depends on mode:
+        - disabled: Log debug message only
+        - warn: Log warning but allow
+        - strict: Raise error
+
+        Args:
+            base_url: The base URL to check (may be None)
+            mode: Security mode ('strict', 'warn', or 'disabled')
+
+        Raises:
+            ValueError: If mode is 'strict' and a dangerous endpoint is detected
+        """
+        # Parse URL - always parse, even in disabled mode
+        if not base_url:
+            print('Safe LLM baseURL: None provided')
+            return
+
+        try:
+            parsed = urlparse(base_url)
+            hostname = parsed.hostname
+        except Exception as e:
+            print(f'Safe LLM baseURL: parsing failed: {base_url}')
+            return
+
+        if not hostname:
+            print(f'Safe LLM baseURL: relative or invalid: {base_url}')
+            return
+
+        # Check against dangerous endpoints - ALWAYS run this logic
+        for endpoint in self.DANGEROUS_ENDPOINTS:
+            if hostname == endpoint:
+                message = f'Detected official API endpoint: {endpoint}'
+
+                if mode == 'disabled':
+                    # Debug log - helpful for understanding what's happening
+                    print(f'Endpoint security disabled. {message} (allowed)')
+                elif mode == 'strict':
+                    # Error - block the operation
+                    raise ValueError(
+                        f'SECURITY ERROR: {message}. '
+                        f'This may expose your API key to end users. Use a backend proxy instead.'
+                    )
+                elif mode == 'warn':
+                    # Warning - allow but notify
+                    warnings.warn(
+                        f'WARNING: {message}. Your API key may be exposed to end users.',
+                        UserWarning,
+                        stacklevel=2
+                    )
+
+                return  # Found a match, no need to check other endpoints
+
+        # If we get here, the endpoint is not in the dangerous list
+        print(f'Safe endpoint: {hostname}')
+
     # This exists to fail faster in case of serialization bugs with the LangGraph checkpointer.
     # Hopefully it can go away.
     def _get_state_interview(self, state: State) -> Interview:

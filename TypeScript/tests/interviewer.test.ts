@@ -171,8 +171,26 @@ describe('Interviewer', () => {
     })
   })
 
-  describe('security checks', () => {
-    it('blocks api.openai.com in browser environment', () => {
+  describe('endpoint security', () => {
+    it('defaults to disabled mode in server environment', () => {
+      const interview = chatfield()
+        .type('SimpleInterview')
+        .field('name').desc('Your name')
+        .build()
+
+      // Ensure we're in Node environment (no window)
+      expect(typeof window).toBe('undefined')
+
+      // Should not throw with official endpoint in disabled mode (default)
+      expect(() => {
+        new Interviewer(interview, {
+          apiKey: 'test-key',
+          baseUrl: 'https://api.openai.com/v1'
+        })
+      }).not.toThrow()
+    })
+
+    it('defaults to strict mode in browser environment', () => {
       const interview = chatfield()
         .type('SimpleInterview')
         .field('name').desc('Your name')
@@ -183,18 +201,13 @@ describe('Interviewer', () => {
       (global as any).window = {}
 
       try {
+        // Should throw with official endpoint in strict mode (browser default)
         expect(() => {
           new Interviewer(interview, {
             apiKey: 'test-key',
             baseUrl: 'https://api.openai.com/v1'
           })
         }).toThrow('SECURITY ERROR')
-        expect(() => {
-          new Interviewer(interview, {
-            apiKey: 'test-key',
-            baseUrl: 'https://api.openai.com/v1'
-          })
-        }).toThrow('api.openai.com')
       } finally {
         // Restore original window
         if (originalWindow !== undefined) {
@@ -205,7 +218,123 @@ describe('Interviewer', () => {
       }
     })
 
-    it('blocks api.anthropic.com in browser environment', () => {
+    it('throws error in strict mode for dangerous endpoint', () => {
+      const interview = chatfield()
+        .type('SimpleInterview')
+        .field('name').desc('Your name')
+        .build()
+
+      // Should throw with official endpoint in strict mode
+      expect(() => {
+        new Interviewer(interview, {
+          apiKey: 'test-key',
+          baseUrl: 'https://api.openai.com/v1',
+          endpointSecurity: 'strict'
+        })
+      }).toThrow('SECURITY ERROR')
+
+      expect(() => {
+        new Interviewer(interview, {
+          apiKey: 'test-key',
+          baseUrl: 'https://api.openai.com/v1',
+          endpointSecurity: 'strict'
+        })
+      }).toThrow('api.openai.com')
+    })
+
+    it('warns in warn mode for dangerous endpoint', () => {
+      const interview = chatfield()
+        .type('SimpleInterview')
+        .field('name').desc('Your name')
+        .build()
+
+      // Capture console warnings
+      const originalWarn = console.warn
+      const warnings: string[] = []
+      console.warn = (message: string) => {
+        warnings.push(message)
+      }
+
+      try {
+        // Should warn but not throw with official endpoint in warn mode
+        const interviewer = new Interviewer(interview, {
+          apiKey: 'test-key',
+          baseUrl: 'https://api.openai.com/v1',
+          endpointSecurity: 'warn'
+        })
+
+        // Verify warning was issued
+        expect(warnings.length).toBeGreaterThan(0)
+        expect(warnings.some(w => w.includes('WARNING'))).toBe(true)
+        expect(warnings.some(w => w.includes('api.openai.com'))).toBe(true)
+        expect(interviewer).toBeDefined()
+      } finally {
+        // Restore console.warn
+        console.warn = originalWarn
+      }
+    })
+
+    it('allows safe endpoints in all modes', () => {
+      const interview = chatfield()
+        .type('SimpleInterview')
+        .field('name').desc('Your name')
+        .build()
+
+      // Should work in all modes with safe endpoint
+      const modes: Array<'disabled' | 'warn' | 'strict'> = ['disabled', 'warn', 'strict']
+      for (const mode of modes) {
+        const interviewer = new Interviewer(interview, {
+          apiKey: 'test-key',
+          baseUrl: 'https://my-proxy.com/v1',
+          endpointSecurity: mode
+        })
+        expect(interviewer).toBeDefined()
+      }
+    })
+
+    it('detects anthropic endpoint', () => {
+      const interview = chatfield()
+        .type('SimpleInterview')
+        .field('name').desc('Your name')
+        .build()
+
+      // Should throw with Anthropic endpoint in strict mode
+      expect(() => {
+        new Interviewer(interview, {
+          apiKey: 'test-key',
+          baseUrl: 'https://api.anthropic.com/v1',
+          endpointSecurity: 'strict'
+        })
+      }).toThrow('SECURITY ERROR')
+
+      expect(() => {
+        new Interviewer(interview, {
+          apiKey: 'test-key',
+          baseUrl: 'https://api.anthropic.com/v1',
+          endpointSecurity: 'strict'
+        })
+      }).toThrow('api.anthropic.com')
+    })
+
+    it('handles undefined base url safely', () => {
+      const interview = chatfield()
+        .type('SimpleInterview')
+        .field('name').desc('Your name')
+        .build()
+
+      // Should not throw with undefined baseUrl in any mode
+      const modes: Array<'disabled' | 'warn' | 'strict'> = ['disabled', 'warn', 'strict']
+      for (const mode of modes) {
+        const interviewer = new Interviewer(interview, {
+          apiKey: 'test-key',
+          baseUrl: undefined,
+          endpointSecurity: mode
+        })
+        expect(interviewer).toBeDefined()
+      }
+    })
+
+    it('cannot disable security in browser', () => {
       const interview = chatfield()
         .type('SimpleInterview')
         .field('name').desc('Your name')
@@ -213,21 +342,17 @@ describe('Interviewer', () => {
 
       // Mock browser environment
       const originalWindow = global.window;
-      (global as any).window = {};
+      (global as any).window = {}
 
       try {
+        // Should throw when trying to disable security in browser
         expect(() => {
           new Interviewer(interview, {
             apiKey: 'test-key',
-            baseUrl: 'https://api.anthropic.com/v1'
+            baseUrl: 'https://api.openai.com/v1',
+            endpointSecurity: 'disabled'
           })
-        }).toThrow('SECURITY ERROR')
-        expect(() => {
-          new Interviewer(interview, {
-            apiKey: 'test-key',
-            baseUrl: 'https://api.anthropic.com/v1'
-          })
-        }).toThrow('api.anthropic.com')
+        }).toThrow('Cannot disable endpoint security')
       } finally {
         // Restore original window
         if (originalWindow !== undefined) {
@@ -238,7 +363,7 @@ describe('Interviewer', () => {
       }
     })
 
-    it('allows relative urls like /chatfield/openai', () => {
+    it('allows relative urls', () => {
       const interview = chatfield()
         .type('SimpleInterview')
         .field('name').desc('Your name')
@@ -252,7 +377,8 @@ describe('Interviewer', () => {
         expect(() => {
           new Interviewer(interview, {
             apiKey: 'test-key',
-            baseUrl: '/chatfield/openai'
+            baseUrl: '/chatfield/openai',
+            endpointSecurity: 'strict'
           })
         }).not.toThrow()
       } finally {
@@ -263,51 +389,6 @@ describe('Interviewer', () => {
           delete (global as any).window
         }
       }
-    })
-
-    it('allows custom domains like https://my-proxy.com', () => {
-      const interview = chatfield()
-        .type('SimpleInterview')
-        .field('name').desc('Your name')
-        .build()
-
-      // Mock browser environment
-      const originalWindow = global.window
-      ;(global as any).window = {}
-
-      try {
-        expect(() => {
-          new Interviewer(interview, {
-            apiKey: 'test-key',
-            baseUrl: 'https://my-proxy.com/v1'
-          })
-        }).not.toThrow()
-      } finally {
-        // Restore original window
-        if (originalWindow !== undefined) {
-          global.window = originalWindow
-        } else {
-          delete (global as any).window
-        }
-      }
-    })
-
-    it('does not check security in node environment', () => {
-      const interview = chatfield()
-        .type('SimpleInterview')
-        .field('name').desc('Your name')
-        .build()
-
-      // Ensure we're in Node environment (no window)
-      expect(typeof window).toBe('undefined')
-
-      // Should not throw even with dangerous endpoint in Node
-      expect(() => {
-        new Interviewer(interview, {
-          apiKey: 'test-key',
-          baseUrl: 'https://api.openai.com/v1'
-        })
-      }).not.toThrow()
     })
   })
 

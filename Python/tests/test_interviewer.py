@@ -51,16 +51,240 @@ def describe_interviewer():
             """Configures LLM model."""
             mock_llm = Mock()
             mock_init_model.return_value = mock_llm
-            
+
             interview = (chatfield()
                 .type("SimpleInterview")
                 .field("name").desc("Your name")
                 .build())
             interviewer = Interviewer(interview)
-            
+
             # Should initialize with GPT-4o by default
             mock_init_model.assert_called_once_with('openai:gpt-4o', temperature=0.0)
             assert interviewer.llm is mock_llm
+
+        @patch('chatfield.interviewer.init_chat_model')
+        def it_accepts_api_key_from_options(mock_init_model):
+            """Accepts api key from options."""
+            mock_llm = Mock()
+            mock_init_model.return_value = mock_llm
+
+            interview = (chatfield()
+                .type("SimpleInterview")
+                .field("name").desc("Your name")
+                .build())
+
+            # Should not throw when API key is provided in options
+            interviewer = Interviewer(interview, api_key='test-api-key', base_url='https://my-proxy.com')
+
+            # Verify init_chat_model was called with config params
+            mock_init_model.assert_called_once_with(
+                'openai:gpt-4o',
+                temperature=0.0,
+                configurable={'base_url': 'https://my-proxy.com', 'api_key': 'test-api-key'}
+            )
+            assert interviewer.llm is mock_llm
+
+        @patch.dict(os.environ, {'OPENAI_API_KEY': 'test-env-key'})
+        @patch('chatfield.interviewer.init_chat_model')
+        def it_accepts_api_key_from_environment(mock_init_model):
+            """Accepts api key from environment."""
+            mock_llm = Mock()
+            mock_init_model.return_value = mock_llm
+
+            interview = (chatfield()
+                .type("SimpleInterview")
+                .field("name").desc("Your name")
+                .build())
+
+            # Should work with env var and not throw
+            interviewer = Interviewer(interview, base_url='https://my-proxy.com')
+
+            # API key comes from environment, so should not be in configurable
+            mock_init_model.assert_called_once_with(
+                'openai:gpt-4o',
+                temperature=0.0,
+                configurable={'base_url': 'https://my-proxy.com'}
+            )
+            assert interviewer.llm is mock_llm
+
+        @patch('chatfield.interviewer.init_chat_model')
+        def it_configures_custom_base_url(mock_init_model):
+            """Configures custom base url."""
+            mock_llm = Mock()
+            mock_init_model.return_value = mock_llm
+
+            interview = (chatfield()
+                .type("SimpleInterview")
+                .field("name").desc("Your name")
+                .build())
+
+            interviewer = Interviewer(
+                interview,
+                api_key='test-key',
+                base_url='https://my-custom-proxy.com/v1'
+            )
+
+            # Verify base_url was passed to init_chat_model
+            mock_init_model.assert_called_once_with(
+                'openai:gpt-4o',
+                temperature=0.0,
+                configurable={'base_url': 'https://my-custom-proxy.com/v1', 'api_key': 'test-key'}
+            )
+            assert interviewer.llm is mock_llm
+
+        @patch('chatfield.interviewer.init_chat_model')
+        def it_uses_default_base_url_when_not_specified(mock_init_model):
+            """Uses default base url when not specified."""
+            mock_llm = Mock()
+            mock_init_model.return_value = mock_llm
+
+            interview = (chatfield()
+                .type("SimpleInterview")
+                .field("name").desc("Your name")
+                .build())
+
+            interviewer = Interviewer(interview, api_key='test-key')
+
+            # Should initialize without base_url in configurable
+            mock_init_model.assert_called_once_with(
+                'openai:gpt-4o',
+                temperature=0.0,
+                configurable={'api_key': 'test-key'}
+            )
+            assert interviewer.llm is mock_llm
+
+    def describe_endpoint_security():
+        """Tests for endpoint security modes."""
+
+        @patch('chatfield.interviewer.init_chat_model')
+        def it_defaults_to_disabled_mode(mock_init_model):
+            """Defaults to disabled security mode."""
+            mock_llm = Mock()
+            mock_init_model.return_value = mock_llm
+
+            interview = (chatfield()
+                .type("SimpleInterview")
+                .field("name").desc("Your name")
+                .build())
+
+            # Should not throw with official endpoint in disabled mode (default)
+            interviewer = Interviewer(
+                interview,
+                api_key='test-key',
+                base_url='https://api.openai.com/v1'
+            )
+
+            assert interviewer is not None
+
+        @patch('chatfield.interviewer.init_chat_model')
+        def it_throws_error_in_strict_mode_for_dangerous_endpoint(mock_init_model):
+            """Throws error in strict mode for dangerous endpoint."""
+            mock_llm = Mock()
+            mock_init_model.return_value = mock_llm
+
+            interview = (chatfield()
+                .type("SimpleInterview")
+                .field("name").desc("Your name")
+                .build())
+
+            # Should throw with official endpoint in strict mode
+            with pytest.raises(ValueError, match='SECURITY ERROR'):
+                Interviewer(
+                    interview,
+                    api_key='test-key',
+                    base_url='https://api.openai.com/v1',
+                    endpoint_security='strict'
+                )
+
+        @patch('chatfield.interviewer.init_chat_model')
+        def it_warns_in_warn_mode_for_dangerous_endpoint(mock_init_model):
+            """Warns in warn mode for dangerous endpoint."""
+            import warnings
+            mock_llm = Mock()
+            mock_init_model.return_value = mock_llm
+
+            interview = (chatfield()
+                .type("SimpleInterview")
+                .field("name").desc("Your name")
+                .build())
+
+            # Should warn but not throw with official endpoint in warn mode
+            with warnings.catch_warnings(record=True) as w:
+                warnings.simplefilter("always")
+                interviewer = Interviewer(
+                    interview,
+                    api_key='test-key',
+                    base_url='https://api.openai.com/v1',
+                    endpoint_security='warn'
+                )
+
+                # Verify warning was issued
+                assert len(w) == 1
+                assert 'WARNING' in str(w[0].message)
+                assert 'api.openai.com' in str(w[0].message)
+                assert interviewer is not None
+
+        @patch('chatfield.interviewer.init_chat_model')
+        def it_allows_safe_endpoints_in_all_modes(mock_init_model):
+            """Allows safe endpoints in all modes."""
+            mock_llm = Mock()
+            mock_init_model.return_value = mock_llm
+
+            interview = (chatfield()
+                .type("SimpleInterview")
+                .field("name").desc("Your name")
+                .build())
+
+            # Should work in all modes with safe endpoint
+            for mode in ['disabled', 'warn', 'strict']:
+                interviewer = Interviewer(
+                    interview,
+                    api_key='test-key',
+                    base_url='https://my-proxy.com/v1',
+                    endpoint_security=mode
+                )
+                assert interviewer is not None
+
+        @patch('chatfield.interviewer.init_chat_model')
+        def it_detects_anthropic_endpoint(mock_init_model):
+            """Detects Anthropic endpoint as dangerous."""
+            mock_llm = Mock()
+            mock_init_model.return_value = mock_llm
+
+            interview = (chatfield()
+                .type("SimpleInterview")
+                .field("name").desc("Your name")
+                .build())
+
+            # Should throw with Anthropic endpoint in strict mode
+            with pytest.raises(ValueError, match='SECURITY ERROR'):
+                Interviewer(
+                    interview,
+                    api_key='test-key',
+                    base_url='https://api.anthropic.com/v1',
+                    endpoint_security='strict'
+                )
+
+        @patch('chatfield.interviewer.init_chat_model')
+        def it_handles_none_base_url_safely(mock_init_model):
+            """Handles None base URL safely."""
+            mock_llm = Mock()
+            mock_init_model.return_value = mock_llm
+
+            interview = (chatfield()
+                .type("SimpleInterview")
+                .field("name").desc("Your name")
+                .build())
+
+            # Should not throw with None base_url in any mode
+            for mode in ['disabled', 'warn', 'strict']:
+                interviewer = Interviewer(
+                    interview,
+                    api_key='test-key',
+                    base_url=None,
+                    endpoint_security=mode
+                )
+                assert interviewer is not None
 
     def describe_system_prompt():
         """Tests for system prompt generation."""

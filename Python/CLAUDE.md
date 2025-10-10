@@ -209,6 +209,100 @@ summary = calculate_model_summary(df)
 export OPENAI_API_KEY=your-api-key  # Required for LLM operations
 ```
 
+### API Initialization Options
+
+The `Interviewer` constructor supports flexible API configuration for different deployment scenarios:
+
+```python
+from chatfield import Interviewer, chatfield
+
+interview = chatfield().field("name").build()
+
+# Option 1: Use environment variable (default)
+interviewer = Interviewer(interview)
+
+# Option 2: Explicit API key
+interviewer = Interviewer(interview, api_key='your-api-key')
+
+# Option 3: Custom base URL (e.g., LiteLLM proxy)
+interviewer = Interviewer(
+    interview,
+    api_key='your-api-key',
+    base_url='https://my-litellm-proxy.com/v1'
+)
+
+# Option 4: Both custom base URL and API key
+interviewer = Interviewer(
+    interview,
+    base_url='https://my-proxy.com/openai',
+    api_key='proxy-api-key'
+)
+```
+
+**Constructor Parameters:**
+- `interview` (Interview): The interview instance to orchestrate
+- `thread_id` (Optional[str]): Custom thread ID for conversation tracking
+- `llm` (Optional): Custom LLM instance (overrides all other LLM config)
+- `llm_id` (Optional[str]): LLM model identifier (default: 'openai:gpt-4o')
+- `temperature` (Optional[float]): Temperature for LLM generation (default: 0.0)
+- `base_url` (Optional[str]): Custom API endpoint (e.g., for LiteLLM proxies)
+- `api_key` (Optional[str]): API key (falls back to OPENAI_API_KEY env var)
+- `endpoint_security` (Optional[EndpointSecurityMode]): Security mode for endpoint validation ('strict', 'warn', or 'disabled', default: 'disabled')
+
+**Use Cases:**
+- **Production**: Use `base_url` to point to a LiteLLM proxy that handles authentication
+- **Development**: Use environment variables for simplicity
+- **Testing**: Pass explicit `api_key` and `base_url` for test environments
+- **Multi-tenant**: Different API keys per Interviewer instance
+
+### Endpoint Security Modes
+
+The `endpoint_security` parameter controls how the Interviewer validates API endpoints to prevent accidental exposure of API keys:
+
+```python
+from chatfield import Interviewer, chatfield
+
+interview = chatfield().field("name").build()
+
+# Option 1: Disabled mode (default for server-side Python)
+# Allows official endpoints like api.openai.com
+interviewer = Interviewer(
+    interview,
+    api_key='your-api-key',
+    base_url='https://api.openai.com/v1',
+    endpoint_security='disabled'  # or omit, as this is the default
+)
+
+# Option 2: Strict mode
+# Blocks official endpoints, requires proxy
+interviewer = Interviewer(
+    interview,
+    api_key='your-api-key',
+    base_url='https://my-proxy.com/v1',
+    endpoint_security='strict'  # Raises ValueError for api.openai.com, api.anthropic.com
+)
+
+# Option 3: Warn mode
+# Warns about official endpoints but allows them
+interviewer = Interviewer(
+    interview,
+    api_key='your-api-key',
+    base_url='https://api.openai.com/v1',
+    endpoint_security='warn'  # Logs warning but continues
+)
+```
+
+**Security Mode Behavior:**
+- **`'disabled'`** (default for Python/server): Detection logic runs and logs debug messages, but allows all endpoints including official ones. Use for server-side applications where API keys are protected.
+- **`'warn'`**: Logs warnings to console when official endpoints are detected (api.openai.com, api.anthropic.com), but allows the connection. Useful for development with awareness of potential issues.
+- **`'strict'`**: Raises `ValueError` when official endpoints are detected. Forces use of a backend proxy. Recommended for browser deployments (automatically enabled in TypeScript browser environment).
+
+**Dangerous Endpoints Detected:**
+- `api.openai.com`
+- `api.anthropic.com`
+
+**Note:** Python runs server-side only, so the default is `'disabled'`. The TypeScript implementation defaults to `'strict'` in browser environments where API keys could be exposed to end users.
+
 ### Python Version
 - Requires Python 3.8+
 - Use `python` command (not `python3`) with activated venv
