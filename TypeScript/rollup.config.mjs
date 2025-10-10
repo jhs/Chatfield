@@ -158,7 +158,8 @@ const standaloneConfigs = [
   //     exports: 'named'
   //   },
   //   external: alwaysExternal,
-  //   plugins: [...createPlugins('dist/standalone/esm', true), terser()]
+  //   plugins: [...createPlugins('dist/standalone/esm', true), terser()],
+  //   onwarn,
   // },
 
   // UMD build for CDN usage
