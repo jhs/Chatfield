@@ -112,12 +112,20 @@ const createPlugins = (outDir, _unusedOption = false) => {
 
 // Warning handler to show all messages without truncation
 const onwarn = (warning, warn) => {
-  // Always show the full warning message
+  const squelch = true;
+  const ok_packages = ['@langchain', 'langsmith', 'zod-to-json-schema', 'semver', 'zod'];
+
   if (warning.code === 'CIRCULAR_DEPENDENCY') {
-    console.warn(`Circular dependency: ${warning.message}`);
-  } else {
-    warn(warning);
+    if (squelch) {
+      for (const ok_pkg of ok_packages) {
+        if (warning.message.includes(`node_modules/${ok_pkg}/`)) {
+          return; // Squelch.
+        }
+      }
+    }
+    // console.warn(`Circular dependency: ${warning.message}`);
   }
+  return warn(warning);
 };
 
 // Build configurations
@@ -137,7 +145,7 @@ const standaloneConfigs = [
     },
     external: alwaysExternal,
     plugins: createPlugins('dist/standalone/esm', true),
-    // onwarn,
+    onwarn,
   },
 
   // Minified ESM build
