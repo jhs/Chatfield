@@ -74,70 +74,81 @@ export class Interviewer {
     'api.anthropic.com',
   ];
 
-  constructor(interview: Interview, options?: { threadId?: string; llm?: any, llmId?: any, baseUrl?: string, apiKey?: string, endpointSecurity?: EndpointSecurityMode }) {
+  constructor(interview: Interview, options?: {
+    threadId?: string;
+    llm?: any,
+    llmId?: any,
+    temperature?: number | null,
+    baseUrl?: string,
+    apiKey?: string,
+    endpointSecurity?: EndpointSecurityMode,
+  }) {
+    // Isomorphic:
+    // TypeScript has options parameter, Python uses all kwargs.
+    const threadId = options?.threadId;
+    const llm = options?.llm;
+    let   llmId = options?.llmId;
+    let   temperature = options?.temperature;
+    let   baseUrl = options?.baseUrl;
+    // const apiKey = options?.apiKey;
+    const endpointSecurity = options?.endpointSecurity;
+
     this.interview = interview
     this.templateEngine = new TemplateEngine()
     this.checkpointer = new MemorySaver()
     this.config = {
       configurable: {
-        thread_id: options?.threadId || uuidv4()
+        thread_id: threadId || uuidv4()
       }
     }
 
     // Initialize LLM (use mock if provided)
-    if (options?.llm) {
-      this.llm = options.llm
+    if (llm) {
+      this.llm = llm;
     } else {
+      // Isomorphic:
+      // TypeScript has logic to set up Browser environments.
+      // Python no-ops.
       const win = this.getWindow();
-      let baseUrl = options?.baseUrl;
       if (win) {
         // Browser environment
         if (!baseUrl || baseUrl.trim() === '') {
-          // Use a "chatfield" service as the base.
-          // Placeholder until we work on a decent reference implementation.
-          const path = '/chatfield/openai';
-          baseUrl = `${win.location.protocol}//${win.location.host}${path}`;
+          throw new Error(`No baseUrl in browser environment`);
         }
       } else {
-        // Server environment.
+        // Server environment
         // OPENAI_BASE_URL already works due to the underlying OpenAI client.
       }
 
-      // Resolve API key
-      let apiKey = options?.apiKey;
-      if (!apiKey && typeof process !== 'undefined' && process.env?.OPENAI_API_KEY) {
-        apiKey = process.env.OPENAI_API_KEY;
+      llmId = llmId || 'openai:gpt-4o';
+      temperature = temperature || 0.0;
+      if (['openai:o3-mini', 'openai:o3'].includes(llmId)) {
+        temperature = null;
       }
 
-      if (!apiKey) {
-        if (win) {
-          console.log(`No API key OK in browser environment`);
-        } else {
-          throw new Error(
-            'Must pass apiKey or set OPENAI_API_KEY environment variable.'
-          );
-        }
+      // Isomorphic:
+      // Python uses init_chat_model, so llm_config represents those kwargs.
+      // TypeScript uses ChatOpenAI from '@langchain/openai'
+      if (llmId.startsWith('openai:')) {
+        llmId = llmId.slice('openai:'.length);
       }
-
       const llmConfig: any = {
-        apiKey: apiKey,
-        modelName: options?.llmId || 'gpt-4o',
-        temperature: 0.0,
+        // apiKey: apiKey,
+        modelName: llmId,
+        temperature: temperature,
         configuration: {
           baseURL: baseUrl,
         }
       }
-
       this.llm = new ChatOpenAI(llmConfig)
     }
 
-    // Determine default security mode
-    let securityMode = options?.endpointSecurity
-    if (!securityMode) {
-      const isBrowser = this.getWindow() !== null
-      securityMode = isBrowser ? 'strict' : 'disabled'
-    }
-
+    // Isomorphic:
+    // Both languages implement security modes.
+    // Both languages default to "disabled" as servers.
+    // But in a browser, the default is "strict".
+    const isBrowser = this.getWindow() !== null
+    let securityMode = endpointSecurity || ( isBrowser ? 'strict' : 'disabled' );
     this.detectDangerousEndpoint(this.llm, securityMode);
     this.setupGraph()
   }
@@ -181,10 +192,52 @@ export class Interviewer {
     return null;
   }
 
-  private detectDangerousEndpoint(llm: ChatOpenAI, mode: EndpointSecurityMode) {
-    const isBrowser = this.getWindow() !== null
+  private detectDangerousEndpoint(llm: any, mode: EndpointSecurityMode): void {
+    /**
+     * Check for dangerous API endpoints based on security mode.
+     *
+     * Args:
+     *   llm: The LLM instance to check
+     *   mode: Security mode ('strict', 'warn', or 'disabled')
+     *
+     * Throws:
+     *   Error: If mode is 'strict' and a dangerous endpoint is detected
+     */
 
+    // Isomorphic:
+    // Extract hostname from LLM instance.
+    // Python uses llm.openai_api_base
+    // TypeScript uses llm.clientConfig?.baseURL
+    let hostname: string | null = null
+    const baseUrl = llm.clientConfig?.baseURL
+    if (baseUrl) {
+      try {
+        const parsed = new URL(baseUrl)
+        hostname = parsed.hostname
+      } catch (e) {
+        // Invalid URL, treat as null
+      }
+    }
+
+    // Isomorphic:
+    // Callback function to handle dangerous endpoint detection
+    const onDangerousEndpoint = (message: string) => {
+      if (mode === 'disabled') {
+        console.log(`Endpoint: ${message}`)
+      } else if (mode === 'warn') {
+        console.warn(`WARNING: ${message}. Your API key may be exposed to end users.`)
+      } else if (mode === 'strict') {
+        throw new Error(
+          `SECURITY ERROR: ${message}. ` +
+          `This may expose your API key to end users. Use a backend proxy instead.`
+        )
+      }
+    }
+
+    // Isomorphic:
+    // Browser-specific logic (TypeScript only)
     // Enforce: Cannot disable security in browser
+    const isBrowser = this.getWindow() !== null
     if (isBrowser && mode === 'disabled') {
       throw new Error(
         'SECURITY ERROR: Cannot disable endpoint security checks in browser environment. ' +
@@ -192,41 +245,21 @@ export class Interviewer {
       )
     }
 
-    // Parse URL - always parse, even in disabled mode
-    let url: URL
-    try {
-      const urlString = llm.clientConfig?.baseURL || ''
-      url = new URL(urlString)
-    } catch (e) {
-      console.log(`Safe LLM baseURL: relative or invalid: ${llm.clientConfig?.baseURL}`)
-      return // Relative URLs are always safe
+    if (hostname === null) {
+      // This means using the default endpoint.
+      onDangerousEndpoint('No explicit endpoint configured')
+      return
     }
 
-    // Check against dangerous endpoints - ALWAYS run this logic
     for (const endpoint of this.DANGEROUS_ENDPOINTS) {
-      if (url.hostname === endpoint) {
+      if (hostname === endpoint) {
         const message = `Detected official API endpoint: ${endpoint}`
-
-        if (mode === 'disabled') {
-          // Debug log - helpful for understanding what's happening
-          console.log(`Endpoint security disabled. ${message} (allowed)`)
-        } else if (mode === 'strict') {
-          // Error - block the operation
-          throw new Error(
-            `SECURITY ERROR: ${message}. ` +
-            `This may expose your API key to end users. Use a backend proxy instead.`
-          )
-        } else if (mode === 'warn') {
-          // Warning - allow but notify
-          console.warn(`⚠️  WARNING: ${message}. Your API key may be exposed to end users.`)
-        }
-
-        return // Found a match, no need to check other endpoints
+        onDangerousEndpoint(message)
+        return  // Found a match, no need to check other endpoints
       }
     }
 
-    // If we get here, the endpoint is not in the dangerous list
-    console.log(`Safe endpoint: ${url.hostname}`)
+    console.log(`Safe endpoint: ${hostname}`)
   }
 
   private async initialize(state: InterviewStateType) {

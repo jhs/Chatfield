@@ -36,7 +36,6 @@ class Interviewer:
     Interviewer that manages conversation flow.
     """
 
-    # List of official API endpoints that should trigger security warnings/errors
     DANGEROUS_ENDPOINTS = [
         'api.openai.com',
         'api.anthropic.com',
@@ -53,45 +52,60 @@ class Interviewer:
         api_key: Optional[str] = None,
         endpoint_security: Optional[EndpointSecurityMode] = None
     ):
-        self.checkpointer = InMemorySaver()
-
-        self.config = {"configurable": {"thread_id": thread_id or str(uuid.uuid4())}}
+        # Isomorphic:
+        # TypeScript has options parameter, Python uses all kwargs.
         self.interview = interview
         self.template_engine = TemplateEngine()
-        theAlice = self.interview._alice_role_name
-        theBob   = self.interview._bob_role_name
+        self.checkpointer = InMemorySaver()
+        self.config = {"configurable": {"thread_id": thread_id or str(uuid.uuid4())}}
 
-        self.llm = llm
-        if not self.llm:
-            # llm_id = 'openai:o3-mini'
-            # temperature = None
-            # llm_id = 'openai:gpt-5'
-            # llm_id = 'openai:gpt-4.1'
+        # Initialize LLM
+        if llm:
+            self.llm = llm
+        else:
+            # Isomorphic:
+            # TypeScript has logic to set up Browser environments.
+            # Python no-ops.
+            win = False
+            if win:
+                # Browser environment
+                pass
+            else:
+                # Server environment
+                # OPENAI_BASE_URL already works due to the underlying OpenAI client.
+                pass
+
             llm_id = llm_id or 'openai:gpt-4o'
             temperature = temperature or 0.0
             if llm_id in ('openai:o3-mini', 'openai:o3'):
                 temperature = None
+            
+            # Isomorphic:
+            # Python uses init_chat_model, so llm_config represents those kwargs.
+            # TypeScript uses ChatOpenAI from '@langchain/openai'
+            llm_config = {
+                # 'llm_id': llm_id,
+                'temperature': temperature,
+                'base_url': base_url,
+                'api_key': api_key,
+                # 'configurable': {
+                #     # 'api_key': api_key,
+                #     'base_url': base_url,
+                # },
+            }
+            self.llm = init_chat_model(llm_id, **llm_config)
 
-            # Build configuration dict for init_chat_model
-            config_params = {}
-            if base_url is not None:
-                config_params['base_url'] = base_url
-            if api_key is not None:
-                config_params['api_key'] = api_key
-
-            # Initialize LLM with optional configuration
-            if config_params:
-                self.llm = init_chat_model(llm_id, temperature=temperature, configurable=config_params)
-            else:
-                self.llm = init_chat_model(llm_id, temperature=temperature)
-
-        # Determine default security mode
-        # Python is server-side only, so default to 'disabled'
+        # Isomorphic:
+        # Both languages implement security modes.
+        # Both languages default to "disabled" as servers.
+        # But in a browser, the default is "strict".
+        is_browser = False
         security_mode = endpoint_security or 'disabled'
+        self._detect_dangerous_endpoint(self.llm, security_mode)
+        self._setup_graph()
 
-        # Run endpoint security check
-        self._detect_dangerous_endpoint(base_url, security_mode)
-
+    def _setup_graph(self):
+        """Build the LangGraph state machine - matches TypeScript's setupGraph()."""
         builder = StateGraph(State)
 
         builder.add_node('initialize', self.initialize)
@@ -111,62 +125,52 @@ class Interviewer:
 
         self.graph = builder.compile(checkpointer=self.checkpointer)
 
-    def _detect_dangerous_endpoint(self, base_url: Optional[str], mode: EndpointSecurityMode) -> None:
+    def _detect_dangerous_endpoint(self, llm, mode: EndpointSecurityMode) -> None:
         """Check for dangerous API endpoints based on security mode.
 
-        Always runs the detection logic, but behavior depends on mode:
-        - disabled: Log debug message only
-        - warn: Log warning but allow
-        - strict: Raise error
-
         Args:
-            base_url: The base URL to check (may be None)
+            llm: The LLM instance to check
             mode: Security mode ('strict', 'warn', or 'disabled')
 
         Raises:
             ValueError: If mode is 'strict' and a dangerous endpoint is detected
         """
-        # Parse URL - always parse, even in disabled mode
-        if not base_url:
-            print('Safe LLM baseURL: None provided')
-            return
 
-        try:
+        hostname = None
+        base_url = llm.openai_api_base
+        if base_url:
             parsed = urlparse(base_url)
             hostname = parsed.hostname
-        except Exception as e:
-            print(f'Safe LLM baseURL: parsing failed: {base_url}')
+
+        def on_dangerous_endpoint(message: str):
+            if mode == 'disabled':
+                print(f'Endpoint: {message}')
+            elif mode == 'warn':
+                warnings.warn(
+                    f'WARNING: {message}. Your API key may be exposed to end users.',
+                    UserWarning,
+                    stacklevel=2)
+            elif mode == 'strict':
+                raise ValueError(
+                    f'SECURITY ERROR: {message}. '
+                    f'This may expose your API key to end users. Use a backend proxy instead.'
+                )
+        
+        # Isomorphic:
+        # Browser-specific logic (TypeScript only)
+        # Enforce: Cannot disable security in browser
+
+        if hostname is None:
+            # This means using the default endpoint.
+            on_dangerous_endpoint(f'No explicit endpoint configured')
             return
 
-        if not hostname:
-            print(f'Safe LLM baseURL: relative or invalid: {base_url}')
-            return
-
-        # Check against dangerous endpoints - ALWAYS run this logic
         for endpoint in self.DANGEROUS_ENDPOINTS:
             if hostname == endpoint:
                 message = f'Detected official API endpoint: {endpoint}'
-
-                if mode == 'disabled':
-                    # Debug log - helpful for understanding what's happening
-                    print(f'Endpoint security disabled. {message} (allowed)')
-                elif mode == 'strict':
-                    # Error - block the operation
-                    raise ValueError(
-                        f'SECURITY ERROR: {message}. '
-                        f'This may expose your API key to end users. Use a backend proxy instead.'
-                    )
-                elif mode == 'warn':
-                    # Warning - allow but notify
-                    warnings.warn(
-                        f'WARNING: {message}. Your API key may be exposed to end users.',
-                        UserWarning,
-                        stacklevel=2
-                    )
-
+                on_dangerous_endpoint(message)
                 return  # Found a match, no need to check other endpoints
 
-        # If we get here, the endpoint is not in the dangerous list
         print(f'Safe endpoint: {hostname}')
 
     # This exists to fail faster in case of serialization bugs with the LangGraph checkpointer.
