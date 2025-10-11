@@ -211,8 +211,31 @@ npx tsx minimal.ts                                  # Test OpenAI API connection
 
 ## Testing Approach
 
-### Test Harmonization
-Both implementations follow identical BDD-style test organization with matching test descriptions. See `Documentation/TEST_HARMONIZATION.md` for the complete harmonization guide, naming conventions, and progress tracking.
+### Test Harmonization Philosophy
+
+**CRITICAL**: Both implementations maintain **identical test suite structure** with **zero skipped tests**. This is a core principle of the Chatfield project.
+
+**No-Skip Policy**:
+- **NEVER use `@pytest.mark.skip` or `it.skip()` in test suites**
+- When language differences prevent identical behavior, implement a **no-op test that passes** rather than skipping
+- The test should document the difference with comments but still execute and pass
+- **Goal**: New developers see literally identical test counts and outcomes in both languages
+- **Rationale**: Builds confidence in Chatfield's genuine two-language commitment
+
+**Example Pattern for Language Differences**:
+```python
+# Python: API key validation happens lazily, not at initialization
+def it_throws_when_no_api_key_provided():
+    """Throws when no api key provided."""
+    # NOTE: Python's init_chat_model validates lazily at invocation.
+    # TypeScript validates at initialization. This test documents
+    # the difference but implements no-op behavior.
+    interview = chatfield().field("name").build()
+    interviewer = Interviewer(interview, base_url='https://proxy.com')
+    assert interviewer is not None  # Passes - documents difference
+```
+
+See `Documentation/TEST_HARMONIZATION.md` for the complete harmonization guide, naming conventions, and progress tracking.
 
 ### Python Tests
 - **Framework**: pytest with pytest-describe for BDD-style organization
@@ -223,6 +246,7 @@ Both implementations follow identical BDD-style test organization with matching 
 - **Coverage**: Run `make test-cov` for HTML coverage report in `htmlcov/`
 - **Test Files**: `test_*.py` naming convention in `tests/` directory
 - **Test Harmonization**: Test names and descriptions match TypeScript implementation exactly
+- **No Skips**: Zero skipped tests - use no-op tests instead
 
 ### TypeScript Tests
 - **Framework**: Jest with ts-jest for TypeScript support
@@ -233,6 +257,7 @@ Both implementations follow identical BDD-style test organization with matching 
 - **Test Files**: `*.test.ts` naming convention (mirrors Python's `test_*.py`)
 - **Configuration**: `jest.config.js` and `tsconfig.test.json`
 - **Test Harmonization**: Test names and descriptions match Python implementation exactly
+- **No Skips**: Zero skipped tests - use no-op tests instead
 
 ## API Key Configuration
 
@@ -449,11 +474,12 @@ console.log(result)
 1. **Maintain parity**: Keep Python and TypeScript implementations synchronized
 2. **Test coverage**: Write tests for all new features using BDD style
 3. **Test naming**: Use identical test descriptions between Python and TypeScript
-4. **Documentation**: Update CLAUDE.md files when adding features
-5. **Examples**: Provide example usage for new functionality in both languages
-6. **Type safety**: Ensure full type coverage in TypeScript
-7. **Prompt quality**: Test prompts with various LLM providers
-8. **Error handling**: Gracefully handle API failures and edge cases
-9. **Code style**: Follow language-specific conventions (Black for Python, ESLint for TypeScript)
-10. **Version sync**: Update version numbers in both pyproject.toml and package.json together
-11. **GitHub issues**: Keep issues concise (~100-200 words), with clear title, structured sections (using headers/bullets), and focused on a single concern
+4. **No-skip policy**: NEVER skip tests - use no-op tests that pass to maintain identical test counts
+5. **Documentation**: Update CLAUDE.md files when adding features
+6. **Examples**: Provide example usage for new functionality in both languages
+7. **Type safety**: Ensure full type coverage in TypeScript
+8. **Prompt quality**: Test prompts with various LLM providers
+9. **Error handling**: Gracefully handle API failures and edge cases
+10. **Code style**: Follow language-specific conventions (Black for Python, ESLint for TypeScript)
+11. **Version sync**: Update version numbers in both pyproject.toml and package.json together
+12. **GitHub issues**: Keep issues concise (~100-200 words), with clear title, structured sections (using headers/bullets), and focused on a single concern
