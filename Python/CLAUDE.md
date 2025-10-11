@@ -6,6 +6,45 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Chatfield is a Python package (v0.2.0) that transforms data gathering from rigid forms into conversational dialogues powered by LLMs. It uses a fluent builder API to define fields and validation rules, then leverages LangGraph to orchestrate natural conversations that collect structured data.
 
+**IMPORTANT**: This is the Python implementation of an **isomorphic library**. The Python and TypeScript implementations are equal first-class citizens, maintaining near-identical code structure, naming, logic, and test suites. See the main project CLAUDE.md for details on isomorphic development principles.
+
+## Isomorphic Development in Python
+
+### Key Principles
+
+1. **Check TypeScript First**: Before implementing features, check `../TypeScript/` for the corresponding implementation
+2. **Match Structure**: File names, class names, method names should match TypeScript (accounting for language conventions)
+3. **Use "Isomorphic:" Comments**: When Python code must differ from TypeScript, include identical "Isomorphic:" comments in both files
+4. **Identical Tests**: Test descriptions, counts, and structure must match TypeScript's Jest tests
+5. **Zero Skipped Tests**: Use no-op tests that pass instead of `@pytest.mark.skip`
+
+### Python-Specific Conventions
+
+- **Naming**: Use `snake_case` for methods (vs TypeScript's `camelCase`)
+- **Async**: Python implementation is primarily synchronous (TypeScript is async by default)
+- **Types**: Use type hints where beneficial, but not required
+- **Imports**: Use relative imports within the package
+- **Testing**: Use pytest-describe to mirror TypeScript's Jest describe/it structure
+
+### Example: Isomorphic Comment Pattern
+
+```python
+# Isomorphic: Python uses snake_case for method names, TypeScript uses camelCase.
+# Both implementations have identical logic and behavior.
+def get_field_value(self, field_name: str) -> Optional[str]:
+    return self._chatfield['fields'].get(field_name, {}).get('value')
+```
+
+The TypeScript implementation would have:
+
+```typescript
+// Isomorphic: Python uses snake_case for method names, TypeScript uses camelCase.
+// Both implementations have identical logic and behavior.
+getFieldValue(fieldName: string): string | null {
+  return this._chatfield.fields[fieldName]?.value ?? null
+}
+```
+
 ## Project Architecture
 
 ### Core Components
@@ -139,16 +178,19 @@ python favorite_number.py      # Simple validation example
 
 ## Testing Philosophy
 
-### No-Skip Policy (CRITICAL)
+### Isomorphic Test Suites (CRITICAL)
 
-**Chatfield maintains identical test suite structure across Python and TypeScript with ZERO skipped tests.**
+**Chatfield maintains isomorphic test suites across Python and TypeScript with ZERO skipped tests.** This is fundamental to the isomorphic development philosophy.
 
-**Rules**:
+**Isomorphic Testing Rules**:
 - **NEVER use `@pytest.mark.skip` or `it.skip()`** in test suites
+- Test file names match TypeScript (e.g., `test_builder.py` ↔ `builder.test.ts`)
+- Test descriptions are identical across both languages
+- Test counts are identical (zero skipped tests)
 - When language differences prevent identical behavior, implement a **no-op test that passes**
-- Document the difference with comments but let the test execute and pass
+- Document the difference with "Isomorphic:" comments but let the test execute and pass
 - **Goal**: New developers see literally identical test counts and outcomes
-- **Rationale**: Builds confidence in Chatfield's genuine two-language commitment
+- **Rationale**: Builds confidence in Chatfield's genuine two-language isomorphic commitment
 
 **Example Pattern for Language Differences**:
 ```python
@@ -164,10 +206,10 @@ def it_throws_when_no_api_key_provided():
 ```
 
 ### Test Organization
-- Uses pytest with pytest-describe for BDD-style tests
-- Test harmonization with TypeScript implementation (matching test names)
+- Uses pytest with pytest-describe for BDD-style tests (mirrors TypeScript's Jest describe/it)
+- **Isomorphic test structure**: Test names, descriptions, and organization match TypeScript exactly
 - Categories: Unit tests, Integration tests, Conversation tests, Live API tests
-- **Zero skipped tests** - use no-op tests for language-specific differences
+- **Zero skipped tests**: Use no-op tests for language-specific differences to maintain identical test counts
 
 ### Security Testing Focus
 - **Field Extraction**: Accurate extraction from conversations
@@ -335,10 +377,12 @@ interviewer = Interviewer(
 
 ## Known Considerations
 
-1. **Test Harmonization**: Test names must match TypeScript implementation
-2. **Security Focus**: Evaluation suite specifically tests information protection
-3. **Large Result Files**: `results.json` can be 300KB+, consider pagination
-4. **Transformation Computation**: All transformations computed during collection by LLM
-5. **Thread Safety**: Each Interviewer maintains separate thread ID
-6. **Cost Tracking**: Evaluations track API costs (visible in dashboard)
-7. **Field Discovery**: Fields defined via builder pattern, not method inspection
+1. **Isomorphic Implementation**: This Python code mirrors TypeScript—check both implementations when making changes
+2. **Test Isomorphism**: Test names, counts, and descriptions must match TypeScript implementation exactly
+3. **Naming Conventions**: Use snake_case (Python) vs camelCase (TypeScript), documented with "Isomorphic:" comments
+4. **Security Focus**: Evaluation suite specifically tests information protection
+5. **Large Result Files**: `results.json` can be 300KB+, consider pagination
+6. **Transformation Computation**: All transformations computed during collection by LLM
+7. **Thread Safety**: Each Interviewer maintains separate thread ID
+8. **Cost Tracking**: Evaluations track API costs (visible in dashboard)
+9. **Field Discovery**: Fields defined via builder pattern, not method inspection

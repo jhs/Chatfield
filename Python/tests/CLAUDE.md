@@ -4,7 +4,56 @@ This file provides guidance to Claude Code when working with the Python test sui
 
 ## Overview
 
-This directory contains the comprehensive test suite for the Chatfield Python library, covering unit tests, integration tests, and conversation flow tests. The tests validate builder functionality, field discovery, interview orchestration, and transformation capabilities. The test suite uses pytest with pytest-describe for BDD-style test organization that harmonizes with the TypeScript implementation.
+This directory contains the comprehensive test suite for the Chatfield Python library, covering unit tests, integration tests, and conversation flow tests. The tests validate builder functionality, field discovery, interview orchestration, and transformation capabilities. The test suite uses pytest with pytest-describe for BDD-style test organization.
+
+**IMPORTANT**: These tests are part of an **isomorphic test suite**. The Python and TypeScript test implementations maintain identical structure, test names, test descriptions, and test counts. This is fundamental to Chatfield's isomorphic development philosophy.
+
+## Isomorphic Testing Philosophy
+
+### Core Principles
+
+1. **Identical Test Counts**: Python and TypeScript must have exactly the same number of tests
+2. **Identical Test Names**: Test descriptions match exactly (e.g., `it_uses_field_name_when_no_description` ↔ `it('uses field name when no description')`)
+3. **Identical Structure**: File organization and test grouping mirror TypeScript exactly
+4. **Zero Skipped Tests**: NEVER use `@pytest.mark.skip`—use no-op tests that pass instead
+5. **Document Differences**: Use "Isomorphic:" comments to explain language-specific test behavior
+
+### Why Isomorphic Tests Matter
+
+- **Developer Confidence**: Seeing identical test counts in both languages builds trust
+- **Feature Parity**: Ensures both implementations truly have the same capabilities
+- **Easy Verification**: New developers can quickly verify consistency
+- **No Second-Class Citizens**: Both languages are equal first-class implementations
+
+### Mapping to TypeScript Tests
+
+| Python File | TypeScript File | Structure |
+|-------------|----------------|-----------|
+| `test_interview.py` | `interview.test.ts` | `describe_interview()` ↔ `describe('Interview')` |
+| `test_builder.py` | `builder.test.ts` | `describe_builder()` ↔ `describe('Builder')` |
+| `test_interviewer.py` | `interviewer.test.ts` | `describe_interviewer()` ↔ `describe('Interviewer')` |
+
+### Example: Isomorphic Test Structure
+
+```python
+# Python
+def describe_interview():
+    def describe_field_discovery():
+        def it_uses_field_name_when_no_description():
+            """Uses field name as description when none provided."""
+            # Test implementation
+```
+
+```typescript
+// TypeScript
+describe('Interview', () => {
+  describe('field discovery', () => {
+    it('uses field name when no description', () => {
+      // Test implementation
+    })
+  })
+})
+```
 
 ## Project Structure
 
@@ -272,31 +321,36 @@ async def test_async_interview():
 
 ## Known Considerations
 
-1. **Test Harmonization**: Test names and descriptions match TypeScript exactly
-2. **BDD Structure**: Use pytest-describe for consistent organization
-3. **Test Isolation**: Each test should be independent and not affect others
-4. **Mock Cleanup**: Ensure mocks are properly reset between tests
-5. **API Key Tests**: Tests requiring real API keys are marked and skippable
-6. **Performance**: Keep unit tests fast (< 10 seconds for entire suite)
-7. **Determinism**: Tests should produce same results on every run
-8. **Python Path**: Tests may need to add parent directory to sys.path
-9. **State Leakage**: Be careful with class-level attributes in Interview
-10. **LangGraph State**: Test state reducers and merging logic carefully
+1. **Isomorphic Tests**: Test names, descriptions, and counts must match TypeScript exactly
+2. **Zero Skipped Tests**: NEVER skip tests—use no-op tests that pass to maintain identical test counts
+3. **BDD Structure**: Use pytest-describe to mirror TypeScript's Jest describe/it structure
+4. **Test Isolation**: Each test should be independent and not affect others
+5. **Mock Cleanup**: Ensure mocks are properly reset between tests
+6. **API Key Tests**: Tests requiring real API keys are marked and skippable
+7. **Performance**: Keep unit tests fast (< 10 seconds for entire suite)
+8. **Determinism**: Tests should produce same results on every run
+9. **Python Path**: Tests may need to add parent directory to sys.path
+10. **State Leakage**: Be careful with class-level attributes in Interview
+11. **LangGraph State**: Test state reducers and merging logic carefully
+12. **Isomorphic Comments**: Use "Isomorphic:" comments to document language-specific test differences
 
 ## Adding New Tests
 
-When creating new tests:
+When creating new tests, follow the isomorphic testing approach:
 
-1. Place in appropriate test file based on component being tested
-2. Follow BDD structure with `describe_*` and `it_*` functions
-3. Match TypeScript test descriptions exactly for corresponding tests
-4. Use descriptive names that explain what's being tested
-5. Include docstrings that match TypeScript test descriptions
-6. Add appropriate markers (`@pytest.mark.slow`, `@pytest.mark.requires_api_key`)
-7. Use fixtures for common setup
-8. Mock external dependencies
-9. Test both success and failure cases
-10. Update this CLAUDE.md file if adding new test files
+1. **Check TypeScript first**: Look for the corresponding TypeScript test in `../../TypeScript/tests/`
+2. **Match structure exactly**: Place test in the same file structure as TypeScript
+3. **Follow BDD structure**: Use `describe_*` and `it_*` functions that mirror TypeScript's describe/it
+4. **Identical descriptions**: Use test descriptions that match TypeScript exactly
+5. **Include docstrings**: Docstrings should match TypeScript test descriptions
+6. **Isomorphic comments**: If test behavior differs, add "Isomorphic:" comments in both files
+7. **No skipping**: Use no-op tests that pass instead of `@pytest.mark.skip`
+8. **Add markers**: Use appropriate markers (`@pytest.mark.slow`, `@pytest.mark.requires_api_key`)
+9. **Use fixtures**: Use fixtures for common setup
+10. **Mock dependencies**: Mock external dependencies
+11. **Test comprehensively**: Test both success and failure cases
+12. **Update documentation**: Update this CLAUDE.md file if adding new test files
+13. **Verify counts**: Ensure test counts remain identical between Python and TypeScript
 
 ### Example of Harmonized Test:
 ```python

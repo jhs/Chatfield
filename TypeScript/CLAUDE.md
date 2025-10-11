@@ -2,21 +2,64 @@
 
 This file provides guidance to Claude Code when working with the TypeScript/JavaScript implementation of Chatfield.
 
-## CRITICAL: Synchronization Requirements
+## CRITICAL: Isomorphic Development
 
-**The TypeScript implementation MUST stay synchronized with the Python implementation.** This means:
+**The TypeScript implementation is an equal first-class citizen in an isomorphic library.** Both Python and TypeScript implementations maintain near-identical structure, naming, logic, and test suites. This means:
+
+### Isomorphic Requirements
 - **Filenames**: Match Python's naming (e.g., `interview.py` → `interview.ts`)
 - **Test Files**: Python uses `test_*.py`, TypeScript uses `*.test.ts` (e.g., `test_builder.py` → `builder.test.ts`)
 - **Class/Function Names**: Keep identical names (e.g., `Interview`, `Interviewer`, `FieldProxy`)
-- **Method Names**: Preserve Python method names (e.g., `_name()`, `_pretty()`, `as_int`)
+- **Method Names**: Preserve Python method names accounting for conventions (e.g., `_name()` in both, `snake_case` vs `camelCase`)
 - **Code Logic**: Implement the same algorithms and flows as Python
 - **Test Structure**: Mirror Python test files and test names exactly
 - **Test Descriptions**: Use identical test descriptions for corresponding tests
+- **Test Counts**: Maintain identical test counts (zero skipped tests)
+- **Documented Deviations**: Use "Isomorphic:" comments in both languages for any necessary differences
 - **Only deviate when necessary** for language-specific requirements (e.g., TypeScript types, async/await patterns)
 
 ## Overview
 
 Chatfield JS/TS is the TypeScript/JavaScript implementation (v0.1.0) of conversational data collection powered by LLMs. Package name: `@chatfield/core`. This implementation maintains feature parity with the Python version (v0.2.0).
+
+**IMPORTANT**: This is the TypeScript implementation of an **isomorphic library**. The Python and TypeScript implementations are equal first-class citizens, maintaining near-identical code structure, naming, logic, and test suites. See the main project CLAUDE.md for details on isomorphic development principles.
+
+## Isomorphic Development in TypeScript
+
+### Key Principles
+
+1. **Check Python First**: Before implementing features, check `../Python/` for the corresponding implementation
+2. **Match Structure**: File names, class names, method names should match Python (accounting for language conventions)
+3. **Use "Isomorphic:" Comments**: When TypeScript code must differ from Python, include identical "Isomorphic:" comments in both files
+4. **Identical Tests**: Test descriptions, counts, and structure must match Python's pytest tests
+5. **Zero Skipped Tests**: Use no-op tests that pass instead of `it.skip()` or `test.skip()`
+
+### TypeScript-Specific Conventions
+
+- **Naming**: Use `camelCase` for methods (vs Python's `snake_case`)
+- **Async**: TypeScript implementation is async by default (Python is primarily synchronous)
+- **Types**: Full TypeScript type inference and checking throughout
+- **Imports**: Use absolute imports from `chatfield/` directory
+- **Testing**: Use Jest describe/it to mirror Python's pytest-describe structure
+
+### Example: Isomorphic Comment Pattern
+
+```typescript
+// Isomorphic: Python uses snake_case for method names, TypeScript uses camelCase.
+// Both implementations have identical logic and behavior.
+getFieldValue(fieldName: string): string | null {
+  return this._chatfield.fields[fieldName]?.value ?? null
+}
+```
+
+The Python implementation would have:
+
+```python
+# Isomorphic: Python uses snake_case for method names, TypeScript uses camelCase.
+# Both implementations have identical logic and behavior.
+def get_field_value(self, field_name: str) -> Optional[str]:
+    return self._chatfield['fields'].get(field_name, {}).get('value')
+```
 
 ## Project Structure
 
@@ -129,8 +172,11 @@ node dist/examples/basic-usage.js           # Run compiled example
 
 ## Testing Approach
 
-### Test Harmonization
-Tests are structured to match Python's pytest-describe organization:
+### Isomorphic Test Suites (CRITICAL)
+
+**Chatfield maintains isomorphic test suites across TypeScript and Python with ZERO skipped tests.** This is fundamental to the isomorphic development philosophy.
+
+Tests are structured to match Python's pytest-describe organization exactly:
 
 ```typescript
 describe('Interview', () => {
@@ -141,6 +187,16 @@ describe('Interview', () => {
   })
 })
 ```
+
+### Isomorphic Testing Rules
+- **NEVER use `it.skip()` or `test.skip()`** in test suites
+- Test file names match Python (e.g., `builder.test.ts` ↔ `test_builder.py`)
+- Test descriptions are identical across both languages
+- Test counts are identical (zero skipped tests)
+- When language differences prevent identical behavior, implement a **no-op test that passes**
+- Document the difference with "Isomorphic:" comments but let the test execute and pass
+- **Goal**: New developers see literally identical test counts and outcomes
+- **Rationale**: Builds confidence in Chatfield's genuine two-language isomorphic commitment
 
 ### Test Structure
 - Each `.test.ts` file corresponds to a Python `test_*.py` file
@@ -335,34 +391,43 @@ const interviewer = new Interviewer(interview, {
 
 ## Known Considerations
 
-1. **Test synchronization**: Test names and descriptions must match Python
-2. **LangGraph version**: Uses @langchain/langgraph 0.4.6+ (Python uses 0.6.4+)
-3. **Import paths**: Use absolute imports from `chatfield/`
-4. **Async patterns**: All LLM operations are async
-5. **Type inference**: Leverage TypeScript's type system fully
-6. **React integration**: Primary UI integration path
-7. **Tool generation**: Uses Zod schemas instead of Pydantic
-8. **State merging**: Custom merge logic for Interview instances
-9. **LangSmith debugging**: Trace URLs generated for debugging
+1. **Isomorphic Implementation**: This TypeScript code mirrors Python—check both implementations when making changes
+2. **Test Isomorphism**: Test names, counts, and descriptions must match Python implementation exactly
+3. **Naming Conventions**: Use camelCase (TypeScript) vs snake_case (Python), documented with "Isomorphic:" comments
+4. **Test synchronization**: Test names and descriptions must match Python
+5. **LangGraph version**: Uses @langchain/langgraph 0.4.6+ (Python uses 0.6.4+)
+6. **Import paths**: Use absolute imports from `chatfield/`
+7. **Async patterns**: All LLM operations are async (Python is primarily sync)
+8. **Type inference**: Leverage TypeScript's type system fully
+9. **React integration**: Primary UI integration path
+10. **Tool generation**: Uses Zod schemas instead of Pydantic
+11. **State merging**: Custom merge logic for Interview instances
+12. **LangSmith debugging**: Trace URLs generated for debugging
 
-## Synchronization with Python
+## Isomorphic Implementation with Python
 
-When implementing new features:
+When implementing new features, follow the isomorphic development process:
 1. **ALWAYS check the Python implementation first** in `Python/`
-2. Match file names, class names, and method names exactly
+2. Match file names, class names, and method names exactly (accounting for language conventions)
 3. Use identical test descriptions for corresponding tests
 4. Implement the same algorithms and validation logic
-5. Only deviate for TypeScript-specific requirements (types, async/await)
+5. Add "Isomorphic:" comments in both files for any necessary differences
+6. Only deviate for TypeScript-specific requirements (types, async/await)
+7. Maintain identical test counts (zero skipped tests)
 
 ## Contributing Guidelines
 
-1. **Maintain parity**: Keep synchronized with Python implementation
-2. **Test coverage**: Write tests matching Python test descriptions
-3. **Type safety**: Ensure full TypeScript type coverage
-4. **Documentation**: Update CLAUDE.md when adding features
-5. **Examples**: Provide TypeScript examples for new features
-6. **Code style**: Follow ESLint configuration
-7. **Version sync**: Update version in package.json with pyproject.toml
+1. **Isomorphic first**: Maintain the isomorphic principle—both implementations are equal first-class citizens
+2. **Synchronize implementations**: Keep TypeScript and Python code structures, names, and logic identical
+3. **Document deviations**: Use "Isomorphic:" comments in both languages for any necessary differences
+4. **Test coverage**: Write tests matching Python test descriptions with identical structure
+5. **Zero skipped tests**: Use no-op tests that pass instead of skipping to maintain identical test counts
+6. **Parallel development**: Implement features in both languages simultaneously when possible
+7. **Type safety**: Ensure full TypeScript type coverage
+8. **Documentation**: Update CLAUDE.md when adding features, maintaining consistency
+9. **Examples**: Provide TypeScript examples for new features (and Python equivalents)
+10. **Code style**: Follow ESLint configuration
+11. **Version sync**: Update version in package.json with pyproject.toml
 
 ## Build Configuration
 

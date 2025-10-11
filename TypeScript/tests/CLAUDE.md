@@ -6,6 +6,55 @@ This file provides guidance to Claude Code when working with the TypeScript/Java
 
 This directory contains the comprehensive test suite for the Chatfield TypeScript/JavaScript library, mirroring the Python implementation's test structure for feature parity. Tests cover the builder API, Interview class, Interviewer orchestration, transformations, and conversation flows using Jest as the testing framework. The test structure uses nested describe/it blocks that correspond exactly to Python's pytest-describe organization.
 
+**IMPORTANT**: These tests are part of an **isomorphic test suite**. The TypeScript and Python test implementations maintain identical structure, test names, test descriptions, and test counts. This is fundamental to Chatfield's isomorphic development philosophy.
+
+## Isomorphic Testing Philosophy
+
+### Core Principles
+
+1. **Identical Test Counts**: TypeScript and Python must have exactly the same number of tests
+2. **Identical Test Names**: Test descriptions match exactly (e.g., `it('uses field name when no description')` ↔ `it_uses_field_name_when_no_description`)
+3. **Identical Structure**: File organization and test grouping mirror Python exactly
+4. **Zero Skipped Tests**: NEVER use `it.skip()` or `test.skip()`—use no-op tests that pass instead
+5. **Document Differences**: Use "Isomorphic:" comments to explain language-specific test behavior
+
+### Why Isomorphic Tests Matter
+
+- **Developer Confidence**: Seeing identical test counts in both languages builds trust
+- **Feature Parity**: Ensures both implementations truly have the same capabilities
+- **Easy Verification**: New developers can quickly verify consistency
+- **No Second-Class Citizens**: Both languages are equal first-class implementations
+
+### Mapping to Python Tests
+
+| TypeScript File | Python File | Structure |
+|----------------|-------------|-----------|
+| `interview.test.ts` | `test_interview.py` | `describe('Interview')` ↔ `describe_interview()` |
+| `builder.test.ts` | `test_builder.py` | `describe('Builder')` ↔ `describe_builder()` |
+| `interviewer.test.ts` | `test_interviewer.py` | `describe('Interviewer')` ↔ `describe_interviewer()` |
+
+### Example: Isomorphic Test Structure
+
+```typescript
+// TypeScript
+describe('Interview', () => {
+  describe('field discovery', () => {
+    it('uses field name when no description', () => {
+      // Test implementation
+    })
+  })
+})
+```
+
+```python
+# Python
+def describe_interview():
+    def describe_field_discovery():
+        def it_uses_field_name_when_no_description():
+            """Uses field name as description when none provided."""
+            # Test implementation
+```
+
 ## Project Structure
 
 ```
@@ -148,15 +197,15 @@ The test suite uses Jest with the following configuration:
 
 ## Architecture Notes
 
-### Test Harmonization with Python
+### Isomorphic Test Mapping to Python
 
-Each TypeScript test file corresponds to a Python test file with matching test descriptions:
+Each TypeScript test file is isomorphic to a Python test file with matching test descriptions and counts:
 
-| TypeScript File | Python File | Description Pattern |
-|----------------|-------------|--------------------|
-| interview.test.ts | test_interview.py | Identical describe/it structure |
+| TypeScript File | Python File | Isomorphic Structure |
+|----------------|-------------|---------------------|
+| interview.test.ts | test_interview.py | Identical describe/it ↔ describe_/it_ structure |
 | interviewer.test.ts | test_interviewer.py | Same test names and organization |
-| builder.test.ts | test_builder.py | Matching feature coverage |
+| builder.test.ts | test_builder.py | Matching feature coverage and test counts |
 | field_proxy.test.ts | test_field_proxy.py | Same behavior tests |
 | custom_transformations.test.ts | test_custom_transformations.py | Identical transformation tests |
 | conversations.test.ts | test_conversations.py | Same scenario tests |
@@ -367,32 +416,38 @@ test('useConversation hook', () => {
 
 ## Known Considerations
 
-1. **Test Harmonization**: Test descriptions must match Python exactly
-2. **Naming Convention**: Use `it()` instead of `test()` to match Python's `it_*` pattern
-3. **Test Isolation**: Each test must be independent
-4. **Mock Cleanup**: Jest automatically clears mocks between tests
-5. **TypeScript Types**: Ensure proper typing for mocks
-6. **Async Handling**: Use async/await properly in tests
-7. **Timer Mocks**: Use `jest.useFakeTimers()` for time-dependent tests
-8. **Module Mocks**: Place in `__mocks__` directory or use `jest.mock()`
-9. **Coverage Gaps**: Focus on critical paths first
-10. **Flaky Tests**: Use deterministic mocks instead of real APIs
+1. **Isomorphic Tests**: Test names, descriptions, and counts must match Python exactly
+2. **Zero Skipped Tests**: NEVER skip tests—use no-op tests that pass to maintain identical test counts
+3. **Naming Convention**: Use `it()` instead of `test()` to match Python's `it_*` pattern
+4. **Test Isolation**: Each test must be independent
+5. **Mock Cleanup**: Jest automatically clears mocks between tests
+6. **TypeScript Types**: Ensure proper typing for mocks
+7. **Async Handling**: Use async/await properly in tests (Python tests are primarily sync)
+8. **Timer Mocks**: Use `jest.useFakeTimers()` for time-dependent tests
+9. **Module Mocks**: Place in `__mocks__` directory or use `jest.mock()`
+10. **Coverage Gaps**: Focus on critical paths first
+11. **Flaky Tests**: Use deterministic mocks instead of real APIs
+12. **Isomorphic Comments**: Use "Isomorphic:" comments to document language-specific test differences
 
 ## Adding New Tests
 
-When creating new tests:
+When creating new tests, follow the isomorphic testing approach:
 
-1. **Check Python equivalent**: Look for corresponding Python test first
-2. **Match test description**: Use exact same test description as Python
-3. Follow naming convention (`*.test.ts` for files)
-4. Use `describe()` and `it()` to match Python's structure
-5. Place in appropriate file based on component
-6. Group related tests in nested `describe` blocks
-7. Add setup/teardown in `beforeEach`/`afterEach`
-8. Mock external dependencies
-9. Test both success and failure cases
-10. Add comments for complex test logic
-11. Update this CLAUDE.md file if adding new test files
+1. **Check Python first**: Look for the corresponding Python test in `../../Python/tests/`
+2. **Match structure exactly**: Place test in the same file structure as Python
+3. **Identical descriptions**: Use test descriptions that match Python exactly
+4. **Follow naming convention**: Use `*.test.ts` for files (mirrors Python's `test_*.py`)
+5. **BDD structure**: Use `describe()` and `it()` to mirror Python's `describe_*` and `it_*`
+6. **Isomorphic comments**: If test behavior differs, add "Isomorphic:" comments in both files
+7. **No skipping**: Use no-op tests that pass instead of `it.skip()` or `test.skip()`
+8. **Place appropriately**: Place in appropriate file based on component
+9. **Group tests**: Group related tests in nested `describe` blocks
+10. **Setup/teardown**: Add setup/teardown in `beforeEach`/`afterEach`
+11. **Mock dependencies**: Mock external dependencies
+12. **Test comprehensively**: Test both success and failure cases
+13. **Add comments**: Add comments for complex test logic
+14. **Update documentation**: Update this CLAUDE.md file if adding new test files
+15. **Verify counts**: Ensure test counts remain identical between TypeScript and Python
 
 ### Example of Harmonized Test:
 ```typescript
