@@ -96,11 +96,7 @@ export class Interviewer {
     this.interview = interview
     this.templateEngine = new TemplateEngine()
     this.checkpointer = new MemorySaver()
-    this.config = {
-      configurable: {
-        thread_id: threadId || uuidv4()
-      }
-    }
+    this.config = { configurable: { thread_id: threadId || uuidv4() } };
 
     // Initialize LLM (use mock if provided)
     if (llm) {
@@ -416,7 +412,7 @@ export class Interviewer {
   private async listen(state: InterviewStateType, config:RunnableConfig) {
     const interview = this.getStateInterview(state)
     console.log(`Listen> ${interview._name}`)
-    console.log(`Config:`, config)
+    // console.log(`Config:`, config)
     
     // Copy state back to interview for interrupt
     this.interview._copy_from(interview)
