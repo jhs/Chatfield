@@ -1,29 +1,22 @@
-# CLAUDE.md
+# Python Test Suite - CLAUDE.md
 
-This file provides guidance to Claude Code when working with the Python test suite in this directory.
+This file provides guidance for working with the Python test suite.
 
 ## Overview
 
-This directory contains the comprehensive test suite for the Chatfield Python library, covering unit tests, integration tests, and conversation flow tests. The tests validate builder functionality, field discovery, interview orchestration, and transformation capabilities. The test suite uses pytest with pytest-describe for BDD-style test organization.
+This directory contains the comprehensive test suite for Chatfield Python, using pytest with pytest-describe for BDD-style organization. Tests validate builder functionality, field discovery, interview orchestration, and transformation capabilities.
 
-**IMPORTANT**: These tests are part of an **isomorphic test suite**. The Python and TypeScript test implementations maintain identical structure, test names, test descriptions, and test counts. This is fundamental to Chatfield's isomorphic development philosophy.
+**CRITICAL**: These tests are part of an **isomorphic test suite**. Python and TypeScript test implementations maintain identical structure, test names, test descriptions, and test counts.
 
-## Isomorphic Testing Philosophy
+**See**: [../../Documentation/TESTING_ARCHITECTURE.md](../../Documentation/TESTING_ARCHITECTURE.md) for complete testing philosophy and [../../Documentation/ISOMORPHIC_DEVELOPMENT.md](../../Documentation/ISOMORPHIC_DEVELOPMENT.md) for isomorphic principles.
 
-### Core Principles
+## Isomorphic Testing Principles
 
 1. **Identical Test Counts**: Python and TypeScript must have exactly the same number of tests
-2. **Identical Test Names**: Test descriptions match exactly (e.g., `it_uses_field_name_when_no_description` ↔ `it('uses field name when no description')`)
+2. **Identical Test Names**: Test descriptions match exactly across languages
 3. **Identical Structure**: File organization and test grouping mirror TypeScript exactly
 4. **Zero Skipped Tests**: NEVER use `@pytest.mark.skip`—use no-op tests that pass instead
 5. **Document Differences**: Use "Isomorphic:" comments to explain language-specific test behavior
-
-### Why Isomorphic Tests Matter
-
-- **Developer Confidence**: Seeing identical test counts in both languages builds trust
-- **Feature Parity**: Ensures both implementations truly have the same capabilities
-- **Easy Verification**: New developers can quickly verify consistency
-- **No Second-Class Citizens**: Both languages are equal first-class implementations
 
 ### Mapping to TypeScript Tests
 
@@ -33,116 +26,33 @@ This directory contains the comprehensive test suite for the Chatfield Python li
 | `test_builder.py` | `builder.test.ts` | `describe_builder()` ↔ `describe('Builder')` |
 | `test_interviewer.py` | `interviewer.test.ts` | `describe_interviewer()` ↔ `describe('Interviewer')` |
 
-### Example: Isomorphic Test Structure
+**Goal**: New developers see literally identical test output in both languages, building confidence in Chatfield's genuine two-language commitment.
 
-```python
-# Python
-def describe_interview():
-    def describe_field_discovery():
-        def it_uses_field_name_when_no_description():
-            """Uses field name as description when none provided."""
-            # Test implementation
-```
-
-```typescript
-// TypeScript
-describe('Interview', () => {
-  describe('field discovery', () => {
-    it('uses field name when no description', () => {
-      // Test implementation
-    })
-  })
-})
-```
-
-## Project Structure
+## Test Files
 
 ```
-Python/tests/
-├── __init__.py                      # Test package initialization
-├── test_interview.py                # Core Interview class tests
-├── test_interviewer.py              # Interviewer orchestration tests
-├── test_interviewer_conversation.py # Conversation flow and state tests
-├── test_builder.py                  # Builder API and chaining tests
-├── test_field_proxy.py              # FieldProxy string subclass tests
-├── test_custom_transformations.py   # Transformation system tests
-├── test_conversations.py            # Full conversation integration tests
-└── CLAUDE.md                        # This documentation file
+tests/
+├── test_interview.py         # Core Interview class tests
+├── test_interviewer.py       # Interviewer orchestration tests
+├── test_interviewer_conversation.py  # Conversation flow tests
+├── test_builder.py           # Builder API tests
+├── test_field_proxy.py       # FieldProxy tests
+├── test_custom_transformations.py  # Transformation system tests
+├── test_conversations.py     # End-to-end conversation tests
+└── CLAUDE.md                 # This file
 ```
 
-## Key Files
+### Key Test Files
 
-### test_interview.py
-- **Purpose**: Tests the core Interview class functionality
-- **Coverage**: Field discovery, property access, state management
-- **Structure**: Uses `describe_interview` with nested `describe_*` and `it_*` functions
-- **Test Examples**:
-  - `describe_field_discovery` → `it_uses_field_name_when_no_description`
-  - `describe_field_access` → `it_returns_none_for_uncollected_fields`
-  - `describe_completion_state` → `it_starts_with_done_as_false`
-- **Focus**: Base class behavior without LLM interaction
+- **test_interview.py**: Core Interview class, field discovery, property access, state management
+- **test_interviewer.py**: Interviewer orchestration, LangGraph integration, tool binding
+- **test_interviewer_conversation.py**: Conversation flow, message handling, state transitions
+- **test_builder.py**: Fluent builder API, method chaining, field configuration
+- **test_field_proxy.py**: FieldProxy string behavior, transformation properties, attribute access
+- **test_custom_transformations.py**: as_int(), as_float(), as_bool(), as_lang(), cardinality methods
+- **test_conversations.py**: Integration tests with real conversation scenarios
 
-### test_interviewer.py
-- **Purpose**: Tests the Interviewer class that orchestrates conversations
-- **Coverage**: LangGraph integration, tool binding, state transitions
-- **Structure**: BDD-style with `describe_interviewer` and nested functions
-- **Test Examples**:
-  - `describe_initialization` → `it_creates_interviewer_with_default_model`
-  - `describe_tool_generation` → `it_generates_tools_for_all_fields`
-- **Mock Strategy**: Uses mock LLM backends for fast, deterministic tests
-
-### test_interviewer_conversation.py
-- **Purpose**: Tests conversation flow and message handling
-- **Coverage**: State management, field collection, validation flow
-- **Structure**: BDD-style organization matching TypeScript tests
-- **Test Examples**:
-  - `describe_conversation_flow` → `it_handles_multi_turn_conversations`
-  - `describe_field_progression` → `it_collects_fields_in_order`
-- **Focus**: Multi-turn conversation dynamics
-
-### test_builder.py
-- **Purpose**: Tests the fluent builder API
-- **Coverage**: Method chaining, field configuration, builder application
-- **Structure**: `describe_builder` with nested test functions
-- **Test Examples**:
-  - `describe_chaining` → `it_supports_method_chaining`
-  - `describe_field_configuration` → `it_applies_must_rules`
-  - `describe_transformations` → `it_adds_type_transformations`
-- **Validation**: Ensures builder creates correct Interview instances
-
-### test_field_proxy.py
-- **Purpose**: Tests the FieldProxy string subclass
-- **Coverage**: String behavior, transformation properties, attribute access
-- **Structure**: `describe_field_proxy` with nested describe blocks
-- **Test Examples**:
-  - `describe_string_behavior` → `it_acts_as_normal_string`
-  - `describe_transformations` → `it_provides_transformation_access`
-  - `describe_attribute_access` → `it_returns_transformation_values`
-- **Special**: Tests dynamic property generation (`.as_int`, `.as_lang_fr`, etc.)
-
-### test_custom_transformations.py
-- **Purpose**: Tests transformation system
-- **Coverage**: as_int(), as_float(), as_bool(), as_lang(), cardinality methods
-- **Structure**: `describe_transformations` with type-specific describe blocks
-- **Test Examples**:
-  - `describe_numeric_transformations` → `it_transforms_to_int`
-  - `describe_language_transformations` → `it_translates_to_french`
-  - `describe_cardinality` → `it_chooses_one_option`
-- **Validation**: Ensures transformations are properly registered
-
-### test_conversations.py
-- **Purpose**: Integration tests with real conversation scenarios
-- **Coverage**: End-to-end conversation flows, complex validations
-- **Structure**: `describe_conversations` with scenario-based tests
-- **Test Examples**:
-  - `describe_full_conversations` → `it_completes_job_interview`
-  - `describe_edge_cases` → `it_handles_invalid_responses`
-  - `describe_validation` → `it_enforces_must_rules`
-- **Note**: May use `@pytest.mark.requires_api_key` for live API tests
-
-## Development Commands
-
-### Running Tests
+## Running Tests
 
 ```bash
 # Run all tests
@@ -151,14 +61,11 @@ python -m pytest
 # Run specific test file
 python -m pytest tests/test_interview.py
 
-# Run specific test class
-python -m pytest tests/test_interview.py::TestInterviewBasics
-
-# Run specific test method
-python -m pytest tests/test_interview.py::TestInterviewBasics::test_field_access_before_collection
+# Run specific test by name
+python -m pytest -k "test_name"
 
 # Run tests matching pattern
-python -m pytest -k "test_field"
+python -m pytest -k "field"
 
 # Run with verbose output
 python -m pytest -v
@@ -170,7 +77,61 @@ python -m pytest --cov=chatfield --cov-report=html
 python -m pytest -m "not slow and not requires_api_key"
 ```
 
-### Test Markers
+**See**: [../../Documentation/COMMANDS.md](../../Documentation/COMMANDS.md) for complete command reference.
+
+## Test Structure
+
+Tests use pytest-describe for BDD-style organization matching TypeScript:
+
+```python
+def describe_component():
+    """Tests for the Component."""
+
+    def describe_feature():
+        """Tests for specific feature."""
+
+        def it_does_something_specific():
+            """Clear description of expected behavior."""
+            # Arrange - Set up test data and mocks
+            interview = create_test_interview()
+
+            # Act - Perform the operation
+            result = interview.some_method()
+
+            # Assert - Verify the outcome
+            assert result == expected_value
+```
+
+### Test Naming Convention
+- **Describe blocks**: `describe_*` functions group related tests (mirrors TypeScript's `describe()`)
+- **Test functions**: `it_*` functions describe specific behaviors (mirrors TypeScript's `it()`)
+- **Docstrings**: Provide clear descriptions matching TypeScript test names
+
+## Test Organization
+
+1. **Unit Tests**: Individual component testing (builder API, field discovery)
+2. **Integration Tests**: Component interaction testing with mock LLMs
+3. **Live API Tests**: Real OpenAI API tests (marked with `@pytest.mark.requires_api_key`)
+
+### Mocking Strategy
+
+```python
+# Common mock patterns:
+
+# 1. Mock LLM Backend
+class MockLLM:
+    def invoke(self, messages):
+        return AIMessage(content="mocked response")
+
+# 2. Mock Interviewer with predetermined responses
+mock_responses = {
+    'field_name': 'predetermined value'
+}
+```
+
+**See**: [../../Documentation/TESTING_ARCHITECTURE.md](../../Documentation/TESTING_ARCHITECTURE.md) for detailed testing approach.
+
+## Test Markers
 
 ```bash
 # Skip tests requiring API key
@@ -183,157 +144,6 @@ python -m pytest -m "not slow"
 python -m pytest -m "integration"
 ```
 
-## Architecture Notes
-
-### Test Organization
-
-1. **Unit Tests**: Test individual components in isolation
-   - Use mocks for external dependencies
-   - Focus on single responsibility
-   - Fast execution (< 1 second per test)
-
-2. **Integration Tests**: Test component interactions
-   - May use real LangGraph but mock LLM
-   - Test state transitions and data flow
-   - Medium execution time
-
-3. **End-to-End Tests**: Test complete workflows
-   - May use real OpenAI API (marked appropriately)
-   - Test full conversation flows
-   - Slower execution, optional in CI
-
-### Mocking Strategy
-
-```python
-# Common mock patterns used:
-
-# 1. Mock LLM Backend
-class MockLLM:
-    def invoke(self, messages):
-        return AIMessage(content="mocked response")
-
-# 2. Mock Interviewer with predetermined responses
-mock_responses = {
-    'field_name': 'predetermined value'
-}
-
-# 3. Patch builder methods for testing
-@patch('chatfield.builder.chatfield')
-def test_validation(mock_must):
-    # Test validation logic
-```
-
-### State Management Testing
-
-- Tests verify proper state initialization
-- Validate state transitions during collection
-- Ensure field values are properly stored
-- Check completion detection logic
-
-## Testing Approach
-
-### BDD Test Structure
-
-Tests use pytest-describe for BDD-style organization that matches TypeScript:
-
-```python
-def describe_component():
-    """Tests for the Component."""
-    
-    def describe_feature():
-        """Tests for specific feature."""
-        
-        def it_does_something_specific():
-            """Clear description of expected behavior."""
-            # Arrange - Set up test data and mocks
-            interview = create_test_interview()
-            
-            # Act - Perform the operation
-            result = interview.some_method()
-            
-            # Assert - Verify the outcome
-            assert result == expected_value
-```
-
-### Test Naming Convention
-- **Describe blocks**: `describe_*` functions group related tests
-- **Test functions**: `it_*` functions describe specific behaviors
-- **Docstrings**: Provide clear descriptions matching TypeScript test names
-
-### Coverage Goals
-
-- Unit test coverage > 80%
-- Integration test coverage for all major workflows
-- Edge cases and error conditions tested
-- Performance regression tests for critical paths
-
-### Mock vs Real Testing
-
-1. **Always Mock**: External API calls, file I/O, network requests
-2. **Sometimes Mock**: LangGraph components (for speed)
-3. **Never Mock**: Core business logic, builder methods, field discovery
-
-## Important Patterns
-
-### Fixture Usage
-
-```python
-@pytest.fixture
-def basic_interview():
-    """Standard interview fixture for testing."""
-    return (chatfield()
-        .type("TestInterview")
-        .field("name").desc("Your name")
-        .build())
-
-# Used within describe blocks:
-def describe_with_fixtures():
-    @pytest.fixture
-    def interview():
-        return create_test_interview()
-    
-    def it_uses_fixture(interview):
-        assert interview is not None
-```
-
-### Parameterized Tests
-
-```python
-@pytest.mark.parametrize("input,expected", [
-    ("42", 42),
-    ("3.14", 3),
-    ("-10", -10),
-])
-def test_as_int_transformation(input, expected):
-    # Test transformation with multiple inputs
-```
-
-### Async Test Support
-
-```python
-@pytest.mark.asyncio
-async def test_async_interview():
-    # Test async interview operations
-    # Note: Async version not yet implemented
-    # result = await interviewer.ago()
-    pass
-```
-
-## Known Considerations
-
-1. **Isomorphic Tests**: Test names, descriptions, and counts must match TypeScript exactly
-2. **Zero Skipped Tests**: NEVER skip tests—use no-op tests that pass to maintain identical test counts
-3. **BDD Structure**: Use pytest-describe to mirror TypeScript's Jest describe/it structure
-4. **Test Isolation**: Each test should be independent and not affect others
-5. **Mock Cleanup**: Ensure mocks are properly reset between tests
-6. **API Key Tests**: Tests requiring real API keys are marked and skippable
-7. **Performance**: Keep unit tests fast (< 10 seconds for entire suite)
-8. **Determinism**: Tests should produce same results on every run
-9. **Python Path**: Tests may need to add parent directory to sys.path
-10. **State Leakage**: Be careful with class-level attributes in Interview
-11. **LangGraph State**: Test state reducers and merging logic carefully
-12. **Isomorphic Comments**: Use "Isomorphic:" comments to document language-specific test differences
-
 ## Adding New Tests
 
 When creating new tests, follow the isomorphic testing approach:
@@ -345,14 +155,10 @@ When creating new tests, follow the isomorphic testing approach:
 5. **Include docstrings**: Docstrings should match TypeScript test descriptions
 6. **Isomorphic comments**: If test behavior differs, add "Isomorphic:" comments in both files
 7. **No skipping**: Use no-op tests that pass instead of `@pytest.mark.skip`
-8. **Add markers**: Use appropriate markers (`@pytest.mark.slow`, `@pytest.mark.requires_api_key`)
-9. **Use fixtures**: Use fixtures for common setup
-10. **Mock dependencies**: Mock external dependencies
-11. **Test comprehensively**: Test both success and failure cases
-12. **Update documentation**: Update this CLAUDE.md file if adding new test files
-13. **Verify counts**: Ensure test counts remain identical between Python and TypeScript
+8. **Verify counts**: Ensure test counts remain identical between Python and TypeScript
 
-### Example of Harmonized Test:
+### Example of Harmonized Test
+
 ```python
 # Python (test_interview.py)
 def describe_interview():
@@ -371,7 +177,14 @@ describe('Interview', () => {
 })
 ```
 
-## Common Issues and Solutions
+## Coverage Goals
+
+- Unit test coverage > 80%
+- Integration test coverage for all major workflows
+- Edge cases and error conditions tested
+- Performance regression tests for critical paths
+
+## Common Issues
 
 - **ImportError**: Ensure chatfield package is installed: `pip install -e ..`
 - **Missing API Key**: Set OPENAI_API_KEY or mark test with `@pytest.mark.requires_api_key`
@@ -379,28 +192,9 @@ describe('Interview', () => {
 - **Slow Tests**: Mark with `@pytest.mark.slow` and optimize or mock
 - **State Pollution**: Use fixtures and proper test isolation
 
-## Test Data
+## Additional Resources
 
-Common test data patterns:
-
-```python
-# Standard test interview
-TEST_FIELDS = {
-    'name': 'Your full name',
-    'email': 'Your email address',
-    'age': 'Your age'
-}
-
-# Mock responses for testing
-MOCK_RESPONSES = {
-    'name': 'John Doe',
-    'email': 'john@example.com',
-    'age': '30'
-}
-
-# Validation test cases
-VALIDATION_CASES = [
-    ('valid@email.com', True),
-    ('invalid-email', False)
-]
-```
+- **Testing Philosophy**: [../../Documentation/TESTING_ARCHITECTURE.md](../../Documentation/TESTING_ARCHITECTURE.md)
+- **Isomorphic Development**: [../../Documentation/ISOMORPHIC_DEVELOPMENT.md](../../Documentation/ISOMORPHIC_DEVELOPMENT.md)
+- **Python Implementation**: [../CLAUDE.md](../CLAUDE.md)
+- **TypeScript Tests**: [../../TypeScript/tests/CLAUDE.md](../../TypeScript/tests/CLAUDE.md) for comparison
