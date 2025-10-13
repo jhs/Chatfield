@@ -90,7 +90,7 @@ export class Interviewer {
     let   llmId = options?.llmId;
     let   temperature = options?.temperature;
     let   baseUrl = options?.baseUrl;
-    // const apiKey = options?.apiKey;
+    const apiKey = options?.apiKey;
     const endpointSecurity = options?.endpointSecurity;
 
     this.interview = interview
@@ -132,7 +132,7 @@ export class Interviewer {
       }
 
       const llmConfig: any = {
-        // apiKey: apiKey,
+        apiKey: apiKey,
         modelName: llmId,
         temperature: temperature,
         configuration: {
