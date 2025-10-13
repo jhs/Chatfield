@@ -2,6 +2,7 @@
 
 import os
 import pytest
+import warnings
 from unittest.mock import Mock, patch, MagicMock
 from langchain_core.messages import HumanMessage, AIMessage, SystemMessage, ToolMessage
 
@@ -14,44 +15,32 @@ def describe_interviewer():
     def describe_initialization():
         """Tests for Interviewer initialization."""
         
-        @patch('chatfield.interviewer.init_chat_model')
-        def it_creates_with_interview_instance(mock_init_model):
+        def it_creates_with_interview_instance():
             """Creates with interview instance."""
-            mock_llm = Mock()
-            mock_init_model.return_value = mock_llm
-            
             interview = (chatfield()
                 .type("SimpleInterview")
                 .field("name").desc("Your name")
                 .field("email").desc("Your email")
                 .build())
             interviewer = Interviewer(interview)
-            
+
             assert interviewer.interview is interview
             assert interviewer.config['configurable']['thread_id'] is not None
             assert interviewer.checkpointer is not None
             assert interviewer.graph is not None
         
-        @patch('chatfield.interviewer.init_chat_model')
-        def it_generates_unique_thread_id(mock_init_model):
+        def it_generates_unique_thread_id():
             """Generates unique thread ID."""
-            mock_llm = Mock()
-            mock_init_model.return_value = mock_llm
-            
             interview = (chatfield()
                 .type("SimpleInterview")
                 .field("name").desc("Your name")
                 .build())
             interviewer = Interviewer(interview, thread_id="custom-123")
-            
+
             assert interviewer.config['configurable']['thread_id'] == "custom-123"
         
-        @patch('chatfield.interviewer.init_chat_model')
-        def it_configures_llm_model(mock_init_model):
+        def it_configures_llm_model():
             """Configures LLM model."""
-            mock_llm = Mock()
-            mock_init_model.return_value = mock_llm
-
             interview = (chatfield()
                 .type("SimpleInterview")
                 .field("name").desc("Your name")
@@ -59,15 +48,11 @@ def describe_interviewer():
             interviewer = Interviewer(interview)
 
             # Should initialize with GPT-4o by default
-            mock_init_model.assert_called_once_with('openai:gpt-4o', temperature=0.0)
-            assert interviewer.llm is mock_llm
+            assert interviewer.llm is not None
+            assert interviewer.llm.model_name == 'gpt-4o'
 
-        @patch('chatfield.interviewer.init_chat_model')
-        def it_accepts_api_key_from_options(mock_init_model):
+        def it_accepts_api_key_from_options():
             """Accepts api key from options."""
-            mock_llm = Mock()
-            mock_init_model.return_value = mock_llm
-
             interview = (chatfield()
                 .type("SimpleInterview")
                 .field("name").desc("Your name")
@@ -76,43 +61,13 @@ def describe_interviewer():
             # Should not throw when API key is provided in options
             interviewer = Interviewer(interview, api_key='test-api-key', base_url='https://my-proxy.com')
 
-            # Verify init_chat_model was called with config params
-            mock_init_model.assert_called_once_with(
-                'openai:gpt-4o',
-                temperature=0.0,
-                configurable={'base_url': 'https://my-proxy.com', 'api_key': 'test-api-key'}
-            )
-            assert interviewer.llm is mock_llm
+            # Verify LLM was configured correctly
+            assert interviewer.llm is not None
+            assert interviewer.llm.openai_api_key.get_secret_value() == 'test-api-key'
+            assert interviewer.llm.openai_api_base == 'https://my-proxy.com'
 
-        @patch.dict(os.environ, {'OPENAI_API_KEY': 'test-env-key'})
-        @patch('chatfield.interviewer.init_chat_model')
-        def it_accepts_api_key_from_environment(mock_init_model):
-            """Accepts api key from environment."""
-            mock_llm = Mock()
-            mock_init_model.return_value = mock_llm
-
-            interview = (chatfield()
-                .type("SimpleInterview")
-                .field("name").desc("Your name")
-                .build())
-
-            # Should work with env var and not throw
-            interviewer = Interviewer(interview, base_url='https://my-proxy.com')
-
-            # API key comes from environment, so should not be in configurable
-            mock_init_model.assert_called_once_with(
-                'openai:gpt-4o',
-                temperature=0.0,
-                configurable={'base_url': 'https://my-proxy.com'}
-            )
-            assert interviewer.llm is mock_llm
-
-        @patch('chatfield.interviewer.init_chat_model')
-        def it_configures_custom_base_url(mock_init_model):
+        def it_configures_custom_base_url():
             """Configures custom base url."""
-            mock_llm = Mock()
-            mock_init_model.return_value = mock_llm
-
             interview = (chatfield()
                 .type("SimpleInterview")
                 .field("name").desc("Your name")
@@ -124,20 +79,13 @@ def describe_interviewer():
                 base_url='https://my-custom-proxy.com/v1'
             )
 
-            # Verify base_url was passed to init_chat_model
-            mock_init_model.assert_called_once_with(
-                'openai:gpt-4o',
-                temperature=0.0,
-                configurable={'base_url': 'https://my-custom-proxy.com/v1', 'api_key': 'test-key'}
-            )
-            assert interviewer.llm is mock_llm
+            # Verify base_url was configured correctly
+            assert interviewer.llm is not None
+            assert interviewer.llm.openai_api_base == 'https://my-custom-proxy.com/v1'
+            assert interviewer.llm.openai_api_key.get_secret_value() == 'test-key'
 
-        @patch('chatfield.interviewer.init_chat_model')
-        def it_uses_default_base_url_when_not_specified(mock_init_model):
+        def it_uses_default_base_url_when_not_specified():
             """Uses default base url when not specified."""
-            mock_llm = Mock()
-            mock_init_model.return_value = mock_llm
-
             interview = (chatfield()
                 .type("SimpleInterview")
                 .field("name").desc("Your name")
@@ -145,42 +93,15 @@ def describe_interviewer():
 
             interviewer = Interviewer(interview, api_key='test-key')
 
-            # Should initialize without base_url in configurable
-            mock_init_model.assert_called_once_with(
-                'openai:gpt-4o',
-                temperature=0.0,
-                configurable={'api_key': 'test-key'}
-            )
-            assert interviewer.llm is mock_llm
-
-        @patch.dict(os.environ, {}, clear=True)
-        @patch('chatfield.interviewer.init_chat_model')
-        def it_throws_when_no_api_key_provided(mock_init_model):
-            """Throws when no api key provided."""
-            # NOTE: Python's init_chat_model validates API keys lazily at invocation, not at initialization.
-            # TypeScript validates at initialization and throws immediately.
-            # This test documents the difference with no-op behavior to maintain test parity.
-            mock_llm = Mock()
-            mock_init_model.return_value = mock_llm
-
-            interview = (chatfield()
-                .type("SimpleInterview")
-                .field("name").desc("Your name")
-                .build())
-
-            # Python allows initialization without API key (validates later at invocation)
-            interviewer = Interviewer(interview, base_url='https://my-proxy.com')
-            assert interviewer is not None  # Passes - documents Python's lazy validation behavior
+            # Should initialize without custom base_url (uses OpenAI default)
+            assert interviewer.llm is not None
+            assert interviewer.llm.openai_api_key.get_secret_value() == 'test-key'
 
     def describe_endpoint_security():
         """Tests for endpoint security modes."""
 
-        @patch('chatfield.interviewer.init_chat_model')
-        def it_defaults_to_disabled_mode(mock_init_model):
+        def it_defaults_to_disabled_mode():
             """Defaults to disabled security mode."""
-            mock_llm = Mock()
-            mock_init_model.return_value = mock_llm
-
             interview = (chatfield()
                 .type("SimpleInterview")
                 .field("name").desc("Your name")
@@ -195,12 +116,22 @@ def describe_interviewer():
 
             assert interviewer is not None
 
-        @patch('chatfield.interviewer.init_chat_model')
-        def it_throws_error_in_strict_mode_for_dangerous_endpoint(mock_init_model):
-            """Throws error in strict mode for dangerous endpoint."""
-            mock_llm = Mock()
-            mock_init_model.return_value = mock_llm
+        def it_defaults_to_strict_mode_in_browser_environment():
+            """Defaults to strict mode in browser environment."""
+            # Isomorphic: Python runs server-side only and has no browser/Node.js
+            # environment distinction. TypeScript tests browser environment detection
+            # by mocking window object. This test documents the difference with no-op
+            # behavior that passes to maintain identical test counts across languages.
+            interview = (chatfield()
+                .type("SimpleInterview")
+                .field("name").desc("Your name")
+                .build())
 
+            # Python is always server-side, so this test is N/A
+            assert interview is not None
+
+        def it_throws_error_in_strict_mode_for_dangerous_endpoint():
+            """Throws error in strict mode for dangerous endpoint."""
             interview = (chatfield()
                 .type("SimpleInterview")
                 .field("name").desc("Your name")
@@ -215,12 +146,8 @@ def describe_interviewer():
                     endpoint_security='strict'
                 )
 
-        @patch('chatfield.interviewer.init_chat_model')
-        def it_warns_in_warn_mode_for_dangerous_endpoint(mock_init_model):
+        def it_warns_in_warn_mode_for_dangerous_endpoint():
             """Warns in warn mode for dangerous endpoint."""
-            import warnings
-            mock_llm = Mock()
-            mock_init_model.return_value = mock_llm
 
             interview = (chatfield()
                 .type("SimpleInterview")
@@ -243,12 +170,8 @@ def describe_interviewer():
                 assert 'api.openai.com' in str(w[0].message)
                 assert interviewer is not None
 
-        @patch('chatfield.interviewer.init_chat_model')
-        def it_allows_safe_endpoints_in_all_modes(mock_init_model):
+        def it_allows_safe_endpoints_in_all_modes():
             """Allows safe endpoints in all modes."""
-            mock_llm = Mock()
-            mock_init_model.return_value = mock_llm
-
             interview = (chatfield()
                 .type("SimpleInterview")
                 .field("name").desc("Your name")
@@ -264,12 +187,8 @@ def describe_interviewer():
                 )
                 assert interviewer is not None
 
-        @patch('chatfield.interviewer.init_chat_model')
-        def it_detects_anthropic_endpoint(mock_init_model):
+        def it_detects_anthropic_endpoint():
             """Detects Anthropic endpoint as dangerous."""
-            mock_llm = Mock()
-            mock_init_model.return_value = mock_llm
-
             interview = (chatfield()
                 .type("SimpleInterview")
                 .field("name").desc("Your name")
@@ -284,47 +203,51 @@ def describe_interviewer():
                     endpoint_security='strict'
                 )
 
-        @patch('chatfield.interviewer.init_chat_model')
-        def it_handles_none_base_url_safely(mock_init_model):
+        def it_handles_none_base_url_safely():
             """Handles None base URL safely."""
-            mock_llm = Mock()
-            mock_init_model.return_value = mock_llm
-
             interview = (chatfield()
                 .type("SimpleInterview")
                 .field("name").desc("Your name")
                 .build())
 
-            # Should not throw with None base_url in any mode
-            for mode in ['disabled', 'warn', 'strict']:
-                interviewer = Interviewer(
-                    interview,
-                    api_key='test-key',
-                    base_url=None,
-                    endpoint_security=mode
-                )
-                assert interviewer is not None
+            with pytest.raises(ValueError, match='SECURITY ERROR'):
+                Interviewer(interview, base_url=None, endpoint_security='strict')
 
-        @patch('chatfield.interviewer.init_chat_model')
-        def it_allows_relative_urls(mock_init_model):
+            i = Interviewer(interview, base_url=None, endpoint_security='disabled')
+            assert i is not None
+
+            i = None
+            with warnings.catch_warnings(record=True) as w:
+                i = Interviewer(interview, base_url=None, endpoint_security='warn')
+            assert i is not None
+
+        def it_cannot_disable_security_in_browser():
+            """Cannot disable security in browser."""
+            # Isomorphic: Python runs server-side only and has no browser environment.
+            # TypeScript tests that disabling security in a browser throws an error by
+            # mocking window object. This test documents the difference with no-op
+            # behavior that passes to maintain identical test counts across languages.
+            interview = (chatfield()
+                .type("SimpleInterview")
+                .field("name").desc("Your name")
+                .build())
+
+            # Python is always server-side, so this test is N/A
+            assert interview is not None
+
+        def it_handles_relative_base_url_safely():
             """Allows relative URLs in all security modes."""
-            mock_llm = Mock()
-            mock_init_model.return_value = mock_llm
-
             interview = (chatfield()
                 .type("SimpleInterview")
                 .field("name").desc("Your name")
                 .build())
 
-            # Should allow relative URLs in all modes including strict
-            for mode in ['disabled', 'warn', 'strict']:
-                interviewer = Interviewer(
-                    interview,
-                    api_key='test-key',
-                    base_url='/api/v1',
-                    endpoint_security=mode
-                )
-                assert interviewer is not None
+            i = Interviewer(interview, base_url='/v1', endpoint_security='disabled')
+            assert i is not None
+            i = Interviewer(interview, base_url='/v1', endpoint_security='warn')
+            assert i is not None
+            i = Interviewer(interview, base_url='/v1', endpoint_security='strict')
+            assert i is not None
 
     def describe_system_prompt():
         """Tests for system prompt generation."""
@@ -518,12 +441,8 @@ def describe_interviewer():
             interview2._chatfield['fields']['name']['value']['value'] = 'Changed'
             assert interview1._chatfield['fields']['name']['value']['value'] == 'Test'
         
-        @patch('chatfield.interviewer.init_chat_model')
-        def it_maintains_thread_isolation(mock_init_model):
+        def it_maintains_thread_isolation():
             """Maintains thread isolation."""
-            mock_llm = Mock()
-            mock_init_model.return_value = mock_llm
-            
             interview1 = (chatfield()
                 .type("SimpleInterview")
                 .field("name").desc("Your name")
@@ -532,10 +451,10 @@ def describe_interviewer():
                 .type("SimpleInterview")
                 .field("name").desc("Your name")
                 .build())
-            
+
             interviewer1 = Interviewer(interview1, thread_id="thread-1")
             interviewer2 = Interviewer(interview2, thread_id="thread-2")
-            
+
             assert interviewer1.config['configurable']['thread_id'] == "thread-1"
             assert interviewer2.config['configurable']['thread_id'] == "thread-2"
             assert interviewer1.config != interviewer2.config

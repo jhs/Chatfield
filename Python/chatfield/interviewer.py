@@ -161,16 +161,18 @@ class Interviewer:
         # Browser-specific logic (TypeScript only)
         # Enforce: Cannot disable security in browser
 
+        if base_url is None:
+            # Default endpoint.
+            return on_dangerous_endpoint(f'No explicit endpoint configured')
+
         if hostname is None:
-            # This means using the default endpoint.
-            on_dangerous_endpoint(f'No explicit endpoint configured')
+            # Relative URL, treated as safe.
             return
 
         for endpoint in self.DANGEROUS_ENDPOINTS:
             if hostname == endpoint:
                 message = f'Detected official API endpoint: {endpoint}'
-                on_dangerous_endpoint(message)
-                return  # Found a match, no need to check other endpoints
+                return on_dangerous_endpoint(message) # Found a match, no need to check other endpoints
 
         print(f'Safe endpoint: {hostname}')
 

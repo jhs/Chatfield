@@ -244,17 +244,20 @@ export class Interviewer {
       )
     }
 
+    if (baseUrl === null || baseUrl === undefined) {
+      // Default endpoint.
+      return onDangerousEndpoint('No explicit endpoint configured')
+    }
+
     if (hostname === null) {
-      // This means using the default endpoint.
-      onDangerousEndpoint('No explicit endpoint configured')
+      // Relative URL, treated as safe.
       return
     }
 
     for (const endpoint of this.DANGEROUS_ENDPOINTS) {
       if (hostname === endpoint) {
         const message = `Detected official API endpoint: ${endpoint}`
-        onDangerousEndpoint(message)
-        return  // Found a match, no need to check other endpoints
+        return onDangerousEndpoint(message)  // Found a match, no need to check other endpoints
       }
     }
 

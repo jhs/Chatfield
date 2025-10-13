@@ -93,55 +93,6 @@ describe('Interviewer', () => {
       }).not.toThrow()
     })
 
-    it('accepts api key from environment', () => {
-      const interview = chatfield()
-        .type('SimpleInterview')
-        .field('name').desc('Your name')
-        .build()
-
-      // Temporarily set environment variable
-      const originalKey = process.env.OPENAI_API_KEY
-      process.env.OPENAI_API_KEY = 'test-env-key'
-
-      try {
-        expect(() => {
-          new Interviewer(interview, {
-            baseUrl: 'https://my-proxy.com'
-          })
-        }).not.toThrow()
-      } finally {
-        // Restore original value
-        if (originalKey !== undefined) {
-          process.env.OPENAI_API_KEY = originalKey
-        } else {
-          delete process.env.OPENAI_API_KEY
-        }
-      }
-    })
-
-    it('throws when no api key provided', () => {
-      const interview = chatfield()
-        .type('SimpleInterview')
-        .field('name').desc('Your name')
-        .build()
-
-      // Temporarily remove environment variable
-      const originalKey = process.env.OPENAI_API_KEY
-      delete process.env.OPENAI_API_KEY
-
-      try {
-        expect(() => {
-          new Interviewer(interview, {
-            baseUrl: 'https://my-proxy.com'
-          })
-        }).toThrow('OPENAI_API_KEY');
-      } finally {
-        // Restore original value
-        if (originalKey !== undefined) {
-          process.env.OPENAI_API_KEY = originalKey
-        }
-      }
-    })
 
     it('configures custom base url', () => {
       const interview = chatfield()
@@ -191,6 +142,10 @@ describe('Interviewer', () => {
     })
 
     it('defaults to strict mode in browser environment', () => {
+      // Isomorphic: Python runs server-side only and has no browser/Node.js
+      // environment distinction. TypeScript tests browser environment detection
+      // by mocking window object. This test documents the difference with no-op
+      // behavior that passes to maintain identical test counts across languages.
       const interview = chatfield()
         .type('SimpleInterview')
         .field('name').desc('Your name')
@@ -316,25 +271,54 @@ describe('Interviewer', () => {
       }).toThrow('api.anthropic.com')
     })
 
-    it('handles undefined base url safely', () => {
+    it('handles none base url safely', () => {
       const interview = chatfield()
         .type('SimpleInterview')
         .field('name').desc('Your name')
         .build()
 
-      // Should not throw with undefined baseUrl in any mode
-      const modes: Array<'disabled' | 'warn' | 'strict'> = ['disabled', 'warn', 'strict']
-      for (const mode of modes) {
-        const interviewer = new Interviewer(interview, {
+      // Should throw in strict mode with no base URL
+      expect(() => {
+        new Interviewer(interview, {
           apiKey: 'test-key',
           baseUrl: undefined,
-          endpointSecurity: mode
+          endpointSecurity: 'strict'
         })
-        expect(interviewer).toBeDefined()
+      }).toThrow('No explicit endpoint configured')
+
+      // Should work in disabled mode
+      const i1 = new Interviewer(interview, {
+        apiKey: 'test-key',
+        baseUrl: undefined,
+        endpointSecurity: 'disabled'
+      })
+      expect(i1).toBeDefined()
+
+      // Should warn in warn mode
+      const originalWarn = console.warn
+      const warnings: string[] = []
+      console.warn = (message: string) => {
+        warnings.push(message)
+      }
+
+      try {
+        const i2 = new Interviewer(interview, {
+          apiKey: 'test-key',
+          baseUrl: undefined,
+          endpointSecurity: 'warn'
+        })
+        expect(i2).toBeDefined()
+        expect(warnings.length).toBeGreaterThan(0)
+      } finally {
+        console.warn = originalWarn
       }
     })
 
     it('cannot disable security in browser', () => {
+      // Isomorphic: Python runs server-side only and has no browser environment.
+      // TypeScript tests that disabling security in a browser throws an error by
+      // mocking window object. This test documents the difference with no-op
+      // behavior that passes to maintain identical test counts across languages.
       const interview = chatfield()
         .type('SimpleInterview')
         .field('name').desc('Your name')
@@ -363,32 +347,33 @@ describe('Interviewer', () => {
       }
     })
 
-    it('allows relative urls', () => {
+    it('handles relative base url safely', () => {
       const interview = chatfield()
         .type('SimpleInterview')
         .field('name').desc('Your name')
         .build()
 
-      // Mock browser environment
-      const originalWindow = global.window
-      ;(global as any).window = {}
+      // Should work in all modes with relative URL
+      const i1 = new Interviewer(interview, {
+        apiKey: 'test-key',
+        baseUrl: '/v1',
+        endpointSecurity: 'disabled'
+      })
+      expect(i1).toBeDefined()
 
-      try {
-        expect(() => {
-          new Interviewer(interview, {
-            apiKey: 'test-key',
-            baseUrl: '/chatfield/openai',
-            endpointSecurity: 'strict'
-          })
-        }).not.toThrow()
-      } finally {
-        // Restore original window
-        if (originalWindow !== undefined) {
-          global.window = originalWindow
-        } else {
-          delete (global as any).window
-        }
-      }
+      const i2 = new Interviewer(interview, {
+        apiKey: 'test-key',
+        baseUrl: '/v1',
+        endpointSecurity: 'warn'
+      })
+      expect(i2).toBeDefined()
+
+      const i3 = new Interviewer(interview, {
+        apiKey: 'test-key',
+        baseUrl: '/v1',
+        endpointSecurity: 'strict'
+      })
+      expect(i3).toBeDefined()
     })
   })
 

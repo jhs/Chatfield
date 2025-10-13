@@ -11,8 +11,11 @@ from chatfield import Interviewer, chatfield
 class FauxModel(FakeMessagesListChatModel):
     """A faux model that always returns the same response."""
     def bind_tools(self, *args, **kwargs):
-        print("Bind tools:", args, kwargs)
         return self
+
+    @property
+    def openai_api_base(self):
+        return 'https://api.openai.com/v1'
 
 def tool_call(tool_name, **kwargs):
     """Helper to create a tool call message."""
