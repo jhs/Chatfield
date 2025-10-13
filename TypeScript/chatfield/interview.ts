@@ -183,12 +183,20 @@ export class Interview {
    */
   _pretty(): string {
     const lines: string[] = []
-    lines.push(`${this._chatfield.type}: ${this._chatfield.desc}`)
-    lines.push('Fields:')
-    for (const [name, field] of Object.entries(this._chatfield.fields)) {
-      const value = field.value?.value || '<not set>'
-      lines.push(`  ${name}: ${value}`)
+    lines.push(`${this._chatfield.type}`)
+
+    // Iterate over fields and get them as proxies
+    for (const [fieldName, chatfield] of Object.entries(this._chatfield.fields)) {
+      const proxy = this.__getattr__(fieldName)
+      if (proxy === null) {
+        lines.push(`  ${fieldName}: None`)
+      } else {
+        // Field is a proxy - print the value and its transformations
+        lines.push(`  ${fieldName}: ${JSON.stringify(String(proxy))}`)
+        lines.push(proxy._pretty())
+      }
     }
+
     return lines.join('\n')
   }
 
