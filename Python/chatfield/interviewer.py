@@ -15,7 +15,7 @@ from langchain_core.messages import HumanMessage, AIMessage, SystemMessage, Tool
 from langgraph.graph import StateGraph, START, END
 from langgraph.types import Command, interrupt, Interrupt
 from langgraph.prebuilt import tools_condition
-from langchain.chat_models import init_chat_model
+from langchain_openai import ChatOpenAI
 from langgraph.checkpoint.memory import InMemorySaver
 from langgraph.graph.message import add_messages
 
@@ -79,21 +79,22 @@ class Interviewer:
             temperature = temperature or 0.0
             if llm_id in ('openai:o3-mini', 'openai:o3'):
                 temperature = None
-            
+
             # Isomorphic:
-            # Python uses init_chat_model, so llm_config represents those kwargs.
-            # TypeScript uses ChatOpenAI from '@langchain/openai'
+            # Both languages use ChatOpenAI directly from their respective packages.
+            # Both throw if the 'openai:' prefix is missing.
+            if not llm_id.startswith('openai:'):
+                raise ValueError(f'LLM ID must start with "openai:", got {llm_id!r}')
+            else:
+                llm_id = llm_id[len('openai:'):]  # Strip 'openai:' prefix
+
             llm_config = {
-                # 'llm_id': llm_id,
+                'model': llm_id,
                 'temperature': temperature,
                 'base_url': base_url,
                 'api_key': api_key,
-                # 'configurable': {
-                #     # 'api_key': api_key,
-                #     'base_url': base_url,
-                # },
             }
-            self.llm = init_chat_model(llm_id, **llm_config)
+            self.llm = ChatOpenAI(**llm_config)
 
         # Isomorphic:
         # Both languages implement security modes.

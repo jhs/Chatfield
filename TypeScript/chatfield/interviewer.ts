@@ -123,11 +123,14 @@ export class Interviewer {
       }
 
       // Isomorphic:
-      // Python uses init_chat_model, so llm_config represents those kwargs.
-      // TypeScript uses ChatOpenAI from '@langchain/openai'
-      if (llmId.startsWith('openai:')) {
+      // Both languages use ChatOpenAI directly from their respective packages.
+      // Both throw if the 'openai:' prefix is missing.
+      if (! llmId.startsWith('openai:')) {
+        throw new Error(`LLM ID must start with "openai:", got ${llmId}`);
+      } else {
         llmId = llmId.slice('openai:'.length);
       }
+
       const llmConfig: any = {
         // apiKey: apiKey,
         modelName: llmId,
