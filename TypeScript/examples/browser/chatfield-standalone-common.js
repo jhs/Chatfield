@@ -89,15 +89,57 @@ export async function runChatfieldInterview(interview, interviewerConfig, Interv
     messagesDiv.scrollTop = messagesDiv.scrollHeight;
   }
 
-  function showResult(data) {
+  function showResult(interviewInstance) {
     const result = document.createElement('div');
     result.className = 'result';
+
+    // Build HTML table from interview fields
+    let tableHTML = '<table class="result-table">';
+    tableHTML += '<thead><tr><th>Field</th><th>Value</th></tr></thead>';
+    tableHTML += '<tbody>';
+
+    // Get interview type
+    const interviewType = interviewInstance._chatfield.type || 'Interview';
+
+    // Iterate through all fields
+    for (const [fieldName, fieldData] of Object.entries(interviewInstance._chatfield.fields)) {
+      // Check if field has a value
+      if (!fieldData.value) {
+        tableHTML += `<tr><td class="field-name">${fieldName}</td><td class="field-value">(not set)</td></tr>`;
+        continue;
+      }
+
+      // Get the main value (nested at fieldData.value.value)
+      const mainValue = fieldData.value.value || '(empty)';
+
+      // Add main field row
+      tableHTML += `<tr><td class="field-name">${fieldName}</td><td class="field-value">${escapeHtml(mainValue)}</td></tr>`;
+
+      // Add transformation rows - look for properties starting with 'as_'
+      for (const [key, value] of Object.entries(fieldData.value)) {
+        if (key.startsWith('as_') && key !== 'as_quote') {
+          const displayValue = typeof value === 'boolean' ? value.toString() :
+                               typeof value === 'number' ? value.toString() :
+                               JSON.stringify(value);
+          tableHTML += `<tr><td class="transform-name">↳ ${key}</td><td class="transform-value">${escapeHtml(displayValue)}</td></tr>`;
+        }
+      }
+    }
+
+    tableHTML += '</tbody></table>';
+
     result.innerHTML = `
-      <div class="result-title">✓ Form Completed</div>
-      <pre class="result-data">${JSON.stringify(data, null, 2)}</pre>
+      <div class="result-title">✓ ${interviewType} Completed</div>
+      ${tableHTML}
     `;
     messagesDiv.appendChild(result);
     messagesDiv.scrollTop = messagesDiv.scrollHeight;
+  }
+
+  function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
   }
 
   function setStatus(text) {
@@ -171,7 +213,7 @@ export async function runChatfieldInterview(interview, interviewerConfig, Interv
         addMessage('ai', msg);
 
         if (interview._done) {
-          showResult(interview._pretty());
+          showResult(interview);
           setStatus('Interview complete!');
           break;
         }

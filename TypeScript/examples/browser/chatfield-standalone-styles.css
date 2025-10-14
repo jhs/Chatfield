@@ -136,6 +136,52 @@ body {
   color: #1b5e20;
 }
 
+.result-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 8px;
+  font-size: 0.9rem;
+}
+
+.result-table th {
+  background: #2e7d32;
+  color: white;
+  padding: 8px 12px;
+  text-align: left;
+  font-weight: 600;
+}
+
+.result-table td {
+  padding: 8px 12px;
+  border-bottom: 1px solid #c8e6c9;
+}
+
+.result-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.result-table .field-name {
+  font-weight: 600;
+  color: #1b5e20;
+  width: 35%;
+}
+
+.result-table .field-value {
+  color: #2e7d32;
+}
+
+.result-table .transform-name {
+  font-style: italic;
+  color: #558b2f;
+  padding-left: 24px;
+  font-size: 0.85rem;
+}
+
+.result-table .transform-value {
+  color: #689f38;
+  font-size: 0.85rem;
+}
+
 #input-area {
   border-top: 1px solid #e0e0e0;
   padding: 20px;
@@ -212,4 +258,202 @@ body {
 @keyframes pulse {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.5; }
+}
+
+/* ============================
+ * Responsive Design
+ * ============================ */
+
+/* Small screens (mobile phones) */
+@media (max-width: 480px) {
+  body {
+    padding: 10px;
+  }
+
+  #app {
+    height: 90vh;
+    border-radius: 8px;
+    max-width: 100%;
+  }
+
+  #header {
+    padding: 15px;
+    border-radius: 8px 8px 0 0;
+  }
+
+  #header h1 {
+    font-size: 1.25rem;
+  }
+
+  #header p {
+    font-size: 0.75rem;
+  }
+
+  #messages {
+    padding: 12px;
+  }
+
+  .message {
+    margin-bottom: 12px;
+  }
+
+  .message-content {
+    max-width: 85%;
+    padding: 10px 14px;
+    font-size: 0.95rem;
+  }
+
+  .message-label {
+    font-size: 0.7rem;
+  }
+
+  #input-area {
+    padding: 12px;
+  }
+
+  #user-input {
+    padding: 10px 16px;
+    font-size: 0.95rem;
+    border-radius: 20px;
+  }
+
+  #send-btn {
+    width: 44px;
+    height: 44px;
+    font-size: 1.1rem;
+  }
+
+  .result {
+    padding: 12px;
+    margin: 12px 0;
+  }
+
+  .result-table {
+    font-size: 0.85rem;
+  }
+
+  .result-table th,
+  .result-table td {
+    padding: 6px 8px;
+  }
+
+  .result-table .transform-name {
+    padding-left: 16px;
+    font-size: 0.8rem;
+  }
+
+  .result-table .transform-value {
+    font-size: 0.8rem;
+  }
+}
+
+/* Very small screens (narrow mobile) */
+@media (max-width: 360px) {
+  body {
+    padding: 5px;
+  }
+
+  #app {
+    height: 95vh;
+  }
+
+  #header {
+    padding: 12px;
+  }
+
+  #header h1 {
+    font-size: 1.1rem;
+  }
+
+  #header p {
+    font-size: 0.7rem;
+  }
+
+  #messages {
+    padding: 8px;
+  }
+
+  .message-content {
+    max-width: 90%;
+    padding: 8px 12px;
+    font-size: 0.9rem;
+  }
+
+  #input-area {
+    padding: 10px;
+  }
+
+  #input-container {
+    gap: 8px;
+  }
+
+  #user-input {
+    padding: 8px 14px;
+    font-size: 0.9rem;
+  }
+
+  #send-btn {
+    width: 40px;
+    height: 40px;
+    font-size: 1rem;
+  }
+}
+
+/* Medium screens (tablets and landscape phones) */
+@media (min-width: 481px) and (max-width: 768px) {
+  body {
+    padding: 15px;
+  }
+
+  #app {
+    height: 85vh;
+  }
+
+  #header {
+    padding: 18px;
+  }
+
+  #messages {
+    padding: 16px;
+  }
+
+  .message-content {
+    max-width: 80%;
+  }
+
+  #input-area {
+    padding: 16px;
+  }
+}
+
+/* Landscape orientation adjustments */
+@media (max-height: 500px) and (orientation: landscape) {
+  #app {
+    height: 95vh;
+  }
+
+  #header {
+    padding: 10px 20px;
+  }
+
+  #header h1 {
+    font-size: 1.2rem;
+    margin-bottom: 2px;
+  }
+
+  #header p {
+    font-size: 0.8rem;
+  }
+
+  #messages {
+    padding: 12px 20px;
+  }
+
+  #input-area {
+    padding: 12px 20px;
+  }
+
+  .message {
+    margin-bottom: 10px;
+  }
 }
