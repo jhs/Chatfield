@@ -736,10 +736,7 @@ class Interviewer:
             return 'tools'
 
         interview = self._get_state_interview(state)
-        if interview._done:
-            # print(f'Route: to teardown')
-            return 'teardown'
-        
+
         # Either digest once, the first time _enough becomes true.
         # Or, digest after every subsequent user message. For now, do the former
         # because then _done would evaluate true, so the above return would trigger.
@@ -808,15 +805,19 @@ class Interviewer:
         state = graph.get_state(config=config)
         return state.values
         
-    def go(self, user_input: Optional[str] = None) -> Optional[str]:
+    def go(self, user_input: Optional[str] = None) -> str:
         """
         Process one conversation turn.
-        
+
+        The conversation will continue indefinitely until the application decides
+        to stop. Check interview._done to see if all fields are collected, then
+        call .end() when you want to terminate the conversation and run cleanup.
+
         Args:
             user_input: The user's input message (or None to start/continue)
-            
+
         Returns:
-            The content of the latest AI message as a string, or None if conversation is complete
+            The content of the latest AI message as a string
         """
         print(f'Go: User input: {user_input!r}')
         state_values = self.get_graph_state()
@@ -845,14 +846,31 @@ class Interviewer:
                         interrupts.append(state_delta[0].value)
 
         if not interrupts:
-            print(f'WARN: Return None, probably should generate a message anyway')
-            return None
+            raise Exception(f'ERROR: No interrupts received - this should not happen as the graph should always route to listen')
         
         if len(interrupts) > 1:
             # TODO: I think this can happen? Because of parallel execution?
             raise Exception(f'Unexpected scenario multiple interrupts: {interrupts!r}')
 
         return interrupts[0]
+
+    def end(self) -> None:
+        """
+        Explicitly end the conversation and run teardown cleanup.
+
+        This jumps directly to the teardown node to perform any cleanup
+        operations before ending the conversation. Call this method when
+        you want to gracefully terminate the interview and run cleanup logic.
+
+        The conversation will not automatically end when all fields are collected.
+        Applications must decide when to call this method.
+        """
+        print(f'End: Jump to teardown')
+        graph_input = Command(goto='teardown')
+
+        for event in self.graph.stream(graph_input, config=self.config):
+            # Just execute teardown, no output needed
+            pass
 
     @staticmethod
     def debug_prompt(prompt: str, use_color: bool = True) -> str:

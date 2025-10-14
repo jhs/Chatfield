@@ -730,7 +730,14 @@ export class Interviewer {
   }
 
   /**
-   * Process one conversation turn
+   * Process one conversation turn.
+   *
+   * The conversation will continue indefinitely until the application decides
+   * to stop. Check interview._done to see if all fields are collected, then
+   * call .end() when you want to terminate the conversation and run cleanup.
+   *
+   * @param userInput - The user's input message (or null/undefined to start/continue)
+   * @returns The content of the latest AI message as a string
    */
   async go(userInput?: string | null): Promise<string | null> {
      // console.log('Go: User input:', userInput)
@@ -771,7 +778,7 @@ export class Interviewer {
     }
     
     if (interrupts.length === 0) {
-      return null
+      throw new Error('ERROR: No interrupts received - this should not happen as the graph should always route to listen')
     }
     
     if (interrupts.length > 1) {
@@ -779,6 +786,26 @@ export class Interviewer {
     }
     
     return interrupts[0] || null
+  }
+
+  /**
+   * Explicitly end the conversation and run teardown cleanup.
+   *
+   * This jumps directly to the teardown node to perform any cleanup
+   * operations before ending the conversation. Call this method when
+   * you want to gracefully terminate the interview and run cleanup logic.
+   *
+   * The conversation will not automatically end when all fields are collected.
+   * Applications must decide when to call this method.
+   */
+  async end(): Promise<void> {
+    console.log('End: Jumping to teardown')
+    const graphInput = new Command({ goto: 'teardown' })
+
+    const stream = await this.graph.stream(graphInput, this.config)
+    for await (const event of stream) {
+      // Just execute teardown, no output needed
+    }
   }
 
   // Node: Handle confidential and conclude fields
@@ -1044,24 +1071,21 @@ export class Interviewer {
   // Routing methods - matching Python's route_from_think
   private routeFromThink(state: InterviewStateType): string {
     console.log(`Route from think: ${this.getStateInterview(state)._name}`)
-    
+
     // Use toolsCondition to check for tool calls
     const result = toolsCondition(state as any)
     if (result === 'tools') {
       return 'tools'
     }
-    
+
     const interview = this.getStateInterview(state)
-    if (interview._done) {
-      return 'teardown'
-    }
-    
+
     // Check if we should go to digest phase
     if (interview._enough) {
       console.log(`Route: think -> digest`)
       return 'digest'
     }
-    
+
     return 'listen'
   }
   
