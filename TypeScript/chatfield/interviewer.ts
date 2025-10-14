@@ -36,7 +36,7 @@ import { z } from 'zod'
 import { v4 as uuidv4 } from 'uuid'
 import { Interview } from './interview'
 import { wrapInterviewWithProxy } from './interview-proxy'
-import { mergeInterviews } from './merge'
+import { mergeInterviews, mergeHasDigested } from './merge'
 import { TemplateEngine } from './template-engine'
 
 export type EndpointSecurityMode = 'strict' | 'warn' | 'disabled'
@@ -52,6 +52,14 @@ const InterviewState = Annotation.Root({
   interview: Annotation<Interview | null>({
     default: () => null,
     reducer: (a: Interview | null, b: Interview | null) => mergeInterviews(a, b),
+  }),
+  hasDigestedConfidentials: Annotation<boolean>({
+    default: () => false,
+    reducer: mergeHasDigested,
+  }),
+  hasDigestedConcludes: Annotation<boolean>({
+    default: () => false,
+    reducer: mergeHasDigested,
   })
 })
 
@@ -161,7 +169,8 @@ export class Interviewer {
       .addNode('think', this.think.bind(this))
       .addNode('listen', this.listen.bind(this))
       .addNode('tools', this.tools.bind(this))
-      .addNode('digest', this.digest.bind(this))
+      .addNode('digest_confidentials', this.digest_confidentials.bind(this))
+      .addNode('digest_concludes', this.digest_concludes.bind(this))
       .addNode('teardown', this.teardown.bind(this))
 
       .addEdge(START, 'initialize')
@@ -171,8 +180,9 @@ export class Interviewer {
 
       .addEdge('listen', 'think')
 
-      .addConditionalEdges('tools', this.routeFromTools.bind(this), ['think', 'digest'])
-      .addConditionalEdges('digest', this.routeFromDigest.bind(this), ['tools', 'think'])
+      .addConditionalEdges('tools', this.routeFromTools.bind(this), ['think', 'digest_confidentials', 'digest_concludes'])
+      .addConditionalEdges('digest_confidentials', this.routeFromDigest.bind(this), ['tools', 'think'])
+      .addConditionalEdges('digest_concludes', this.routeFromDigest.bind(this), ['tools', 'think'])
       .addEdge('teardown', END)
 
     // Compile the graph
@@ -580,7 +590,7 @@ export class Interviewer {
     return fields
   }
 
-  private makeFieldsPrompt(interview: Interview, mode: 'normal' | 'conclude' = 'normal', counters?: { hint: number; must: number; reject: number }): string {
+  private makeFieldsPrompt(interview: Interview, mode: 'normal' | 'conclude' = 'normal', counters?: { hint: number; must: number; reject: number }): string[] {
     const fields: string[] = []
     const theBob = interview._bob_role_name
     
@@ -645,8 +655,8 @@ export class Interviewer {
         fields.push(fieldPrompt)
       }
     }
-    
-    return fields.join('\n')
+
+    return fields
   }
 
   mkSystemPrompt(state: InterviewStateType): string {
@@ -808,39 +818,13 @@ export class Interviewer {
     }
   }
 
-  // Node: Handle confidential and conclude fields
-  private async digest(state: InterviewStateType): Promise<Partial<InterviewStateType>> {
-    const interview = this.getStateInterview(state)
-     // console.log(`Digest> ${interview?._name || 'No interview'}`)
-    
-    if (!interview) {
-       // console.log('No interview in digest state')
-      return {}
-    }
-    
-    // First digest undefined confidential fields. Then digest the conclude fields.
-    for (const [fieldName, chatfield] of Object.entries(interview._chatfield.fields)) {
-      if (!chatfield.specs.conclude) {
-        if (chatfield.specs.confidential) {
-          if (!chatfield.value) {
-            return this.digestConfidential(state)
-          }
-        }
-      }
-    }
+  // TODO: digest() method to re-run digest.
+  // I think it may need to reset the state hasDigestedConfidentials/hasDigestedConcludes flags
 
-    return this.digestConclude(state)
-  }
-  
-  private async digestConfidential(state: InterviewStateType): Promise<Partial<InterviewStateType>> {
+  // Node: Handle confidential fields
+  private async digest_confidentials(state: InterviewStateType): Promise<Partial<InterviewStateType>> {
     const interview = this.getStateInterview(state);
-    if (! interview) {
-       // console.log('No interview in digestConfidential state')
-      console.log(`Digest confidential: No interview in state`);
-      return {};
-    }
-    
-    console.log(`Digest Confidential: ${interview._name}`);
+    console.log(`Digest Confidentials> ${interview._name}`);
     const fieldsPrompt: string[] = []
     const fieldDefinitions: Record<string, z.ZodTypeAny> = {}
     
@@ -861,7 +845,12 @@ export class Interviewer {
         // fieldDefinitions[fieldName] = z.null().describe('Must be null because the field is already recorded')
       }
     }
-    
+
+    if (fieldsPrompt.length === 0) {
+      // No fields to digest.
+      return { hasDigestedConfidentials: true }
+    }
+
     const fieldsPromptStr = fieldsPrompt.join('\n')
     
     // Build a special llm object bound to a tool which explicitly requires the proper arguments
@@ -897,21 +886,21 @@ export class Interviewer {
     
     // LangGraph wants only net-new messages. Its reducer will merge them.
     const newMessages = [sysMsg, llmResponseMessage]
-    return { messages: newMessages }
+    return { messages: newMessages, hasDigestedConfidentials: true }
   }
-  
-  private async digestConclude(state: InterviewStateType): Promise<Partial<InterviewStateType>> {
-    const interview = this.getStateInterview(state);
-    if (!interview) {
-      console.log(`Digest conclude: No interview`);
-      return {}
-    }
-    
-    console.log(`Digest Conclude> ${interview._name}`);
 
-    const fieldsPrompt = this.makeFieldsPrompt(interview, 'conclude')
+  private async digest_concludes(state: InterviewStateType): Promise<Partial<InterviewStateType>> {
+    const interview = this.getStateInterview(state);
+    console.log(`Digest Concludes> ${interview._name}`);
+
+    const fields = this.makeFieldsPrompt(interview, 'conclude')
+    if (fields.length === 0) {
+      // No fields to digest.
+      return { hasDigestedConcludes: true }
+    }
 
     // Prepare context for template
+    const fieldsPrompt = fields.join('\n\n')
     const context = {
       interview_name: interview._name,
       fields_prompt: fieldsPrompt
@@ -929,7 +918,7 @@ export class Interviewer {
     
     // LangGraph wants only net-new messages. Its reducer will merge them.
     const newMessages = [sysMsg, llmResponseMessage]
-    return { messages: newMessages }
+    return { messages: newMessages, hasDigestedConcludes: true }
   }
   
   // Build field schema for a single field - matching Python's approach
@@ -1080,35 +1069,48 @@ export class Interviewer {
 
     const interview = this.getStateInterview(state)
 
-    // Check if we should go to digest phase
-    if (interview._enough) {
-      console.log(`Route: think -> digest`)
-      return 'digest'
-    }
+    // Auto-digest only the first time _enough becomes true
+    // if (interview._enough) {
+    //   if (!state.hasDigestedConfidentials) {
+    //     console.log(`Route: think -> digest_confidentials (first time _enough is true)`)
+    //     return 'digest_confidentials'
+    //   }
+    //   if (!state.hasDigestedConcludes) {
+    //     console.log(`Route: think -> digest_concludes (first time _enough is true)`)
+    //     return 'digest_concludes'
+    //   }
+    // }
 
     return 'listen'
   }
-  
+
   private routeFromTools(state: InterviewStateType): string {
     const interview = this.getStateInterview(state)
     console.log(`Route from tools: ${interview._name}`)
-    
-    if (interview._enough && !interview._done) {
-      console.log(`Route: tools -> digest`)
-      return 'digest'
+
+    // Auto-digest only the first time _enough becomes true
+    if (interview._enough) {
+      if (!state.hasDigestedConfidentials) {
+        console.log(`Route: think -> digest_confidentials (first time _enough is true)`)
+        return 'digest_confidentials'
+      }
+      if (!state.hasDigestedConcludes) {
+        console.log(`Route: think -> digest_concludes (first time _enough is true)`)
+        return 'digest_concludes'
+      }
     }
-    
+
     return 'think'
   }
-  
+
   private routeFromDigest(state: InterviewStateType): string {
     const interview = this.getStateInterview(state)
-    console.log(`Route from digest: ${interview._name}`)
+    console.log(`Route from digest_data: ${interview._name}`)
 
     // Use toolsCondition to check for tool calls
     const result = toolsCondition(state as any)
     if (result === 'tools') {
-      console.log(`Route: digest -> tools`)
+      console.log(`Route: digest_data -> tools`)
       return 'tools'
     }
 

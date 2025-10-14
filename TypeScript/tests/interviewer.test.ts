@@ -388,15 +388,15 @@ describe('Interviewer', () => {
         .build()
       const interviewer = new Interviewer(interview, { llm: mockLlm })
       
-      const prompt = interviewer.mkSystemPrompt({ interview, messages: [] })
-      
+      const prompt = interviewer.mkSystemPrompt({ interview, messages: [], hasDigestedConfidentials: false, hasDigestedConcludes: false })
+
       expect(prompt).toContain('Customer feedback form')
       expect(prompt).toContain('rating: Overall satisfaction rating')
       expect(prompt).toContain('comments: Additional comments')
       expect(prompt).toContain('Agent')  // Default role
       expect(prompt).toContain('User')   // Default role
     })
-    
+
     it('includes custom roles', () => {
       const mockLlm = new MockLLMBackend()
       const interview = chatfield()
@@ -411,15 +411,15 @@ describe('Interviewer', () => {
         .field('issue').desc('What went wrong')
         .build()
       const interviewer = new Interviewer(interview, { llm: mockLlm })
-      
-      const prompt = interviewer.mkSystemPrompt({ interview, messages: [] })
-      
+
+      const prompt = interviewer.mkSystemPrompt({ interview, messages: [], hasDigestedConfidentials: false, hasDigestedConcludes: false })
+
       expect(prompt).toContain('Customer Support Agent')
       expect(prompt).toContain('Frustrated Customer')
       expect(prompt).toContain('Friendly and helpful')
       expect(prompt).toContain('Had a bad experience')
     })
-    
+
     it('includes validation rules', () => {
       const mockLlm = new MockLLMBackend()
       const interview = chatfield()
@@ -431,9 +431,9 @@ describe('Interviewer', () => {
           .hint('Be constructive')
         .build()
       const interviewer = new Interviewer(interview, { llm: mockLlm })
-      
-      const prompt = interviewer.mkSystemPrompt({ interview, messages: [] })
-      
+
+      const prompt = interviewer.mkSystemPrompt({ interview, messages: [], hasDigestedConfidentials: false, hasDigestedConcludes: false })
+
       expect(prompt).toContain('Must: specific details')
       expect(prompt).toContain('Reject: profanity')
       // Note: Hints are included in specs but may not appear in system prompt
@@ -454,7 +454,7 @@ describe('Interviewer', () => {
         .build()
       const interviewer = new Interviewer(interview, { llm: mockLlm })
 
-      const prompt = interviewer.mkSystemPrompt({ interview, messages: [] })
+      const prompt = interviewer.mkSystemPrompt({ interview, messages: [], hasDigestedConfidentials: false, hasDigestedConcludes: false })
 
       expect(prompt).toContain('Key Confidential Information')
     })

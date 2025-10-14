@@ -21,7 +21,7 @@ from langgraph.graph.message import add_messages
 
 from .interview import Interview
 from .template_engine import TemplateEngine
-from .merge import merge_interviews
+from .merge import merge_interviews, merge_has_digested
 
 # Endpoint security mode type
 EndpointSecurityMode = Literal['strict', 'warn', 'disabled']
@@ -29,6 +29,8 @@ EndpointSecurityMode = Literal['strict', 'warn', 'disabled']
 class State(TypedDict):
     messages: Annotated[List[Any] , add_messages    ]
     interview: Annotated[Interview, merge_interviews]
+    has_digested_confidentials: Annotated[bool, merge_has_digested]
+    has_digested_concludes    : Annotated[bool, merge_has_digested]
 
 
 class Interviewer:
@@ -113,15 +115,17 @@ class Interviewer:
         builder.add_node('think'     , self.think)
         builder.add_node('listen'    , self.listen)
         builder.add_node('tools'     , self.tools)
-        builder.add_node('digest'    , self.digest)
+        builder.add_node('digest_confidentials', self.digest_confidentials)
+        builder.add_node('digest_concludes', self.digest_concludes)
         builder.add_node('teardown'  , self.teardown)
 
         builder.add_edge             (START       , 'initialize')
         builder.add_edge             ('initialize', 'think')
         builder.add_conditional_edges('think'     , self.route_from_think)
         builder.add_edge             ('listen'    , 'think')
-        builder.add_conditional_edges('tools'     , self.route_from_tools, ['think', 'digest'])
-        builder.add_conditional_edges('digest'    , self.route_from_digest, ['tools', 'think'])
+        builder.add_conditional_edges('tools'     , self.route_from_tools, ['think', 'digest_confidentials', 'digest_concludes'])
+        builder.add_conditional_edges('digest_confidentials', self.route_from_digest, ['tools', 'think'])
+        builder.add_conditional_edges('digest_concludes'    , self.route_from_digest, ['tools', 'think'])
         builder.add_edge             ('teardown'  , END    )
 
         self.graph = builder.compile(checkpointer=self.checkpointer)
@@ -343,21 +347,22 @@ class Interviewer:
         return tool_message
 
     # Node
-    def digest(self, state: State):
+    def digest_data(self, state: State):
         interview = self._get_state_interview(state)
-        print(f'Digest> {interview._name}')
+        print(f'Digest Data> {interview._name}')
 
         # First digest undefined confidential fields. Then digest the conclude fields.
         for field_name, chatfield in interview._chatfield['fields'].items():
             if not chatfield['specs']['conclude']:
                 if chatfield['specs']['confidential']:
                     if not chatfield['value']:
+                        # Digest all confidentials since an undefined one was found.
                         return self.digest_confidential(state)
         return self.digest_conclude(state)
     
-    def digest_confidential(self, state: State):
+    def digest_confidentials(self, state: State):
         interview = self._get_state_interview(state)
-        print(f'Digest Confidential> {interview._name}')
+        print(f'Digest Confidentials> {interview._name}')
 
         fields_prompt = []
         field_definitions = {}
@@ -375,6 +380,10 @@ class Interviewer:
                 # Actually, just do not mention it.
                 # field_definitions[field_name] = (Literal[None], Field(description='Must be null because the field is already recorded'))
                 pass
+
+        if not fields_prompt:
+            # No fields to digest.
+            return {'has_digested_confidentials': True}
 
         fields_prompt = '\n'.join(fields_prompt)
 
@@ -417,7 +426,7 @@ class Interviewer:
 
         # LangGraph wants only net-new messages. Its reducer will merge them.
         new_messages = [sys_msg] + [llm_response_message]
-        return {'messages':new_messages}
+        return {'messages':new_messages, 'has_digested_confidentials': True}
     
     def mk_field_definition(self, interview:Interview, field_name: str, chatfield: Dict[str, Any]):
         casts_definitions = self.mk_casts_definitions(chatfield)
@@ -481,17 +490,21 @@ class Interviewer:
 
         return casts_definitions
 
-    def digest_conclude(self, state: State):
+    def digest_concludes(self, state: State):
         interview = self._get_state_interview(state)
-        print(f'Digest Conclude> {interview._name}')
+        print(f'Digest Concludes> {interview._name}')
 
         # Define the tool for the LLM to call.
         conclude_tool = self.llm_conclude_tool(state)
         llm = self.llm.bind_tools([conclude_tool])
         
         fields_prompt = self.mk_fields_prompt(interview, mode='conclude')
+        if not fields_prompt:
+            # No fields to digest.
+            return {'has_digested_concludes': True}
 
         # Prepare context for template
+        fields_prompt = '\n\n'.join(fields)
         context = {
             'interview_name': interview._name,
             'fields_prompt': fields_prompt
@@ -507,7 +520,7 @@ class Interviewer:
 
         # LangGraph wants only net-new messages. Its reducer will merge them.
         new_messages = [sys_msg] + [llm_response_message]
-        return {'messages':new_messages}
+        return {'messages':new_messages, 'has_digested_concludes': True}
 
     # Node
     def think(self, state: State):
@@ -724,7 +737,6 @@ class Interviewer:
             
             fields.append(field_prompt)
 
-        fields = '\n\n'.join(fields)
         return fields
     
     def route_from_think(self, state: State) -> str:
@@ -737,33 +749,30 @@ class Interviewer:
 
         interview = self._get_state_interview(state)
 
-        # Either digest once, the first time _enough becomes true.
-        # Or, digest after every subsequent user message. For now, do the former
-        # because then _done would evaluate true, so the above return would trigger.
-        if interview._enough:
-            # TODO: I wonder if this is needed anymore? Does digest happen differently in the graph now?
-            print(f'Route: think -> digest')
-            return 'digest'
-
         return 'listen'
     
     def route_from_tools(self, state: State) -> str:
         interview = self._get_state_interview(state)
         print(f'Route from tools: {interview._name}')
 
-        if interview._enough and not interview._done:
-            print(f'Route: tools -> digest')
-            return 'digest'
+        # Auto-digest only the first time _enough becomes true
+        if interview._enough:
+            if not state['has_digested_confidentials']:
+                print(f'Route: think -> digest_confidentials (first time _enough is true)')
+                return 'digest_confidentials'
+            if not state['has_digested_concludes']:
+                print(f'Route: think -> digest_concludes (first time _enough is true)')
+                return 'digest_concludes'
 
         return 'think'
     
     def route_from_digest(self, state: State) -> str:
         interview = self._get_state_interview(state)
-        print(f'Route from digest: {interview._name}')
+        print(f'Route from digest_data: {interview._name}')
 
         result = tools_condition(dict(state))
         if result == 'tools':
-            print(f'Route: digest -> tools')
+            print(f'Route: digest_data -> tools')
             return 'tools'
 
         return 'think'
@@ -871,6 +880,9 @@ class Interviewer:
         for event in self.graph.stream(graph_input, config=self.config):
             # Just execute teardown, no output needed
             pass
+
+    # TODO: digest() method to re-run digest.
+    # I think it may need to reset the state has_digested_confidentials/has_digested_concludes flags
 
     @staticmethod
     def debug_prompt(prompt: str, use_color: bool = True) -> str:

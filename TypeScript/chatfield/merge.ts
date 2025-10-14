@@ -87,3 +87,10 @@ export function mergeInterviews(a: Interview | null, b: Interview | null): Inter
 
   return b || a
 }
+
+/**
+ * Reducer for hasDigested: once true, stays true
+ */
+export function mergeHasDigested(a: boolean, b: boolean): boolean {
+  return a || b
+}

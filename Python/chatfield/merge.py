@@ -78,3 +78,8 @@ def merge_interviews(a: Interview, b: Interview) -> Interview:
         raise NotImplementedError(f'Cannot reduce {a_type!r} with non-type changes: {diff}')
 
     return result
+
+
+def merge_has_digested(a: bool, b: bool) -> bool:
+    """Reducer for has_digested: once True, stays True."""
+    return a or b
