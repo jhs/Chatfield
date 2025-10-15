@@ -29,7 +29,8 @@ import { useChatfield } from '@chatfield/react'
 import { chatfield } from '@chatfield/core/lean'
 
 const interview = chatfield()
-  .field('name', 'Your name')
+  .field('name')
+    .desc('Your name')
   .build()
 
 function MyComponent() {

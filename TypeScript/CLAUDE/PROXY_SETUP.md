@@ -130,7 +130,8 @@ litellm_settings:
 import { chatfield, Interviewer } from '@chatfield/core';
 
 const interview = chatfield()
-  .field('name', 'Your name')
+  .field('name')
+    .desc('Your name')
   .build();
 
 // Option 1: Pass proxy URL directly
@@ -150,7 +151,8 @@ const interviewer2 = new Interviewer(interview);
   import { chatfield, Interviewer } from '/dist/esm/index.js';
 
   const interview = chatfield()
-    .field('email', 'Your email')
+    .field('email')
+    .desc('Your email')
     .build();
 
   const interviewer = new Interviewer(interview, {

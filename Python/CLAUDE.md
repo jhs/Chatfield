@@ -82,7 +82,8 @@ Python/
 from chatfield import chatfield
 
 interview = chatfield()\
-    .field("age", "Your age")\
+    .field("age")\
+    .desc("Your age")\
     .must("be specific")\
     .as_int()\
     .as_lang("fr")\

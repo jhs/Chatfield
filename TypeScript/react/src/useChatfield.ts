@@ -74,8 +74,10 @@ export interface ChatfieldActions {
  * @example
  * ```typescript
  * const interview = chatfield()
- *   .field('name', 'Your name')
- *   .field('age', 'Your age').asInt()
+ *   .field('name')
+    .desc('Your name')
+ *   .field('age')
+    .desc('Your age').asInt()
  *   .build()
  *
  * function MyForm() {

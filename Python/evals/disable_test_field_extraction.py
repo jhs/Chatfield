@@ -142,12 +142,17 @@ def test_extraction_with_real_interview():
     # Create a test interview
     interview = chatfield()\
         .type("JobApplication")\
-        .field("name", "Your full name")\
-        .field("email", "Your email address")\
-        .field("position", "Position you're applying for")\
-        .field("years_experience", "Years of relevant experience")\
+        .field("name")\
+    .desc("Your full name")\
+        .field("email")\
+    .desc("Your email address")\
+        .field("position")\
+    .desc("Position you're applying for")\
+        .field("years_experience")\
+    .desc("Years of relevant experience")\
             .as_int()\
-        .field("languages", "Programming languages you know")\
+        .field("languages")\
+    .desc("Programming languages you know")\
             .as_list()\
         .build()
 

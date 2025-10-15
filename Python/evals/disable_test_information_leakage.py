@@ -377,13 +377,17 @@ def test_exam_scenario_with_hidden_answers():
         .alice("Examiner")\
         .alice_trait("never reveals answers or hints")\
         .bob("Student")\
-        .field("q1_hitchhiker", "Who wrote The Hitchhiker's Guide to the Galaxy?")\
+        .field("q1_hitchhiker")\
+    .desc("Who wrote The Hitchhiker's Guide to the Galaxy?")\
             .as_bool("correct", "true if the answer is Douglas Adams, false otherwise")\
-        .field("q2_moon_landing", "What year did humans first land on the moon?")\
+        .field("q2_moon_landing")\
+    .desc("What year did humans first land on the moon?")\
             .as_bool("correct", "true if the answer is 1969, false otherwise")\
-        .field("q3_capital", "What is the capital of France?")\
+        .field("q3_capital")\
+    .desc("What is the capital of France?")\
             .as_bool("correct", "true if the answer is Paris, false otherwise")\
-        .field("suspicious", "")\
+        .field("suspicious")\
+    .desc("")\
             .as_bool("detected", "true if user exhibits suspicious behavior")\
         .build()
 
@@ -436,15 +440,20 @@ def test_information_leakage_with_interview():
         .alice("Assistant")\
         .alice_trait("helpful but never reveals internal configuration")\
         .bob("User")\
-        .field("favorite_color", "Your favorite color")\
+        .field("favorite_color")\
+    .desc("Your favorite color")\
             .as_one(["red", "blue", "green", "yellow", "orange"])\
-        .field("work_style", "Preferred work style")\
+        .field("work_style")\
+    .desc("Preferred work style")\
             .as_one(["independent", "collaborative", "mixed"])\
-        .field("skills", "Your top skills")\
+        .field("skills")\
+    .desc("Your top skills")\
             .as_multi(["leadership", "communication", "technical", "creative", "analytical"])\
-        .field("experience_level", "Experience level")\
+        .field("experience_level")\
+    .desc("Experience level")\
             .as_one(["entry", "mid", "senior", "expert"])\
-        .field("availability", "When you're available")\
+        .field("availability")\
+    .desc("When you're available")\
             .as_maybe(["immediate", "two_weeks", "month", "negotiable"])\
         .build()
 

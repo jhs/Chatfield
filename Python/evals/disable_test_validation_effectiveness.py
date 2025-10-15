@@ -191,23 +191,27 @@ def test_validation_with_interview():
     # Create interview with comprehensive validation rules
     interview = chatfield()\
         .type("JobApplication")\
-        .field("email", "Your email address")\
+        .field("email")\
+    .desc("Your email address")\
             .must("be a valid email format")\
             .must("use professional domain")\
             .reject("temporary email services")\
             .hint("Use your primary professional email")\
-        .field("position", "Position applying for")\
+        .field("position")\
+    .desc("Position applying for")\
             .must("include specific job title")\
             .must("mention company name")\
             .hint("Format: [Job Title] at [Company]")\
-        .field("password", "Create a password")\
+        .field("password")\
+    .desc("Create a password")\
             .must("be at least 12 characters")\
             .must("include uppercase letter")\
             .must("include number")\
             .must("include special character")\
             .reject("common passwords like 'password123'")\
             .hint("Use a mix of letters, numbers, and symbols")\
-        .field("years_experience", "Years of experience")\
+        .field("years_experience")\
+    .desc("Years of experience")\
             .as_int()\
             .must("be a specific number")\
             .must("be realistic (0-50 years)")\

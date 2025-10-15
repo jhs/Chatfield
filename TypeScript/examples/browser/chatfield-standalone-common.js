@@ -276,7 +276,8 @@ export const DEFAULT_HTML_TEMPLATE = `
 
     const interview = chatfield()
       .type('Your Interview Type')
-      .field('fieldName', 'Field description')
+      .field('fieldName')
+    .desc('Field description')
       .build();
 
     const config = {

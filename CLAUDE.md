@@ -99,7 +99,8 @@ initialize → think → listen → tools → teardown
 ```python
 # Python
 interview = chatfield()\
-    .field("age", "Your age")\
+    .field("age")\
+    .desc("Your age")\
     .must("be specific")\
     .as_int()\
     .build()
@@ -112,7 +113,8 @@ interview.age.as_int       # 25 (integer)
 ```typescript
 // TypeScript
 const interview = chatfield()
-  .field('age', 'Your age')
+  .field('age')
+  .desc('Your age')
   .must('be specific')
   .asInt()
   .build()

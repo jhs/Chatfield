@@ -68,7 +68,8 @@ import { chatfield, Interviewer } from '@chatfield/core'
 // Build interview
 const interview = chatfield()
   .type('InterviewType')
-  .field('fieldName', 'Field description')
+  .field('fieldName')
+    .desc('Field description')
   .must('validation rule')
   .build()
 

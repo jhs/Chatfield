@@ -60,7 +60,8 @@ from chatfield import chatfield, Interviewer
 # Build interview
 interview = chatfield()\
     .type("InterviewType")\
-    .field("field_name", "Field description")\
+    .field("field_name")\
+    .desc("Field description")\
     .must("validation rule")\
     .build()
 

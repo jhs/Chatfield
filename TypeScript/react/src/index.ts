@@ -7,7 +7,8 @@
  * import { chatfield } from '@chatfield/core'
  *
  * const interview = chatfield()
- *   .field('name', 'Your name')
+ *   .field('name')
+    .desc('Your name')
  *   .build()
  *
  * function MyComponent() {

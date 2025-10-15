@@ -90,7 +90,8 @@ import { chatfield } from '@chatfield/core'
 
 const interview = chatfield()
   .type('Contact Form')
-  .field('age', 'Your age')
+  .field('age')
+    .desc('Your age')
   .must('be specific')
   .asInt()
   .build()

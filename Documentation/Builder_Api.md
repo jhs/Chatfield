@@ -14,12 +14,15 @@ from chatfield import chatfield
 interview = chatfield()\
     .type("Contact Form")\
     .desc("Collect contact information")\
-    .field("name", "Your full name")\
+    .field("name")\
+        .desc("Your full name")\
         .must("include first and last")\
         .hint("Format: First Last")\
-    .field("email", "Email address")\
+    .field("email")\
+        .desc("Email address")\
         .must("be valid email format")\
-    .field("age", "Your age")\
+    .field("age")\
+        .desc("Your age")\
         .as_int()\
         .must("be between 18 and 120")\
     .build()
@@ -38,13 +41,16 @@ import { chatfield } from '@chatfield/core'
 const interview = chatfield()
   .type('Contact Form')
   .desc('Collect contact information')
-  .field('name', 'Your full name')
+  .field('name')
+    .desc('Your full name')
     .must('include first and last')
     .hint('Format: First Last')
-  .field('email', 'Email address')
+  .field('email')
+    .desc('Email address')
     .must('be valid email format')
     .as_string()  // Explicit type
-  .field('age', 'Your age')
+  .field('age')
+    .desc('Your age')
     .as_int()
     .must('be between 18 and 120')
   .build()
@@ -68,9 +74,9 @@ result.age         // number (transformed)
 
 ### Field Definition
 
-- `.field(name, description?)`: Define a new field to collect
+- `.field(name)`: Define a new field to collect
   - `name`: Field identifier (required)
-  - `description`: User-facing prompt (optional, defaults to field name)
+- `.desc(description)`: Set the field description (user-facing prompt)
 
 ### Field Validation
 
@@ -107,7 +113,8 @@ result.age         // number (transformed)
 ```python
 # During definition
 interview = chatfield()\
-    .field("age", "Your age")\
+    .field("age")\
+    .desc("Your age")\
     .must("be specific")\
     .as_int()\
     .as_lang("fr")\
@@ -140,13 +147,16 @@ interview = chatfield()\
     .alice("Interviewer")\
     .alice_trait("friendly and professional")\
     .bob("Job Candidate")\
-    .field("desired_position", "What position are you applying for?")\
+    .field("desired_position")\
+        .desc("What position are you applying for?")\
         .must("include company name")\
         .must("mention specific role")\
-    .field("years_experience", "Years of relevant experience")\
+    .field("years_experience")\
+        .desc("Years of relevant experience")\
         .as_int()\
         .must("be realistic number")\
-    .field("languages", "Programming languages you know")\
+    .field("languages")\
+        .desc("Programming languages you know")\
         .as_multi(["Python", "JavaScript", "Go", "Rust"])\
     .build()
 ```
@@ -158,13 +168,16 @@ const interview = chatfield()
   .alice('Interviewer')
   .aliceTrait('friendly and professional')
   .bob('Job Candidate')
-  .field('desiredPosition', 'What position are you applying for?')
+  .field('desiredPosition')
+    .desc('What position are you applying for?')
     .must('include company name')
     .must('mention specific role')
-  .field('yearsExperience', 'Years of relevant experience')
+  .field('yearsExperience')
+    .desc('Years of relevant experience')
     .asInt()
     .must('be realistic number')
-  .field('languages', 'Programming languages you know')
+  .field('languages')
+    .desc('Programming languages you know')
     .asMulti(['Python', 'JavaScript', 'Go', 'Rust'])
   .build()
 ```

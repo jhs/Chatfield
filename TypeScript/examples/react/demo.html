@@ -225,10 +225,13 @@
     const contactInterview = chatfield()
       .type('Contact Form')
       .desc('Quick contact information')
-      .field('name', 'Your name')
+      .field('name')
+    .desc('Your name')
         .must('be at least 2 characters')
-      .field('email', 'Your email address')
-      .field('age', 'Your age')
+      .field('email')
+    .desc('Your email address')
+      .field('age')
+    .desc('Your age')
         .as_int()
       .build();
 

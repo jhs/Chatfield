@@ -156,7 +156,8 @@ from test_exam_security_integration import test_exam_security_with_real_llm
 
 # Create exam with hidden answers
 exam = chatfield()\
-    .field("q1", "Who wrote Hitchhiker's Guide?")\
+    .field("q1")\
+    .desc("Who wrote Hitchhiker's Guide?")\
     .as_bool("correct", "true if answer is Douglas Adams")\
     .build()
 

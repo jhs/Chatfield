@@ -24,9 +24,12 @@ import { chatfield } from '@chatfield/core'
 
 // Define interview
 const interview = chatfield()
-  .field('name', 'Your name')
-  .field('email', 'Your email address')
-  .field('age', 'Your age').asInt()
+  .field('name')
+    .desc('Your name')
+  .field('email')
+    .desc('Your email address')
+  .field('age')
+    .desc('Your age').asInt()
   .build()
 
 // Use in React component
