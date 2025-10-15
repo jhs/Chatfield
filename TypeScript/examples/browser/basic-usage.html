@@ -215,23 +215,25 @@
             userInput.value = '';
 
             try {
-                // Send to interviewer
+                // Send to interviewer - always returns a string
                 const response = await interviewer.go(message);
 
-                if (response) {
-                    // Add AI response
-                    addMessage(response, 'ai');
+                // Add AI response
+                addMessage(response, 'ai');
 
-                    // Re-enable input
+                // Check if all fields are collected
+                if (interviewer.interview._done) {
+                    // All fields collected - show completion message and results
+                    addMessage('Thank you! All information has been collected.', 'system');
+                    showResults(interviewer.interview);
+                    await interviewer.end();  // Explicit cleanup
+                    userInput.disabled = true;
+                    sendBtn.disabled = true;
+                } else {
+                    // Continue conversation - re-enable input
                     userInput.disabled = false;
                     sendBtn.disabled = false;
                     userInput.focus();
-                } else {
-                    // Conversation complete
-                    addMessage('Thank you! The conversation is complete.', 'system');
-                    showResults(interviewer.interview);
-                    userInput.disabled = true;
-                    sendBtn.disabled = true;
                 }
             } catch (error) {
                 console.error('Error:', error);
