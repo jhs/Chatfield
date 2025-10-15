@@ -171,7 +171,12 @@ Orchestrates conversation flow using LangGraph state machine.
 - `tools()`: Process tool calls, validate, update Interview
 - `digest()`: Handle confidential/conclude fields
 - `teardown()`: Finalize conversation, copy state to original Interview
-- `go(user_input)`: Main conversation loop entry point
+- **`go(user_input)`**: Main conversation loop entry point
+  - **Always returns a string** (the AI's next message)
+  - **Never returns null** - designed for infinite loops
+  - Check `interview._done` to know when fields are collected
+  - Application must decide when to call `end()` for cleanup
+- **`end()`**: Explicitly terminate conversation and run teardown
 
 ### 4. FieldProxy Class
 
@@ -285,7 +290,27 @@ Tools generated (update/conclude)
 System prompt rendered
 ```
 
-### Phase 3: Conversation
+### Phase 3: Conversation (Infinite Loop Design)
+
+**CRITICAL**: Chatfield conversations are designed to run in an **infinite loop**. The application controls when to exit.
+
+```typescript
+// TypeScript pattern
+const interviewer = new Interviewer(interview)
+
+let message = await interviewer.go()  // Start conversation
+console.log(message)
+
+while (!interview._done) {
+  const userInput = await getUserInput()
+  message = await interviewer.go(userInput)  // Always returns string, never null
+  console.log(message)
+}
+
+await interviewer.end()  // Explicit cleanup when ready
+```
+
+**Conversation Flow**:
 
 ```
 User: (opens conversation)
@@ -296,7 +321,11 @@ think node → LLM generates greeting
         ↓
 listen node → interrupt, wait for input
         ↓
-User: "I'm 25 years old"
+go() returns → string message (NEVER null)
+        ↓
+Application displays message, gets user input
+        ↓
+Application calls go(userInput)
         ↓
 think node → LLM decides to call update_* tool
         ↓
@@ -307,8 +336,22 @@ tools node → validate "25" against specs
         ↓
 digest node (if _enough) → conclude fields
         ↓
+listen node → interrupt, returns string
+        ↓
+Application checks interview._done
+        ↓
+If _done: Application calls interviewer.end()
+        ↓
 teardown node → copy state to original Interview
 ```
+
+**Key Design Principles**:
+1. `go()` **always returns a string message** (never null/None)
+2. The conversation **never automatically terminates**
+3. Check `interview._done` to know when all required fields are collected
+4. Even after `_done=true`, you can continue calling `go()` - the AI keeps conversing
+5. Call `interviewer.end()` when you want to run cleanup and terminate
+6. Throw errors for exceptional cases (no interrupts received, etc.)
 
 ### Phase 4: Access
 

@@ -103,9 +103,43 @@ source ../env.sh
 
 2. **Interviewer**: The `Interviewer` class orchestrates the conversation using LangGraph
 
-3. **Conversation Flow**: The `go()` method starts the conversation and returns the first message
+3. **Conversation Flow**: The `go()` method processes one turn of the conversation and **always** returns a message string
 
 4. **Pretty Print**: The `_pretty()` method displays the form structure and collected values
+
+## Understanding the Conversation Loop
+
+**IMPORTANT**: Chatfield conversations are designed to run in an **infinite loop**. The `go()` method **never returns None** to signal completion.
+
+Instead, you check the `interview._done` flag to determine when all fields have been collected:
+
+```python
+interviewer = Interviewer(form)
+
+# Start conversation (no user input yet)
+message = interviewer.go()
+print(f"AI: {message}")
+
+# Continue conversation in a loop
+while not form._done:
+    user_input = input("You: ")
+    message = interviewer.go(user_input)
+    print(f"AI: {message}")
+
+# When form._done is True, optionally call interviewer.end() for cleanup
+interviewer.end()
+
+# Access collected data
+print(form.name)  # User's name
+print(form.age.as_int)  # Age as integer
+```
+
+**Key Points**:
+- `go()` **always returns a string** (never None)
+- The conversation continues indefinitely until you explicitly stop it
+- Check `interview._done` to know when all fields are collected
+- Call `interviewer.end()` when you're ready to terminate (runs cleanup/teardown)
+- Even after `_done` is True, you can continue calling `go()` - the AI will keep conversing
 
 ## Next Steps
 

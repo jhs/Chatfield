@@ -119,9 +119,44 @@ npx tsx my-first-form.ts
 
 2. **Interviewer**: The `Interviewer` class orchestrates the conversation using LangGraph
 
-3. **Conversation Flow**: The `go()` method starts the conversation and returns the first message (async)
+3. **Conversation Flow**: The `go()` method processes one turn of the conversation and **always** returns a message string
 
 4. **Pretty Print**: The `_pretty()` method displays the form structure and collected values
+
+## Understanding the Conversation Loop
+
+**IMPORTANT**: Chatfield conversations are designed to run in an **infinite loop**. The `go()` method **never returns null** to signal completion.
+
+Instead, you check the `interview._done` flag to determine when all fields have been collected:
+
+```typescript
+const interviewer = new Interviewer(form)
+
+// Start conversation (no user input yet)
+let message = await interviewer.go()
+console.log(`AI: ${message}`)
+
+// Continue conversation in a loop
+while (!form._done) {
+  const userInput = await getUserInput() // Your input collection method
+  message = await interviewer.go(userInput)
+  console.log(`AI: ${message}`)
+}
+
+// When form._done is true, optionally call interviewer.end() for cleanup
+await interviewer.end()
+
+// Access collected data
+console.log(form.name)  // User's name
+console.log(form.age.as_int)  // Age as integer
+```
+
+**Key Points**:
+- `go()` **always returns a string** (never null)
+- The conversation continues indefinitely until you explicitly stop it
+- Check `interview._done` to know when all fields are collected
+- Call `interviewer.end()` when you're ready to terminate (runs cleanup/teardown)
+- Even after `_done` is true, you can continue calling `go()` - the AI will keep conversing
 
 ## Using with JavaScript
 
