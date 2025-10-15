@@ -72,3 +72,4 @@ settings.local.json
 /.env.secret
 /wiki
 /.playwright-mcp
+Tomorrow_Plan.md
