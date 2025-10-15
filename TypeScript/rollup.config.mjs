@@ -221,17 +221,17 @@ const leanConfigs = [
 
       // If the ID is a member of allExternals, treat as external.
       if (allExternals.includes(id)) {
-        console.log('  Confirmed external: ', id);
+        // console.log('  Confirmed external: ', id);
         return true;
       }
 
       // If the ID starts with any of the externals + '/', treat as external.
       if (allExternals.some(ext => id.startsWith(`${ext}/`))) {
-        console.log('  Confirmed external subpath: ', id);
+        // console.log('  Confirmed external subpath: ', id);
         return true;
       }
 
-      console.log('  Bundling: ', id);
+      // console.log('  Bundle: ', id);
       return false;
     },
 
