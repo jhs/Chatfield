@@ -8,7 +8,7 @@ This directory contains the comprehensive test suite for Chatfield TypeScript, u
 
 **CRITICAL**: These tests are part of an **isomorphic test suite**. TypeScript and Python test implementations maintain identical structure, test names, test descriptions, and test counts.
 
-**See**: [../../Documentation/TESTING_ARCHITECTURE.md](../../Documentation/TESTING_ARCHITECTURE.md) for complete testing philosophy and [../../Documentation/ISOMORPHIC_DEVELOPMENT.md](../../Documentation/ISOMORPHIC_DEVELOPMENT.md) for isomorphic principles.
+**See**: [../../Documentation/TESTING_Architecture.md](../../Documentation/TESTING_Architecture.md) for complete testing philosophy and [../../Documentation/Isomorphic_Development.md](../../Documentation/Isomorphic_Development.md) for isomorphic principles.
 
 ## Isomorphic Testing Principles
 
@@ -83,7 +83,7 @@ node --inspect-brk node_modules/.bin/jest --runInBand
 npm test -- --verbose
 ```
 
-**See**: [../../Documentation/COMMANDS.md](../../Documentation/COMMANDS.md) for complete command reference.
+**See**: [../../Documentation/Commands.md](../../Documentation/Commands.md) for complete command reference.
 
 ## Test Structure
 
@@ -170,7 +170,7 @@ const mockLlm = new MockLLMBackend()
 const interviewer = new Interviewer(interview, { llm: mockLlm })
 ```
 
-**See**: [../../Documentation/TESTING_ARCHITECTURE.md](../../Documentation/TESTING_ARCHITECTURE.md) for detailed testing approach.
+**See**: [../../Documentation/TESTING_Architecture.md](../../Documentation/TESTING_Architecture.md) for detailed testing approach.
 
 ## Jest Configuration
 
@@ -266,7 +266,7 @@ npm test -- --runInBand interview.test.ts
 
 ## Additional Resources
 
-- **Testing Philosophy**: [../../Documentation/TESTING_ARCHITECTURE.md](../../Documentation/TESTING_ARCHITECTURE.md)
-- **Isomorphic Development**: [../../Documentation/ISOMORPHIC_DEVELOPMENT.md](../../Documentation/ISOMORPHIC_DEVELOPMENT.md)
+- **Testing Philosophy**: [../../Documentation/TESTING_Architecture.md](../../Documentation/TESTING_Architecture.md)
+- **Isomorphic Development**: [../../Documentation/Isomorphic_Development.md](../../Documentation/Isomorphic_Development.md)
 - **TypeScript Implementation**: [../CLAUDE.md](../CLAUDE.md)
 - **Python Tests**: [../../Python/tests/CLAUDE.md](../../Python/tests/CLAUDE.md) for comparison

@@ -174,4 +174,4 @@ const interview = chatfield()
 - All transformations are computed by the LLM during collection, not post-processing
 - Validation rules (must, reject, hint) are enforced by the LLM
 - Field order determines conversation flow
-- See `Documentation/ARCHITECTURE.md` for internal structure details
+- See `Documentation/Architecture.md` for internal structure details

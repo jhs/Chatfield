@@ -8,7 +8,7 @@ Chatfield TypeScript (v0.1.0) is the TypeScript/JavaScript implementation of con
 
 **IMPORTANT**: This is the TypeScript implementation of an **isomorphic library**. The Python and TypeScript implementations are equal first-class citizens, maintaining near-identical code structure, naming, logic, and test suites.
 
-**See**: [../Documentation/ISOMORPHIC_DEVELOPMENT.md](../Documentation/ISOMORPHIC_DEVELOPMENT.md) for isomorphic development principles.
+**See**: [../Documentation/Isomorphic_Development.md](../Documentation/Isomorphic_Development.md) for isomorphic development principles.
 
 ## Quick Start
 
@@ -41,7 +41,7 @@ npm run lint            # ESLint checks
 npx tsx examples/basic-usage.ts
 ```
 
-**See**: [../Documentation/COMMANDS.md](../Documentation/COMMANDS.md) for complete command reference.
+**See**: [../Documentation/Commands.md](../Documentation/Commands.md) for complete command reference.
 
 ## Project Structure
 
@@ -63,7 +63,7 @@ TypeScript/
 └── examples/                # Usage examples
 ```
 
-**See**: [../Documentation/PROJECT_STRUCTURE.md](../Documentation/PROJECT_STRUCTURE.md) for complete structure.
+**See**: [../Documentation/Project_Structure.md](../Documentation/Project_Structure.md) for complete structure.
 
 ## Core Architecture
 
@@ -81,7 +81,7 @@ TypeScript/
 3. **Collection Phase**: LLM validates and transforms responses
 4. **Access Phase**: FieldProxy provides values with transformations
 
-**See**: [../Documentation/ARCHITECTURE.md](../Documentation/ARCHITECTURE.md) for detailed architecture.
+**See**: [../Documentation/Architecture.md](../Documentation/Architecture.md) for detailed architecture.
 
 ## Builder API
 
@@ -99,7 +99,7 @@ const interview = chatfield()
 interview.age        // number (transformed)
 ```
 
-**See**: [../Documentation/BUILDER_API.md](../Documentation/BUILDER_API.md) for complete API reference.
+**See**: [../Documentation/Builder_Api.md](../Documentation/Builder_Api.md) for complete API reference.
 
 ## API Configuration
 
@@ -123,7 +123,7 @@ const interviewer = new Interviewer(interview, {
 })
 ```
 
-**See**: [../Documentation/API_CONFIGURATION.md](../Documentation/API_CONFIGURATION.md) for detailed configuration options and security modes.
+**See**: [../Documentation/Api_Configuration.md](../Documentation/Api_Configuration.md) for detailed configuration options and security modes.
 
 ## Testing
 
@@ -140,7 +140,7 @@ npm test interview.test.ts  # Specific file
 
 **See**:
 - [tests/CLAUDE.md](tests/CLAUDE.md) for TypeScript test suite details
-- [../Documentation/TESTING_ARCHITECTURE.md](../Documentation/TESTING_ARCHITECTURE.md) for testing philosophy
+- [../Documentation/TESTING_Architecture.md](../Documentation/TESTING_Architecture.md) for testing philosophy
 
 ## Isomorphic Development in TypeScript
 
@@ -170,7 +170,7 @@ getFieldValue(fieldName: string): string | null {
 }
 ```
 
-**See**: [../Documentation/ISOMORPHIC_DEVELOPMENT.md](../Documentation/ISOMORPHIC_DEVELOPMENT.md) for complete details.
+**See**: [../Documentation/Isomorphic_Development.md](../Documentation/Isomorphic_Development.md) for complete details.
 
 ## Key Dependencies
 
@@ -254,9 +254,17 @@ const interviewer = new Interviewer(interview, { llm: mockLlm })
 - Decorator support enabled
 - Source maps generated for debugging
 
+## Advanced Topics
+
+For detailed technical documentation on TypeScript-specific implementation details:
+
+- **JS Conversion Plan**: [CLAUDE/JS_CONVERSION_PLAN.md](CLAUDE/JS_CONVERSION_PLAN.md) - Comprehensive plan for reimplementing TypeScript to match Python's chatfield architecture
+- **Proxy Setup**: [CLAUDE/PROXY_SETUP.md](CLAUDE/PROXY_SETUP.md) - LiteLLM proxy configuration for secure browser-based development
+- **Build Options**: [CLAUDE/ROLLUP_BUILD_OPTIONS.md](CLAUDE/ROLLUP_BUILD_OPTIONS.md) - Rollup build configuration and environment variable reference
+
 ## Additional Resources
 
 - **Main Documentation**: [../CLAUDE.md](../CLAUDE.md) for project overview
-- **Architecture**: [../Documentation/ARCHITECTURE.md](../Documentation/ARCHITECTURE.md)
-- **Cookbook**: [../Documentation/COOKBOOK.md](../Documentation/COOKBOOK.md) for common patterns
-- **Design Decisions**: [../Documentation/DESIGN_DECISIONS.md](../Documentation/DESIGN_DECISIONS.md)
+- **Architecture**: [../Documentation/Architecture.md](../Documentation/Architecture.md)
+- **Cookbook**: [../Documentation/Cookbook.md](../Documentation/Cookbook.md) for common patterns
+- **Design Decisions**: [../Documentation/Design_Decisions.md](../Documentation/Design_Decisions.md)

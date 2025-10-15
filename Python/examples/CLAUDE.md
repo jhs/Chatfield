@@ -39,7 +39,7 @@ python examples/favorite_number.py --auto
 OPENAI_API_KEY=sk-... python examples/job_interview.py
 ```
 
-**See**: [../../Documentation/COMMANDS.md](../../Documentation/COMMANDS.md) for complete command reference.
+**See**: [../../Documentation/Commands.md](../../Documentation/Commands.md) for complete command reference.
 
 ## Setup
 
@@ -101,6 +101,6 @@ When creating new examples:
 ## Additional Resources
 
 - **Python Implementation**: [../CLAUDE.md](../CLAUDE.md)
-- **Builder API**: [../../Documentation/BUILDER_API.md](../../Documentation/BUILDER_API.md)
-- **API Configuration**: [../../Documentation/API_CONFIGURATION.md](../../Documentation/API_CONFIGURATION.md)
+- **Builder API**: [../../Documentation/Builder_Api.md](../../Documentation/Builder_Api.md)
+- **API Configuration**: [../../Documentation/Api_Configuration.md](../../Documentation/Api_Configuration.md)
 - **TypeScript Examples**: [../../TypeScript/examples/CLAUDE.md](../../TypeScript/examples/CLAUDE.md) for comparison

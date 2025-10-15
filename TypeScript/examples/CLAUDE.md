@@ -44,7 +44,7 @@ npm run build
 node dist/examples/basic-usage.js
 ```
 
-**See**: [../../Documentation/COMMANDS.md](../../Documentation/COMMANDS.md) for complete command reference.
+**See**: [../../Documentation/Commands.md](../../Documentation/Commands.md) for complete command reference.
 
 ## Setup
 
@@ -144,6 +144,6 @@ const [state, actions] = useConversation(Form)
 ## Additional Resources
 
 - **TypeScript Implementation**: [../CLAUDE.md](../CLAUDE.md)
-- **Builder API**: [../../Documentation/BUILDER_API.md](../../Documentation/BUILDER_API.md)
-- **API Configuration**: [../../Documentation/API_CONFIGURATION.md](../../Documentation/API_CONFIGURATION.md)
+- **Builder API**: [../../Documentation/Builder_Api.md](../../Documentation/Builder_Api.md)
+- **API Configuration**: [../../Documentation/Api_Configuration.md](../../Documentation/Api_Configuration.md)
 - **Python Examples**: [../../Python/examples/CLAUDE.md](../../Python/examples/CLAUDE.md) for comparison

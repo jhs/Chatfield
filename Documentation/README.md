@@ -2,6 +2,16 @@
 
 Welcome to the Chatfield documentation! This directory contains comprehensive guides covering architecture, design, testing, and usage of the Chatfield conversational data collection framework.
 
+## 🤖 About Agent Documentation
+
+This project uses a structured **Agent Documentation** system - UPPERCASE `.md` files designed specifically for AI coding agents (like Claude Code). This Documentation/ directory is part of that system, containing project-wide technical reference material.
+
+- **[Agent Documentation Guide](../CLAUDE/AGENT_DOCUMENTATION.md)**: Complete guide to the agent documentation system, naming conventions, and maintenance
+- **Top-level CLAUDE.md files**: Entry points for AI agents at each directory level
+- **CLAUDE/ subdirectories**: Implementation-specific detailed documentation
+
+This README is a **user-facing** index to help human developers navigate the documentation.
+
 ## 📚 Documentation Map
 
 ### Getting Started
@@ -12,7 +22,7 @@ Welcome to the Chatfield documentation! This directory contains comprehensive gu
 
 ### Architecture Documentation
 
-- **[Architecture Overview](ARCHITECTURE.md)** ⭐ **START HERE**
+- **[Architecture Overview](Architecture.md)** ⭐ **START HERE**
   - System overview and core concepts
   - Component architecture (Interview, Interviewer, Builder, FieldProxy)
   - Data flow through the system
@@ -20,7 +30,7 @@ Welcome to the Chatfield documentation! This directory contains comprehensive gu
   - Integration architecture (React, CopilotKit)
   - Key design patterns and file reference
 
-- **[Prompt System](PROMPT_SYSTEM.md)**
+- **[Prompt System](Prompt_System.md)**
   - Template engine architecture
   - Handlebars template structure
   - System prompt generation
@@ -28,7 +38,7 @@ Welcome to the Chatfield documentation! This directory contains comprehensive gu
   - Custom helpers and context variables
   - Best practices for prompt development
 
-- **[Testing Architecture](TESTING_ARCHITECTURE.md)**
+- **[Testing Architecture](Testing_Architecture.md)**
   - Test philosophy and harmonization
   - Testing infrastructure (pytest, Jest)
   - Test categories (unit, integration, conversation, security)
@@ -36,7 +46,7 @@ Welcome to the Chatfield documentation! This directory contains comprehensive gu
   - Security evaluation suite
   - Test writing guidelines and debugging
 
-- **[Design Decisions](DESIGN_DECISIONS.md)**
+- **[Design Decisions](Design_Decisions.md)**
   - Builder pattern vs inheritance
   - FieldProxy implementation rationale
   - LangGraph state machine choice
@@ -70,19 +80,19 @@ Welcome to the Chatfield documentation! This directory contains comprehensive gu
 ### I want to understand...
 
 #### **...the overall system**
-→ Start with [Architecture Overview](ARCHITECTURE.md)
+→ Start with [Architecture Overview](Architecture.md)
 - Read: System Overview, Core Components, Data Flow Architecture
 
 #### **...how prompts work**
-→ Read [Prompt System](PROMPT_SYSTEM.md)
+→ Read [Prompt System](Prompt_System.md)
 - Focus on: System Prompt Structure, Template Generation Flow
 
 #### **...how to write tests**
-→ Read [Testing Architecture](TESTING_ARCHITECTURE.md)
+→ Read [Testing Architecture](Testing_Architecture.md)
 - Focus on: Test Categories, Test Writing Guidelines
 
 #### **...why things are designed this way**
-→ Read [Design Decisions](DESIGN_DECISIONS.md)
+→ Read [Design Decisions](Design_Decisions.md)
 - Focus on: Rationale sections for each decision
 
 #### **...how to get started quickly**
@@ -97,36 +107,36 @@ Welcome to the Chatfield documentation! This directory contains comprehensive gu
 ### For New Contributors
 
 1. **[Getting Started](Getting_Started_Python.md)** - Set up and run examples
-2. **[Architecture Overview](ARCHITECTURE.md)** - Understand core components
-3. **[Testing Architecture](TESTING_ARCHITECTURE.md)** - Learn testing approach
-4. **[Design Decisions](DESIGN_DECISIONS.md)** - Understand the "why"
+2. **[Architecture Overview](Architecture.md)** - Understand core components
+3. **[Testing Architecture](Testing_Architecture.md)** - Learn testing approach
+4. **[Design Decisions](Design_Decisions.md)** - Understand the "why"
 
 ### For Users Building Forms
 
 1. **[Getting Started](Getting_Started_Python.md)** - Initial setup
-2. **[Architecture Overview](ARCHITECTURE.md)** → Builder Pattern section
+2. **[Architecture Overview](Architecture.md)** → Builder Pattern section
 3. **[Python/TypeScript CLAUDE.md](../Python/CLAUDE.md)** - API reference
 4. **Examples** - See `examples/` directory in Python or TypeScript
 
 ### For Prompt Engineers
 
-1. **[Prompt System](PROMPT_SYSTEM.md)** - Template architecture
-2. **[Architecture Overview](ARCHITECTURE.md)** → Template System section
-3. **[Design Decisions](DESIGN_DECISIONS.md)** → Template-based Prompts
+1. **[Prompt System](Prompt_System.md)** - Template architecture
+2. **[Architecture Overview](Architecture.md)** → Template System section
+3. **[Design Decisions](Design_Decisions.md)** → Template-based Prompts
 4. **Prompts/** directory - Actual templates
 
 ### For Testers
 
-1. **[Testing Architecture](TESTING_ARCHITECTURE.md)** - Complete testing guide
-2. **[Design Decisions](DESIGN_DECISIONS.md)** → Mock Injection
-3. **[Architecture Overview](ARCHITECTURE.md)** → Mock LLM System
+1. **[Testing Architecture](Testing_Architecture.md)** - Complete testing guide
+2. **[Design Decisions](Design_Decisions.md)** → Mock Injection
+3. **[Architecture Overview](Architecture.md)** → Mock LLM System
 4. **Test files** - Examples in `tests/` directories
 
 ### For Security Researchers
 
-1. **[Testing Architecture](TESTING_ARCHITECTURE.md)** → Security Evaluation Suite
-2. **[Architecture Overview](ARCHITECTURE.md)** → Security Model
-3. **[Prompt System](PROMPT_SYSTEM.md)** → Confidential Information
+1. **[Testing Architecture](Testing_Architecture.md)** → Security Evaluation Suite
+2. **[Architecture Overview](Architecture.md)** → Security Model
+3. **[Prompt System](Prompt_System.md)** → Confidential Information
 4. **Python/evals/** - Security evaluation code
 
 ---
@@ -137,32 +147,32 @@ Welcome to the Chatfield documentation! This directory contains comprehensive gu
 
 | Component | File | Description |
 |-----------|------|-------------|
-| Interview | [ARCHITECTURE.md](ARCHITECTURE.md#1-interview-class) | Central data structure for forms |
-| Builder API | [ARCHITECTURE.md](ARCHITECTURE.md#2-builder-api) | Fluent interface for defining forms |
-| Interviewer | [ARCHITECTURE.md](ARCHITECTURE.md#3-interviewer-class) | Conversation orchestration |
-| FieldProxy | [ARCHITECTURE.md](ARCHITECTURE.md#4-fieldproxy-class) | String-like field values with transformations |
-| TemplateEngine | [PROMPT_SYSTEM.md](PROMPT_SYSTEM.md#template-engine-architecture) | Handlebars-based prompt generation |
+| Interview | [Architecture.md](Architecture.md#1-interview-class) | Central data structure for forms |
+| Builder API | [Architecture.md](Architecture.md#2-builder-api) | Fluent interface for defining forms |
+| Interviewer | [Architecture.md](Architecture.md#3-interviewer-class) | Conversation orchestration |
+| FieldProxy | [Architecture.md](Architecture.md#4-fieldproxy-class) | String-like field values with transformations |
+| TemplateEngine | [Prompt_System.md](Prompt_System.md#template-engine-architecture) | Handlebars-based prompt generation |
 
 ### Patterns & Concepts
 
 | Concept | File | Section |
 |---------|------|---------|
-| Builder Pattern | [DESIGN_DECISIONS.md](DESIGN_DECISIONS.md#builder-pattern-vs-inheritance) | Why builder over inheritance |
-| LangGraph State Machine | [ARCHITECTURE.md](ARCHITECTURE.md#langgraph-state-machine) | Conversation flow control |
-| Test Harmonization | [TESTING_ARCHITECTURE.md](TESTING_ARCHITECTURE.md#test-harmonization) | Cross-language test sync |
-| Mock LLM System | [TESTING_ARCHITECTURE.md](TESTING_ARCHITECTURE.md#mock-llm-system) | Fast deterministic testing |
-| Confidential Fields | [DESIGN_DECISIONS.md](DESIGN_DECISIONS.md#confidential-vs-conclude-fields) | Security-focused fields |
-| Transformations | [DESIGN_DECISIONS.md](DESIGN_DECISIONS.md#transformation-at-collection-time) | LLM-powered type conversion |
+| Builder Pattern | [Design_Decisions.md](Design_Decisions.md#builder-pattern-vs-inheritance) | Why builder over inheritance |
+| LangGraph State Machine | [Architecture.md](Architecture.md#langgraph-state-machine) | Conversation flow control |
+| Test Harmonization | [Testing_Architecture.md](Testing_Architecture.md#test-harmonization) | Cross-language test sync |
+| Mock LLM System | [Testing_Architecture.md](Testing_Architecture.md#mock-llm-system) | Fast deterministic testing |
+| Confidential Fields | [Design_Decisions.md](Design_Decisions.md#confidential-vs-conclude-fields) | Security-focused fields |
+| Transformations | [Design_Decisions.md](Design_Decisions.md#transformation-at-collection-time) | LLM-powered type conversion |
 
 ### Technical Details
 
 | Topic | File | Section |
 |-------|------|---------|
-| _chatfield Structure | [ARCHITECTURE.md](ARCHITECTURE.md#internal-structure-_chatfield-dictionary) | Internal data format |
-| Node Graph | [ARCHITECTURE.md](ARCHITECTURE.md#node-graph) | State machine nodes |
-| System Prompt | [PROMPT_SYSTEM.md](PROMPT_SYSTEM.md#system-prompt-structure) | Main conversation prompt |
-| Tool Generation | [ARCHITECTURE.md](ARCHITECTURE.md#key-methods) | Dynamic Pydantic/Zod schemas |
-| Merge Logic | [ARCHITECTURE.md](ARCHITECTURE.md#6-merge-logic) | State merging strategy |
+| _chatfield Structure | [Architecture.md](Architecture.md#internal-structure-_chatfield-dictionary) | Internal data format |
+| Node Graph | [Architecture.md](Architecture.md#node-graph) | State machine nodes |
+| System Prompt | [Prompt_System.md](Prompt_System.md#system-prompt-structure) | Main conversation prompt |
+| Tool Generation | [Architecture.md](Architecture.md#key-methods) | Dynamic Pydantic/Zod schemas |
+| Merge Logic | [Architecture.md](Architecture.md#6-merge-logic) | State merging strategy |
 
 ---
 
@@ -187,7 +197,7 @@ All major docs follow this structure:
 
 Documents link to related content:
 - Internal links to sections: `[Architecture](#architecture)`
-- Cross-document links: `[Testing](TESTING_ARCHITECTURE.md)`
+- Cross-document links: `[Testing](Testing_Architecture.md)`
 - External links: `[LangGraph](https://langchain.com/langgraph)`
 
 ---
@@ -224,10 +234,10 @@ Documents link to related content:
 
 | Document | Focus | Audience | Est. Reading Time |
 |----------|-------|----------|-------------------|
-| [ARCHITECTURE.md](ARCHITECTURE.md) | System design | Developers | 45 min |
-| [PROMPT_SYSTEM.md](PROMPT_SYSTEM.md) | Prompt engineering | Prompt engineers | 30 min |
-| [TESTING_ARCHITECTURE.md](TESTING_ARCHITECTURE.md) | Testing strategy | Testers/Contributors | 40 min |
-| [DESIGN_DECISIONS.md](DESIGN_DECISIONS.md) | Design rationale | Architects | 35 min |
+| [Architecture.md](Architecture.md) | System design | Developers | 45 min |
+| [Prompt_System.md](Prompt_System.md) | Prompt engineering | Prompt engineers | 30 min |
+| [Testing_Architecture.md](Testing_Architecture.md) | Testing strategy | Testers/Contributors | 40 min |
+| [Design_Decisions.md](Design_Decisions.md) | Design rationale | Architects | 35 min |
 | [Getting_Started_Python.md](Getting_Started_Python.md) | Quick start | Python users | 15 min |
 | [Getting_Started_TypeScript.md](Getting_Started_TypeScript.md) | Quick start | TypeScript users | 15 min |
 
@@ -280,11 +290,11 @@ For code-related questions:
 
 ### For Deep Dives
 
-- **State Management**: [ARCHITECTURE.md](ARCHITECTURE.md#langgraph-state-machine) + LangGraph docs
-- **Prompt Engineering**: [PROMPT_SYSTEM.md](PROMPT_SYSTEM.md) + `Prompts/` directory
-- **Security Testing**: [TESTING_ARCHITECTURE.md](TESTING_ARCHITECTURE.md#security-evaluation-suite) + `Python/evals/`
+- **State Management**: [Architecture.md](Architecture.md#langgraph-state-machine) + LangGraph docs
+- **Prompt Engineering**: [Prompt_System.md](Prompt_System.md) + `Prompts/` directory
+- **Security Testing**: [Testing_Architecture.md](Testing_Architecture.md#security-evaluation-suite) + `Python/evals/`
 - **Type Systems**: Implementation CLAUDE.md files + Pydantic/Zod docs
-- **Integration**: [ARCHITECTURE.md](ARCHITECTURE.md#integration-architecture) + integration examples
+- **Integration**: [Architecture.md](Architecture.md#integration-architecture) + integration examples
 
 ### Research Papers & Inspiration
 

@@ -8,7 +8,7 @@ This directory contains the comprehensive test suite for Chatfield Python, using
 
 **CRITICAL**: These tests are part of an **isomorphic test suite**. Python and TypeScript test implementations maintain identical structure, test names, test descriptions, and test counts.
 
-**See**: [../../Documentation/TESTING_ARCHITECTURE.md](../../Documentation/TESTING_ARCHITECTURE.md) for complete testing philosophy and [../../Documentation/ISOMORPHIC_DEVELOPMENT.md](../../Documentation/ISOMORPHIC_DEVELOPMENT.md) for isomorphic principles.
+**See**: [../../Documentation/TESTING_Architecture.md](../../Documentation/TESTING_Architecture.md) for complete testing philosophy and [../../Documentation/Isomorphic_Development.md](../../Documentation/Isomorphic_Development.md) for isomorphic principles.
 
 ## Isomorphic Testing Principles
 
@@ -77,7 +77,7 @@ python -m pytest --cov=chatfield --cov-report=html
 python -m pytest -m "not slow and not requires_api_key"
 ```
 
-**See**: [../../Documentation/COMMANDS.md](../../Documentation/COMMANDS.md) for complete command reference.
+**See**: [../../Documentation/Commands.md](../../Documentation/Commands.md) for complete command reference.
 
 ## Test Structure
 
@@ -129,7 +129,7 @@ mock_responses = {
 }
 ```
 
-**See**: [../../Documentation/TESTING_ARCHITECTURE.md](../../Documentation/TESTING_ARCHITECTURE.md) for detailed testing approach.
+**See**: [../../Documentation/TESTING_Architecture.md](../../Documentation/TESTING_Architecture.md) for detailed testing approach.
 
 ## Test Markers
 
@@ -194,7 +194,7 @@ describe('Interview', () => {
 
 ## Additional Resources
 
-- **Testing Philosophy**: [../../Documentation/TESTING_ARCHITECTURE.md](../../Documentation/TESTING_ARCHITECTURE.md)
-- **Isomorphic Development**: [../../Documentation/ISOMORPHIC_DEVELOPMENT.md](../../Documentation/ISOMORPHIC_DEVELOPMENT.md)
+- **Testing Philosophy**: [../../Documentation/TESTING_Architecture.md](../../Documentation/TESTING_Architecture.md)
+- **Isomorphic Development**: [../../Documentation/Isomorphic_Development.md](../../Documentation/Isomorphic_Development.md)
 - **Python Implementation**: [../CLAUDE.md](../CLAUDE.md)
 - **TypeScript Tests**: [../../TypeScript/tests/CLAUDE.md](../../TypeScript/tests/CLAUDE.md) for comparison

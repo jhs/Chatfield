@@ -8,7 +8,7 @@ Chatfield Python (v0.2.0) transforms data gathering from rigid forms into conver
 
 **IMPORTANT**: This is the Python implementation of an **isomorphic library**. The Python and TypeScript implementations are equal first-class citizens, maintaining near-identical code structure, naming, logic, and test suites.
 
-**See**: [../Documentation/ISOMORPHIC_DEVELOPMENT.md](../Documentation/ISOMORPHIC_DEVELOPMENT.md) for isomorphic development principles.
+**See**: [../Documentation/Isomorphic_Development.md](../Documentation/Isomorphic_Development.md) for isomorphic development principles.
 
 ## Quick Start
 
@@ -38,7 +38,7 @@ make typecheck                        # Run mypy type checking
 cd examples && python job_interview.py
 ```
 
-**See**: [../Documentation/COMMANDS.md](../Documentation/COMMANDS.md) for complete command reference.
+**See**: [../Documentation/Commands.md](../Documentation/Commands.md) for complete command reference.
 
 ## Project Structure
 
@@ -56,7 +56,7 @@ Python/
 └── examples/                # Usage examples
 ```
 
-**See**: [../Documentation/PROJECT_STRUCTURE.md](../Documentation/PROJECT_STRUCTURE.md) for complete structure.
+**See**: [../Documentation/Project_Structure.md](../Documentation/Project_Structure.md) for complete structure.
 
 ## Core Architecture
 
@@ -74,7 +74,7 @@ Python/
 3. **Collection Phase**: LLM validates responses and computes transformations
 4. **Access Phase**: FieldProxy provides string values with transformation attributes
 
-**See**: [../Documentation/ARCHITECTURE.md](../Documentation/ARCHITECTURE.md) for detailed architecture.
+**See**: [../Documentation/Architecture.md](../Documentation/Architecture.md) for detailed architecture.
 
 ## Builder API
 
@@ -95,7 +95,7 @@ interview.age.as_lang_fr   # "vingt-cinq" (French translation)
 interview.age.as_quote     # "I am 25 years old" (original quote)
 ```
 
-**See**: [../Documentation/BUILDER_API.md](../Documentation/BUILDER_API.md) for complete API reference.
+**See**: [../Documentation/Builder_Api.md](../Documentation/Builder_Api.md) for complete API reference.
 
 ## API Configuration
 
@@ -118,7 +118,7 @@ interviewer = Interviewer(
 )
 ```
 
-**See**: [../Documentation/API_CONFIGURATION.md](../Documentation/API_CONFIGURATION.md) for detailed configuration options and security modes.
+**See**: [../Documentation/Api_Configuration.md](../Documentation/Api_Configuration.md) for detailed configuration options and security modes.
 
 ## Testing
 
@@ -136,7 +136,7 @@ make test-cov                                       # Run with coverage
 
 **See**:
 - [tests/CLAUDE.md](tests/CLAUDE.md) for Python test suite details
-- [../Documentation/TESTING_ARCHITECTURE.md](../Documentation/TESTING_ARCHITECTURE.md) for testing philosophy
+- [../Documentation/TESTING_Architecture.md](../Documentation/TESTING_Architecture.md) for testing philosophy
 
 ## Isomorphic Development in Python
 
@@ -165,7 +165,7 @@ def get_field_value(self, field_name: str) -> Optional[str]:
     return self._chatfield['fields'].get(field_name, {}).get('value')
 ```
 
-**See**: [../Documentation/ISOMORPHIC_DEVELOPMENT.md](../Documentation/ISOMORPHIC_DEVELOPMENT.md) for complete details.
+**See**: [../Documentation/Isomorphic_Development.md](../Documentation/Isomorphic_Development.md) for complete details.
 
 ## Interview Structure (_chatfield dictionary)
 
@@ -194,7 +194,7 @@ def get_field_value(self, field_name: str) -> Optional[str]:
 }
 ```
 
-**See**: [../Documentation/ARCHITECTURE.md](../Documentation/ARCHITECTURE.md) for detailed data structures.
+**See**: [../Documentation/Architecture.md](../Documentation/Architecture.md) for detailed data structures.
 
 ## Dependencies
 
@@ -224,6 +224,6 @@ def get_field_value(self, field_name: str) -> Optional[str]:
 ## Additional Resources
 
 - **Main Documentation**: [../CLAUDE.md](../CLAUDE.md) for project overview
-- **Architecture**: [../Documentation/ARCHITECTURE.md](../Documentation/ARCHITECTURE.md)
-- **Cookbook**: [../Documentation/COOKBOOK.md](../Documentation/COOKBOOK.md) for common patterns
-- **Design Decisions**: [../Documentation/DESIGN_DECISIONS.md](../Documentation/DESIGN_DECISIONS.md)
+- **Architecture**: [../Documentation/Architecture.md](../Documentation/Architecture.md)
+- **Cookbook**: [../Documentation/Cookbook.md](../Documentation/Cookbook.md) for common patterns
+- **Design Decisions**: [../Documentation/Design_Decisions.md](../Documentation/Design_Decisions.md)

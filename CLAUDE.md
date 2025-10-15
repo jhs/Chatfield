@@ -2,6 +2,12 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## About This File
+
+This is an **Agent Documentation** file - part of a structured system of UPPERCASE `.md` files designed specifically for AI coding agents. These files provide comprehensive context about the codebase, architecture, and development practices.
+
+**See**: [CLAUDE/AGENT_DOCUMENTATION.md](CLAUDE/AGENT_DOCUMENTATION.md) for complete information about the Agent Documentation system, naming conventions, and maintenance guidelines.
+
 ## Project Overview
 
 Chatfield is a dual-implementation library that transforms data collection from rigid forms into natural conversations powered by LLMs. It provides both Python (v0.2.0) and TypeScript/JavaScript (v0.1.0) implementations with feature parity as a goal.
@@ -20,7 +26,7 @@ Chatfield is a dual-implementation library that transforms data collection from 
 
 **Both Python and TypeScript implementations are equal first-class citizens.** Code structure, naming, logic, and test suites are nearly identical across languages. This is fundamental to Chatfield.
 
-**See**: [Documentation/ISOMORPHIC_DEVELOPMENT.md](Documentation/ISOMORPHIC_DEVELOPMENT.md) for complete principles and the "Isomorphic:" comment pattern.
+**See**: [Documentation/Isomorphic_Development.md](Documentation/Isomorphic_Development.md) for complete principles and the "Isomorphic:" comment pattern.
 
 ## Quick Start
 
@@ -44,7 +50,7 @@ npm test  # Run tests
 
 ## Development Commands
 
-**See**: [Documentation/COMMANDS.md](Documentation/COMMANDS.md) for complete command reference including:
+**See**: [Documentation/Commands.md](Documentation/Commands.md) for complete command reference including:
 - Setup & installation
 - Testing (pytest for Python, Jest for TypeScript)
 - Code quality (formatting, linting, type checking)
@@ -66,7 +72,7 @@ Chatfield/
     └── examples/    # Usage examples
 ```
 
-**See**: [Documentation/PROJECT_STRUCTURE.md](Documentation/PROJECT_STRUCTURE.md) for detailed file organization and naming conventions.
+**See**: [Documentation/Project_Structure.md](Documentation/Project_Structure.md) for detailed file organization and naming conventions.
 
 ## Core Architecture
 
@@ -86,7 +92,7 @@ initialize → think → listen → tools → teardown
               └────────┘
 ```
 
-**See**: [Documentation/ARCHITECTURE.md](Documentation/ARCHITECTURE.md) for detailed architecture, data flow, and internal structures.
+**See**: [Documentation/Architecture.md](Documentation/Architecture.md) for detailed architecture, data flow, and internal structures.
 
 ## Builder API
 
@@ -112,7 +118,7 @@ const interview = chatfield()
   .build()
 ```
 
-**See**: [Documentation/BUILDER_API.md](Documentation/BUILDER_API.md) for complete API reference, all validation methods, transformations, and cardinality options.
+**See**: [Documentation/Builder_Api.md](Documentation/Builder_Api.md) for complete API reference, all validation methods, transformations, and cardinality options.
 
 ## API Configuration
 
@@ -122,7 +128,7 @@ Both implementations support:
 - Custom base URL: `base_url='https://my-proxy.com/v1'` (for LiteLLM proxies)
 - Endpoint security: `endpoint_security='strict'/'warn'/'disabled'`
 
-**See**: [Documentation/API_CONFIGURATION.md](Documentation/API_CONFIGURATION.md) for detailed configuration options, security modes, and deployment scenarios.
+**See**: [Documentation/Api_Configuration.md](Documentation/Api_Configuration.md) for detailed configuration options, security modes, and deployment scenarios.
 
 ## Testing
 
@@ -133,7 +139,7 @@ Both implementations maintain **isomorphic test suites** with:
 - **NEVER skip tests** - use no-op tests that pass
 
 **See**:
-- [Documentation/TESTING_ARCHITECTURE.md](Documentation/TESTING_ARCHITECTURE.md) for testing philosophy and structure
+- [Documentation/TESTING_Architecture.md](Documentation/TESTING_Architecture.md) for testing philosophy and structure
 - [Python/tests/CLAUDE.md](Python/tests/CLAUDE.md) for Python test suite details
 - [TypeScript/tests/CLAUDE.md](TypeScript/tests/CLAUDE.md) for TypeScript test suite details
 
@@ -144,9 +150,11 @@ Both implementations maintain **isomorphic test suites** with:
 
 ## Additional Resources
 
-- **Design Decisions**: [Documentation/DESIGN_DECISIONS.md](Documentation/DESIGN_DECISIONS.md)
-- **Cookbook**: [Documentation/COOKBOOK.md](Documentation/COOKBOOK.md) for common patterns
-- **Prompt System**: [Documentation/PROMPT_SYSTEM.md](Documentation/PROMPT_SYSTEM.md) for LLM prompt engineering
+- **Agent Documentation Guide**: [CLAUDE/AGENT_DOCUMENTATION.md](CLAUDE/AGENT_DOCUMENTATION.md) - How this project's agent documentation system works
+- **Developer Guide**: [Developers.md](Developers.md) - Comprehensive guide for setting up development environment, running tests, and contributing
+- **Design Decisions**: [Documentation/Design_Decisions.md](Documentation/Design_Decisions.md)
+- **Cookbook**: [Documentation/Cookbook.md](Documentation/Cookbook.md) for common patterns
+- **Prompt System**: [Documentation/Prompt_System.md](Documentation/Prompt_System.md) for LLM prompt engineering
 - **Documentation Index**: [Documentation/README.md](Documentation/README.md)
 
 ## Contributing Guidelines
@@ -159,7 +167,7 @@ Both implementations maintain **isomorphic test suites** with:
 6. **Parallel development**: Implement features in both languages simultaneously
 7. **Version sync**: Update version numbers in both pyproject.toml and package.json together
 
-**See**: [Documentation/ISOMORPHIC_DEVELOPMENT.md](Documentation/ISOMORPHIC_DEVELOPMENT.md) for complete contributing guidelines.
+**See**: [Documentation/Isomorphic_Development.md](Documentation/Isomorphic_Development.md) for complete contributing guidelines.
 
 ## Key Considerations
 

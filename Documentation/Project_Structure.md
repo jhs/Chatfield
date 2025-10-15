@@ -5,16 +5,16 @@
 ```
 Chatfield/
 ├── Documentation/               # Project-wide documentation
-│   ├── ISOMORPHIC_DEVELOPMENT.md  # Isomorphic development principles
-│   ├── COMMANDS.md                # Development commands reference
-│   ├── API_CONFIGURATION.md       # API and environment setup
-│   ├── BUILDER_API.md             # Builder pattern API reference
-│   ├── PROJECT_STRUCTURE.md       # This file
-│   ├── ARCHITECTURE.md            # System architecture details
-│   ├── TESTING_ARCHITECTURE.md    # Testing approach and structure
-│   ├── DESIGN_DECISIONS.md        # Key design decisions
-│   ├── COOKBOOK.md                # Common patterns and recipes
-│   ├── PROMPT_SYSTEM.md           # LLM prompt engineering
+│   ├── Isomorphic_Development.md  # Isomorphic development principles
+│   ├── Commands.md                # Development commands reference
+│   ├── Api_Configuration.md       # API and environment setup
+│   ├── Builder_Api.md             # Builder pattern API reference
+│   ├── Project_Structure.md       # This file
+│   ├── Architecture.md            # System architecture details
+│   ├── Testing_Architecture.md    # Testing approach and structure
+│   ├── Design_Decisions.md        # Key design decisions
+│   ├── Cookbook.md                # Common patterns and recipes
+│   ├── Prompt_System.md           # LLM prompt engineering
 │   ├── Getting_Started_Python.md  # Python quickstart
 │   ├── Getting_Started_TypeScript.md # TypeScript quickstart
 │   └── README.md                  # Documentation index
@@ -116,12 +116,32 @@ Chatfield/
 
 ## Documentation Organization
 
-All documentation lives in `Documentation/`:
-- **Core concepts**: `ISOMORPHIC_DEVELOPMENT.md`, `ARCHITECTURE.md`
+### Agent Documentation System
+
+This project uses a structured **Agent Documentation** system - UPPERCASE `.md` files designed for AI coding agents. The system follows a two-tier hierarchy:
+
+**Tier 1: Overview Files (CLAUDE.md)**
+- Located at key directory levels (root, Python/, TypeScript/, tests/, examples/)
+- Provide high-level overviews with references to detailed documentation
+- Keep content concise (<200 lines)
+
+**Tier 2: Detailed Files (CLAUDE/ subdirectories and Documentation/)**
+- `CLAUDE/` subdirectories contain implementation-specific detailed docs
+- `Documentation/` directory contains project-wide detailed docs (exception to CLAUDE/ pattern)
+- Can be comprehensive and extensive
+
+**See**: [../CLAUDE/AGENT_DOCUMENTATION.md](../CLAUDE/AGENT_DOCUMENTATION.md) for complete details on the Agent Documentation system, naming conventions, and maintenance guidelines.
+
+### Documentation/ Directory (Project-Wide Reference)
+
+The `Documentation/` directory contains **project-wide detailed documentation** for AI agents:
+- **Core concepts**: `Isomorphic_Development.md`, `Architecture.md`
 - **Getting started**: `Getting_Started_Python.md`, `Getting_Started_TypeScript.md`
-- **Reference**: `BUILDER_API.md`, `API_CONFIGURATION.md`, `COMMANDS.md`
-- **Testing**: `TESTING_ARCHITECTURE.md`
-- **Advanced**: `DESIGN_DECISIONS.md`, `COOKBOOK.md`, `PROMPT_SYSTEM.md`
+- **Reference**: `Builder_Api.md`, `Api_Configuration.md`, `Commands.md`, `Project_Structure.md`
+- **Testing**: `Testing_Architecture.md`
+- **Advanced**: `Design_Decisions.md`, `Cookbook.md`, `Prompt_System.md`
+
+**Note**: `Documentation/` is an exception to the CLAUDE/ subdirectory pattern because it serves as the central repository for all project-wide agent documentation.
 
 ## File Correspondence
 
@@ -136,4 +156,4 @@ The isomorphic nature means files directly correspond:
 | `test_interview.py` | `interview.test.ts` | Interview tests |
 | `test_builder.py` | `builder.test.ts` | Builder tests |
 
-See `Documentation/ISOMORPHIC_DEVELOPMENT.md` for details on maintaining this correspondence.
+See `Documentation/Isomorphic_Development.md` for details on maintaining this correspondence.
