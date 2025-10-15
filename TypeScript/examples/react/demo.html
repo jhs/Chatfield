@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chatfield React Demo</title>
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+      max-width: 800px;
+      margin: 40px auto;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    #root {
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    h1 {
+      color: #333;
+      margin-bottom: 10px;
+    }
+    .subtitle {
+      color: #666;
+      margin-bottom: 30px;
+    }
+    .messages {
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 20px;
+      min-height: 300px;
+      max-height: 500px;
+      overflow-y: auto;
+      background: #fafafa;
+    }
+    .message {
+      margin-bottom: 15px;
+      display: flex;
+    }
+    .message.user {
+      justify-content: flex-end;
+    }
+    .message-bubble {
+      display: inline-block;
+      max-width: 70%;
+      padding: 10px 15px;
+      border-radius: 12px;
+      word-wrap: break-word;
+    }
+    .message.assistant .message-bubble {
+      background: #e9ecef;
+      color: #000;
+    }
+    .message.user .message-bubble {
+      background: #007bff;
+      color: white;
+    }
+    .message-label {
+      font-size: 0.85em;
+      opacity: 0.8;
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+    .input-area {
+      display: flex;
+      gap: 10px;
+    }
+    input {
+      flex: 1;
+      padding: 12px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      font-size: 16px;
+    }
+    input:disabled {
+      opacity: 0.6;
+      background: #f5f5f5;
+    }
+    button {
+      padding: 12px 24px;
+      background: #007bff;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    button:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+    }
+    button:not(:disabled):hover {
+      background: #0056b3;
+    }
+    .status {
+      text-align: center;
+      margin-top: 10px;
+      font-size: 14px;
+      color: #666;
+    }
+    .complete {
+      text-align: center;
+      padding: 40px;
+    }
+    .complete h2 {
+      color: #28a745;
+      margin-bottom: 20px;
+    }
+    .complete ul {
+      text-align: left;
+      display: inline-block;
+      list-style: none;
+      padding: 0;
+    }
+    .complete li {
+      margin: 10px 0;
+      padding: 10px;
+      background: #f8f9fa;
+      border-radius: 4px;
+    }
+    .complete strong {
+      color: #495057;
+    }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel" data-type="module">
+    // Import from built packages
+    const { chatfield, Interviewer } = await import('../../dist/standalone/esm/index.js');
+
+    // Simple mock hook implementation for demo
+    function useChatfield(interview, options = {}) {
+      const [messages, setMessages] = React.useState([]);
+      const [isReadyForInput, setIsReadyForInput] = React.useState(false);
+      const [interviewState, setInterviewState] = React.useState(interview);
+      const interviewerRef = React.useRef(null);
+      const initializedRef = React.useRef(false);
+      const firedFieldsRef = React.useRef(new Set());
+
+      React.useEffect(() => {
+        if (initializedRef.current) return;
+        initializedRef.current = true;
+
+        const startConversation = async () => {
+          try {
+            // Mock configuration for demo
+            const interviewer = new Interviewer(interview, {
+              baseUrl: 'http://localhost:4000',
+              apiKey: 'demo-key',
+              endpointSecurity: 'disabled'
+            });
+            interviewerRef.current = interviewer;
+
+            const aiMessage = await interviewer.go();
+            setMessages([{ role: 'assistant', content: aiMessage }]);
+            setIsReadyForInput(true);
+          } catch (error) {
+            console.error('Chatfield error:', error);
+            options.onError?.(error);
+          }
+        };
+
+        startConversation();
+      }, []);
+
+      // Check for newly collected fields
+      React.useEffect(() => {
+        if (!interviewState) return;
+
+        const fields = interviewState._chatfield.fields;
+        for (const [fieldName, chatfield] of Object.entries(fields)) {
+          if (firedFieldsRef.current.has(fieldName)) continue;
+
+          const fieldValue = interviewState[fieldName];
+          if (fieldValue !== null && fieldValue !== undefined) {
+            firedFieldsRef.current.add(fieldName);
+
+            const isConfidential = chatfield.specs?.confidential === true;
+            const isConclude = chatfield.specs?.conclude === true;
+
+            if (isConfidential || isConclude) {
+              options.onConfidential?.(fieldName, fieldValue);
+            } else {
+              options.onField?.(fieldName, fieldValue);
+            }
+          }
+        }
+      }, [interviewState]);
+
+      const send = React.useCallback(async (message) => {
+        if (!interviewerRef.current || !isReadyForInput) return;
+
+        try {
+          setMessages(prev => [...prev, { role: 'user', content: message }]);
+          setIsReadyForInput(false);
+
+          const aiMessage = await interviewerRef.current.go(message);
+
+          setMessages(prev => [...prev, { role: 'assistant', content: aiMessage }]);
+          setIsReadyForInput(true);
+          setInterviewState(interview);
+        } catch (error) {
+          console.error('Send error:', error);
+          setIsReadyForInput(true);
+          options.onError?.(error);
+        }
+      }, [isReadyForInput, interview]);
+
+      return [{
+        messages,
+        isReadyForInput,
+        interview: interviewState
+      }, { send }];
+    }
+
+    // Define interview
+    const contactInterview = chatfield()
+      .type('Contact Form')
+      .desc('Quick contact information')
+      .field('name', 'Your name')
+        .must('be at least 2 characters')
+      .field('email', 'Your email address')
+      .field('age', 'Your age')
+        .as_int()
+      .build();
+
+    function ContactForm() {
+      const [state, actions] = useChatfield(contactInterview, {
+        onField: (fieldName, fieldValue) => {
+          console.log(`Field collected: ${fieldName}`, fieldValue);
+        },
+        onError: (error) => {
+          console.error('Error:', error);
+          alert(`Error: ${error.message}`);
+        }
+      });
+
+      if (state.interview._done) {
+        return (
+          <div className="complete">
+            <h2>✓ Complete!</h2>
+            <p>We've collected all your information:</p>
+            <ul>
+              <li><strong>Name:</strong> {state.interview.name}</li>
+              <li><strong>Email:</strong> {state.interview.email}</li>
+              <li><strong>Age:</strong> {state.interview.age?.as_int || state.interview.age}</li>
+            </ul>
+          </div>
+        );
+      }
+
+      return (
+        <div>
+          <h1>Chatfield React Demo</h1>
+          <p className="subtitle">Conversational data collection with React hooks</p>
+
+          <div className="messages">
+            {state.messages.map((msg, index) => (
+              <div key={index} className={`message ${msg.role}`}>
+                <div className="message-bubble">
+                  <div className="message-label">
+                    {msg.role === 'user' ? 'You' : 'AI'}
+                  </div>
+                  <div>{msg.content}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="input-area">
+            <input
+              id="chat-input"
+              type="text"
+              placeholder={state.isReadyForInput ? 'Type your response...' : 'AI is thinking...'}
+              disabled={!state.isReadyForInput}
+              onKeyPress={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  const value = e.target.value.trim();
+                  if (value) {
+                    actions.send(value);
+                    e.target.value = '';
+                  }
+                }
+              }}
+            />
+            <button
+              id="send-button"
+              disabled={!state.isReadyForInput}
+              onClick={(e) => {
+                const input = document.getElementById('chat-input');
+                const value = input.value.trim();
+                if (value) {
+                  actions.send(value);
+                  input.value = '';
+                }
+              }}
+            >
+              Send
+            </button>
+          </div>
+
+          <div className="status">
+            {state.isReadyForInput ? '✓ Ready for input' : '⏳ AI is thinking...'}
+          </div>
+        </div>
+      );
+    }
+
+    // Render
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<ContactForm />);
+  </script>
+</body>
+</html>
