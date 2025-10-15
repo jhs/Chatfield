@@ -7,15 +7,13 @@ Read all git commits over the last 24 hours (or duration explicitly stated by th
 Steps:
 
 1. Confirm the local system date by running: `date +%Y-%m-%d`
-2. ALWAYS run a `pwd` in case Bash init scripts has changed it.
-3. Use `git log` and `git diff`, filtering for the time frame in scope (e.g. "24 hours ago") to see all commit messages and changes. Analyze the commits to create a narrative summary of the high-level changes made.
-4. If `Tomorrow_Plan.md` exists, capture its contents as tomorrow's plan. Otherwise, tomorrow will have "no plan".
-5. If no changes have happened during this time frame, STOP this procedure and tell the user **There is nothing to do**.
-6. ALWAYS run a second `pwd` in case Bash configs have changed it.
-7. Change to the wiki repo and ALWAYS confirm with a `pwd`; then `git pull` any changes from its origin
-8. Create a new Markdown file for the content. The filename contains pipe characters: `Daily | YYYY_MM_DD.md`
-9. `git add .` (to avoid issues with pipe characters), then commit with a message and push.
-10. END OF PROCEDURE
+2. Use `git log` and `git diff`, filtering for the time frame in scope (e.g. "24 hours ago") to see all commit messages and changes. Analyze the commits to create a narrative summary of the high-level changes made.
+3. If `Tomorrow_Plan.md` exists, capture its contents as tomorrow's plan. Otherwise, tomorrow will have "no plan".
+4. If no changes have happened during this time frame, STOP this procedure and tell the user **There is nothing to do**.
+5. In the wiki repo, `git pull` any changes from its origin.
+6. Create a new Markdown file for the content. The filename contains pipe characters: `Daily | YYYY_MM_DD.md`.
+7. `git add .` (to avoid issues with pipe characters)
+8. Commit with a message and push.
 
 The template below is default behavior, but allow the user to optionally override things as needed. Here is the diary entry template with notes to you <in angle brackets>:
 
