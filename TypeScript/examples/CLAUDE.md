@@ -10,12 +10,13 @@ This directory contains demonstration examples showcasing Chatfield TypeScript f
 
 ```
 examples/
-├── basic-usage.ts       # Simple examples with builder API
-├── schema-based.ts      # Zod schema integration
-├── type-safe-demo.ts    # TypeScript type safety features
-├── job-interview.ts     # Professional HR use case
-├── restaurant-order.ts  # Interactive ordering system
-└── CLAUDE.md            # This file
+├── basic-usage.ts                # Simple examples with builder API
+├── schema-based.ts               # Zod schema integration
+├── type-safe-demo.ts             # TypeScript type safety features
+├── job-interview.ts              # Professional HR use case
+├── restaurant-order.ts           # Interactive ordering system
+├── polish-passport-wizard.ts     # Government service wizard
+└── CLAUDE.md                     # This file
 ```
 
 ### Key Examples
@@ -25,6 +26,7 @@ examples/
 - **type-safe-demo.ts**: TypeScript type safety features including generic types, type inference, compile-time checking, and type-safe field access.
 - **job-interview.ts**: Professional recruitment scenario with complex validation, multi-field dependencies, and professional tone configuration.
 - **restaurant-order.ts**: E-commerce ordering system with dynamic menus, contextual validation, and stateful conversations.
+- **polish-passport-wizard.ts**: Government service wizard for Polish child passport applications with multi-step conditional logic, choice constraints, and educational hints for non-native speakers.
 
 ## Running Examples
 
