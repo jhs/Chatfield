@@ -795,7 +795,7 @@ export class Interviewer {
       throw new Error(`Multiple interrupts received: ${interrupts}`)
     }
 
-    return interrupts[0]
+    return interrupts[0]!
   }
 
   /**
