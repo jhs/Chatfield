@@ -48,6 +48,12 @@ const conditionalExternal = [
 // Dependencies deliberately bundled in all cases.
 // uuid - Small enough to just bundle.
 
+// Comma-separated list of build names to exclude
+// Available builds: esm, esm-min, umd, umd-min
+const EXCLUDE_BUILDS = process.env.EXCLUDE_BUILDS
+  ? process.env.EXCLUDE_BUILDS.split(',').map(b => b.trim().toLowerCase())
+  : [];
+
 const createPlugins = (outDir, _unusedOption = false) => {
   const plugins = [
     bundleTemplates(),
@@ -128,6 +134,11 @@ const onwarn = (warning, warn) => {
   return warn(warning);
 };
 
+const enableStandaloneEsm = !EXCLUDE_BUILDS.includes('esm');
+const enableStandaloneEsmMin = !EXCLUDE_BUILDS.includes('esm-min');
+const enableStandaloneUmd = !EXCLUDE_BUILDS.includes('umd');
+const enableStandaloneUmdMin = !EXCLUDE_BUILDS.includes('umd-min');
+
 // Build configurations
 const standaloneConfigs = [
   // ============================================================================
@@ -135,7 +146,7 @@ const standaloneConfigs = [
   // ============================================================================
 
   // ESM build for modern bundlers and browsers
-  {
+  enableStandaloneEsm && {
     input: 'chatfield/index.ts',
     output: {
       file: 'dist/standalone/esm/index.js',
@@ -149,55 +160,62 @@ const standaloneConfigs = [
   },
 
   // Minified ESM build
-  // {
-  //   input: 'chatfield/index.ts',
-  //   output: {
-  //     file: 'dist/standalone/esm/index.min.js',
-  //     format: 'esm',
-  //     sourcemap: true,
-  //     exports: 'named'
-  //   },
-  //   external: alwaysExternal,
-  //   plugins: [...createPlugins('dist/standalone/esm', true), terser()],
-  //   onwarn,
-  // },
+  enableStandaloneEsmMin && {
+    input: 'chatfield/index.ts',
+    output: {
+      file: 'dist/standalone/esm/index.min.js',
+      format: 'esm',
+      sourcemap: true,
+      exports: 'named'
+    },
+    external: alwaysExternal,
+    plugins: [...createPlugins('dist/standalone/esm', true), terser()],
+    onwarn,
+  },
 
   // UMD build for CDN usage
-  // {
-  //   input: 'chatfield/index.ts',
-  //   output: {
-  //     file: 'dist/standalone/umd/chatfield.js',
-  //     format: 'umd',
-  //     name: 'Chatfield',
-  //     sourcemap: true,
-  //     exports: 'named',
-  //     globals: {
-  //       'react': 'React',
-  //       'react-dom': 'ReactDOM'
-  //     }
-  //   },
-  //   external: alwaysExternal,
-  //   plugins: createPlugins('dist/standalone/umd', true)
-  // },
+  enableStandaloneUmd && {
+    input: 'chatfield/index.ts',
+    output: {
+      file: 'dist/standalone/umd/chatfield.js',
+      format: 'umd',
+      name: 'Chatfield',
+      sourcemap: true,
+      exports: 'named',
+      globals: {
+        'react': 'React',
+        'react-dom': 'ReactDOM'
+      }
+    },
+    external: alwaysExternal,
+    plugins: createPlugins('dist/standalone/umd', true),
+    onwarn,
+  },
 
   // Minified UMD build
-  // {
-  //   input: 'chatfield/index.ts',
-  //   output: {
-  //     file: 'dist/standalone/umd/chatfield.min.js',
-  //     format: 'umd',
-  //     name: 'Chatfield',
-  //     sourcemap: true,
-  //     exports: 'named',
-  //     globals: {
-  //       'react': 'React',
-  //       'react-dom': 'ReactDOM'
-  //     }
-  //   },
-  //   external: alwaysExternal,
-  //   plugins: [...createPlugins('dist/standalone/umd', true), terser()]
-  // }
-];
+  enableStandaloneUmdMin && {
+    input: 'chatfield/index.ts',
+    output: {
+      file: 'dist/standalone/umd/chatfield.min.js',
+      format: 'umd',
+      name: 'Chatfield',
+      sourcemap: true,
+      exports: 'named',
+      globals: {
+        'react': 'React',
+        'react-dom': 'ReactDOM'
+      }
+    },
+    external: alwaysExternal,
+    plugins: [...createPlugins('dist/standalone/umd', true), terser()],
+    onwarn,
+  }
+].filter(Boolean);
+
+const enableLeanEsm = !EXCLUDE_BUILDS.includes('esm');
+const enableLeanEsmMin = !EXCLUDE_BUILDS.includes('esm-min');
+const enableLeanUmd = !EXCLUDE_BUILDS.includes('umd');
+const enableLeanUmdMin = !EXCLUDE_BUILDS.includes('umd-min');
 
 const leanConfigs = [
   // ============================================================================
@@ -205,7 +223,7 @@ const leanConfigs = [
   // ============================================================================
 
   // ESM build for modern bundlers and browsers
-  {
+  enableLeanEsm && {
     input: 'chatfield/index.ts',
     output: {
       file: 'dist/lean/esm/index.js',
@@ -240,70 +258,73 @@ const leanConfigs = [
   },
 
   // Minified ESM build
-  // {
-  //   input: 'chatfield/index.ts',
-  //   output: {
-  //     file: 'dist/lean/esm/index.min.js',
-  //     format: 'esm',
-  //     sourcemap: true,
-  //     exports: 'named'
-  //   },
-  //   external: [...alwaysExternal, ...conditionalExternal],
-  //   plugins: [...createPlugins('dist/lean/esm', false), terser()],
-  //   onwarn,
-  // },
+  enableLeanEsmMin && {
+    input: 'chatfield/index.ts',
+    output: {
+      file: 'dist/lean/esm/index.min.js',
+      format: 'esm',
+      sourcemap: true,
+      exports: 'named'
+    },
+    external: [...alwaysExternal, ...conditionalExternal],
+    plugins: [...createPlugins('dist/lean/esm', false), terser()],
+    onwarn,
+  },
 
-  // // UMD build for CDN usage
-  // {
-  //   input: 'chatfield/index.ts',
-  //   output: {
-  //     file: 'dist/lean/umd/chatfield.js',
-  //     format: 'umd',
-  //     name: 'Chatfield',
-  //     sourcemap: true,
-  //     exports: 'named',
-  //     globals: {
-  //       '@langchain/core': 'LangChainCore',
-  //       '@langchain/langgraph': 'LangGraph',
-  //       '@langchain/langgraph/web': 'LangGraphWeb',
-  //       '@langchain/openai': 'LangChainOpenAI',
-  //       'openai': 'OpenAI',
-  //       'zod': 'Zod',
-  //       'uuid': 'UUID',
-  //       'react': 'React',
-  //       'react-dom': 'ReactDOM',
-  //       'handlebars': 'Handlebars'
-  //     }
-  //   },
-  //   external: [...alwaysExternal, ...conditionalExternal],
-  //   plugins: createPlugins('dist/lean/umd', false)
-  // },
-  // // Minified UMD build
-  // {
-  //   input: 'chatfield/index.ts',
-  //   output: {
-  //     file: 'dist/lean/umd/chatfield.min.js',
-  //     format: 'umd',
-  //     name: 'Chatfield',
-  //     sourcemap: true,
-  //     exports: 'named',
-  //     globals: {
-  //       '@langchain/core': 'LangChainCore',
-  //       '@langchain/langgraph': 'LangGraph',
-  //       '@langchain/langgraph/web': 'LangGraphWeb',
-  //       '@langchain/openai': 'LangChainOpenAI',
-  //       'openai': 'OpenAI',
-  //       'zod': 'Zod',
-  //       'uuid': 'UUID',
-  //       'react': 'React',
-  //       'react-dom': 'ReactDOM',
-  //       'handlebars': 'Handlebars'
-  //     }
-  //   },
-  //   external: [...alwaysExternal, ...conditionalExternal],
-  //   plugins: [...createPlugins('dist/lean/umd', false), terser()]
-  // }
-];
+  // UMD build for CDN usage
+  enableLeanUmd && {
+    input: 'chatfield/index.ts',
+    output: {
+      file: 'dist/lean/umd/chatfield.js',
+      format: 'umd',
+      name: 'Chatfield',
+      sourcemap: true,
+      exports: 'named',
+      globals: {
+        '@langchain/core': 'LangChainCore',
+        '@langchain/langgraph': 'LangGraph',
+        '@langchain/langgraph/web': 'LangGraphWeb',
+        '@langchain/openai': 'LangChainOpenAI',
+        'openai': 'OpenAI',
+        'zod': 'Zod',
+        'uuid': 'UUID',
+        'react': 'React',
+        'react-dom': 'ReactDOM',
+        'handlebars': 'Handlebars'
+      }
+    },
+    external: [...alwaysExternal, ...conditionalExternal],
+    plugins: createPlugins('dist/lean/umd', false),
+    onwarn,
+  },
+
+  // Minified UMD build
+  enableLeanUmdMin && {
+    input: 'chatfield/index.ts',
+    output: {
+      file: 'dist/lean/umd/chatfield.min.js',
+      format: 'umd',
+      name: 'Chatfield',
+      sourcemap: true,
+      exports: 'named',
+      globals: {
+        '@langchain/core': 'LangChainCore',
+        '@langchain/langgraph': 'LangGraph',
+        '@langchain/langgraph/web': 'LangGraphWeb',
+        '@langchain/openai': 'LangChainOpenAI',
+        'openai': 'OpenAI',
+        'zod': 'Zod',
+        'uuid': 'UUID',
+        'react': 'React',
+        'react-dom': 'ReactDOM',
+        'handlebars': 'Handlebars'
+      }
+    },
+    external: [...alwaysExternal, ...conditionalExternal],
+    plugins: [...createPlugins('dist/lean/umd', false), terser()],
+    onwarn,
+  }
+].filter(Boolean);
 
 // Export the appropriate config based on VARIANT env variable.
 let configs;
