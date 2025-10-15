@@ -1,0 +1,48 @@
+{
+  "name": "@chatfield/react",
+  "version": "0.1.0",
+  "description": "React hooks and utilities for Chatfield conversational data collection",
+  "main": "dist/index.js",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist/**/*",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "clean": "rm -rf dist"
+  },
+  "keywords": [
+    "chatfield",
+    "react",
+    "hooks",
+    "conversational",
+    "forms",
+    "llm"
+  ],
+  "author": "Jason Smith",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jhs/Chatfield.git",
+    "directory": "TypeScript/packages/react"
+  },
+  "dependencies": {
+    "@chatfield/core": "file:../../"
+  },
+  "peerDependencies": {
+    "react": "^18.0.0 || ^19.0.0"
+  },
+  "peerDependenciesMeta": {
+    "react": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@types/react": "^18.0.0",
+    "react": "^18.0.0",
+    "typescript": "^5.0.0"
+  }
+}
