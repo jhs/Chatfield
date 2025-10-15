@@ -1,0 +1,157 @@
+### POPULATE - Filling the Form
+
+**Goal**: Use Chatfield's output data to populate the web form fields accurately and safely.
+
+**Prerequisites**:
+- Chatfield interview has completed successfully
+- `_chatfield_ready` field is true (user approved)
+- You have the complete data structure from boilerplate.ts output
+
+**Allowed Actions**:
+- Execute JavaScript to set field values
+- Dispatch DOM events to trigger framework reactivity
+- Click within forms (for dropdowns, radios, checkboxes)
+- Navigate multi-page forms (clicking "Next" buttons)
+- Take screenshots for verification
+
+**Prohibited**: Submitting the form (user does that themselves)
+
+#### Population Approaches
+
+**Framework Compatibility Strategies**:
+
+1. **Native Setter Method** (Recommended for React/Vue/Angular)
+   - Access native DOM property setters directly
+   - Bypasses framework restrictions on direct property assignment
+   - Works with: React, Vue, Angular, Svelte, vanilla HTML
+   - Pattern: Get `Object.getOwnPropertyDescriptor()` for `HTMLInputElement.prototype.value`
+   - Then call native setter: `nativeSetter.call(field, value)`
+
+2. **Event Dispatching** (Essential for framework reactivity)
+   - After setting values, dispatch `input` and `change` events
+   - Use `bubbles: true` to propagate through React/Vue event systems
+   - Required for frameworks to detect changes and update internal state
+   - Example events: `new Event('input', {bubbles: true})`
+
+3. **Playwright MCP Tools**
+   - `browser_fill_form` - Batch fill multiple fields (if available)
+   - `browser_type` - Type into individual fields (simulates keystrokes)
+   - `browser_click` - Click checkboxes, radio buttons, dropdowns
+   - `browser_select_option` - Select dropdown options
+   - `browser_evaluate` - Execute custom JavaScript for complex population
+
+4. **Field Type Strategies**
+   - **Text/Email/Tel inputs**: Set `.value` property + dispatch events
+   - **Number inputs**: Convert to string, set `.value`, dispatch events
+   - **Checkboxes**: Set `.checked` property + dispatch `change` event
+   - **Radio buttons**: Find matching option by value, set `.checked = true` + dispatch event
+   - **Select dropdowns**: Set `.value` to option value + dispatch `change` event
+   - **Multi-select**: Set `.value` to array of selected values (framework-dependent)
+   - **Textareas**: Set `.value` property + dispatch events
+
+#### Advice, Tips, and Techniques
+
+**Data Mapping**:
+- Use Chatfield field names to match form field `name` or `id` attributes
+- Access transformed values from casts: `interview.age.as_int`, `interview.country.as_one_selection`
+- For booleans: `interview.newsletter.as_bool` → set `field.checked`
+- For choices: Access selected value(s) via cast sub-properties
+
+**Building Field Data Structure**:
+- Create array of objects with: `selector` (CSS), `value`, `type`
+- Example: `{selector: '#email', value: interview.email, type: 'email'}`
+- Use stored selectors from `.hint()` if you noted them during definition
+- Fallback to ID or name-based selectors: `#field-name` or `[name="field-name"]`
+
+**Framework-Specific Considerations**:
+- **React**: Native setters + event dispatching is critical (direct assignment won't trigger re-render)
+- **Vue**: Similar to React; events must bubble for Vue to detect changes
+- **Angular**: Event dispatching triggers change detection
+- **Plain HTML**: Simple `.value` assignment works, but events don't hurt
+- **jQuery**: Can use `.val(value).trigger('change')` if jQuery detected on page
+
+**Population Order**:
+- Populate fields in logical dependency order
+- If Field B depends on Field A, populate A first
+- For dynamic dropdowns (Country → State):
+  - Populate trigger field (Country)
+  - Wait for dependent options to load: `browser_wait_for(time=2)` or wait for specific element
+  - Then populate dependent field (State)
+
+**Error Handling**:
+- Check if field exists before attempting to populate: `document.querySelector(selector)`
+- If field not found, report which field and selector failed
+- Try alternative selectors if primary fails (by ID, by name, by label text)
+- Track success/failure for each field
+- Return results structure: `{selector, success: boolean, error?: string}`
+
+**Verification Steps**:
+1. After population, re-query fields to verify values were set
+2. Check for client-side validation errors that may have appeared
+3. Take screenshot: `browser_take_screenshot(filename='form_populated.png')`
+4. Show screenshot to user for visual confirmation
+5. Report any fields that failed to populate
+
+**Multi-Page Form Population**:
+- Populate current page fields
+- Click "Next" or "Continue" button
+- Wait for next page to load: `browser_wait_for`
+- Populate next page fields
+- Repeat until reaching final page
+- STOP before clicking final "Submit" button
+- Let user review entire flow via screenshots
+
+**Special Cases**:
+
+**Conditional Fields**:
+- Some fields may not be visible based on earlier selections
+- Attempt to populate all fields; gracefully skip if field doesn't exist
+- Check field visibility before populating: `getComputedStyle(field).display !== 'none'`
+
+**Dynamically Loaded Options**:
+- Example: State dropdown loads after Country selection
+- Populate trigger field first
+- Use `browser_wait_for(time: 2000)` to wait for AJAX/fetch to complete
+- Verify options loaded before selecting: check `select.options.length`
+
+**Read-Only or Disabled Fields**:
+- Check `field.disabled` and `field.readOnly` before populating
+- Skip these fields or note that they can't be set
+- Some forms auto-populate certain fields (e.g., email from logged-in user)
+
+**Date and Time Fields**:
+- Use formatted string from Chatfield cast: `.as_str_formatted`
+- Match exact format expected by form (MM/DD/YYYY, YYYY-MM-DD, etc.)
+- For `<input type="date">`, use ISO format: YYYY-MM-DD
+
+**File Uploads**:
+- Chatfield cannot collect file data during conversation
+- Note files needed: `browser_take_screenshot` to show file input
+- Inform user: "Please manually select the file for [field name]"
+- Or use `browser_file_upload` if file path known
+
+**Forms with Client-Side Validation**:
+- Population may trigger validation errors
+- Check for error messages after population: `querySelectorAll('.error, .invalid')`
+- If errors appear, report to user with screenshot
+- May need to adjust values to satisfy validation
+- Try triggering validation explicitly before user reviews: simulate blur events
+
+**Authentication-Required Forms**:
+- If form requires login, handle that first (separate Chatfield interview for credentials)
+- Navigate to login page → collect credentials → submit login → navigate to target form
+- Then proceed with main form population
+
+### Final Steps
+
+After population:
+1. **Verify all fields set**: Re-query and confirm values match expected
+2. **Check for errors**: Look for validation messages, red borders, error text
+3. **Take screenshot**: Visual proof of populated state
+4. **Report to user**:
+   - "Form successfully populated. Please review the screenshot."
+   - List any fields that couldn't be populated (with reasons)
+   - Note any validation errors detected
+   - Instruct: "Please review and submit the form yourself."
+
+**Your job ends here.** The user reviews the populated form and submits it themselves.

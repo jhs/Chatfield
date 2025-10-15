@@ -1,0 +1,181 @@
+First, understand all context possible about the target form in the browser.
+
+Second, generate code which uses the Chatfield builder SDK to define an
+ideal data model representing the target form (fields, validation, hints, options, everything applicable).
+
+Third, modify the boilerplate @TypeScript/examples/boilerplate.ts to import your interview object instead of its placeholder.
+
+### Step 1: GATHER - Reading the Form (Read-Only)
+
+**Goal**: Extract complete form metadata needed to build a Chatfield interview definition.
+
+**Allowed Actions**:
+- Navigate to URLs
+- Take screenshots and snapshots
+- Execute read-only JavaScript
+- Scroll and focus (minimal events)
+- Click navigation OUTSIDE forms (tabs, accordions to reveal hidden sections)
+
+**Prohibited**: Typing in form fields, clicking within forms, submitting
+
+#### Discovery Approaches
+
+**Playwright MCP Tools**:
+- `browser_navigate` - Load the target URL
+- `browser_snapshot` - Capture accessibility tree (structured, semantic representation)
+- `browser_take_screenshot` - Visual reference for layout and styling
+- `browser_evaluate` - Execute JavaScript for direct DOM inspection
+- `browser_console_messages` - Check for client-side validation errors or warnings
+
+**Data Extraction Strategies**:
+
+1. **Accessibility Tree Inspection** (Recommended first approach)
+   - Use `browser_snapshot` to get semantic structure
+   - Reveals labels, roles, states, and relationships
+   - Best for well-structured, accessible forms
+
+2. **Direct DOM Inspection** (For comprehensive metadata)
+   - Query all form elements: `<form>`, `<input>`, `<select>`, `<textarea>`
+   - Extract field attributes: `name`, `id`, `type`, `required`, `pattern`, `min`, `max`, `placeholder`
+   - Find labels via multiple strategies: `<label>`, `aria-label`, `aria-labelledby`, `placeholder`
+   - Capture validation: HTML5 constraint validation API (`field.validity`)
+   - Group radio buttons by `name` attribute
+   - Extract all `<option>` elements from `<select>` dropdowns
+   - Check visibility via `getComputedStyle()`
+
+3. **Help Text and Context Discovery**
+   - Look for `aria-describedby` references
+   - Check sibling elements (common pattern: help text after input)
+   - Find tooltips, hints, examples (often in `<small>`, `.help-text`, `.hint` classes)
+
+4. **Validation Logic Extraction**
+   - Scan inline `<script>` tags for validation keywords
+   - Check `onsubmit`, `onblur`, `onchange` event handlers
+   - Detect validation libraries (jQuery Validate, Parsley.js, VeeValidate, etc.)
+
+#### Advice, Tips, and Techniques
+
+**Context Gathering**:
+- Always check page title and URL - they often reveal the form's purpose
+- Read visible instructions, headers, and surrounding text
+- Note if form is part of a multi-step wizard (progress indicators, "Step 1 of 3", etc.)
+- Check for authentication requirements before form access
+
+**Field Identification**:
+- Prioritize `name` and `id` attributes - you'll need these for population later
+- For fields without labels, fallback chain: `aria-label` → `placeholder` → `name` → `id`
+- Radio button groups: Find all inputs with same `name`, collect their values and labels
+- Checkboxes: Note if standalone boolean or part of a checkbox group
+
+**Validation Discovery**:
+- HTML5 validation: `required`, `pattern`, `min`, `max`, `minlength`, `maxlength`, `step`
+- Custom validation: Look for error message templates in the DOM
+- Client-side libraries: Check global objects (`window.jQuery`, `window.Parsley`, etc.)
+- Form behavior: Note if validation happens on blur, on submit, or real-time
+
+**Edge Cases**:
+- Shadow DOM: May need special queries (`element.shadowRoot.querySelector()`)
+- iframes: Target specific iframe context
+- SPAs (React, Vue, Angular): Wait for hydration before extraction
+- Dynamically generated field names: Capture patterns or use descriptive identifiers
+
+### Step 2: Build Chatfield Interview Definition
+
+Create `@TypeScript/examples/cc/<unique-relevant-name>.ts` which exports an `interview` object.
+
+Your code will define this form in as high fidelity as possible, using Chatfield.
+Because the top priority is that you have all data you need to complete the web form based on Chatfield's final output,
+you must define in Chatfield all fields, all validations, and all *type casts*, so it can return what you need to populate the form.
+
+#### Mandatory Requirements
+
+**Field Coverage**:
+- Your Chatfield definition must represent ALL fields needed to populate the form
+- Only represent the fields needed; no additional fields, extra feedback, or extra advice
+- Map form field names/IDs precisely so you can populate unambiguously later
+
+**Required Approval Field** (ALWAYS include this):
+```typescript
+.field("_chatfield_ready")
+    .desc("Ready to fill the form?")
+    .must("be explicit user instruction to proceed, or direct affirmative answer to this question")
+    .hint("User approval to end this conversation and proceed to populate the form")
+    .hint("Ask this question last")
+    .as_bool()
+```
+
+This field ensures user approval before populating the form. It must be the last field before `.build()`.
+
+#### Advice, Tips, and Techniques
+
+**Field Naming Strategy**:
+- Use form field `name` or `id` as Chatfield field name for easy mapping
+- Example: `.field("email-address")` matches `<input name="email-address">`
+- Use `.desc()` for human-friendly labels shown in conversation
+- Store technical details in `.hint()` for your own reference later (selectors, XPath, notes)
+
+**Alice and Bob Configuration** (Essential for good conversations):
+- **Alice** (the interviewer): Should be a helpful assistant for the specific form domain
+  - Type: "Customer Service Representative", "Tax Form Assistant", "Registration Helper", etc.
+  - Traits: ALWAYS include "helpful, patient, and professional"
+  - Add domain-specific traits: "knowledgeable about shipping regulations", "fluent in tax terminology", etc.
+- **Bob** (the user): Default to "Web User" or add context if known
+  - For specialized forms: "First-time applicant", "Returning customer", "Non-native English speaker"
+
+**Type Casts - Match Form Input Types**:
+- **Numbers**: Use `.as_int()` for integers, `.as_float()` for decimals
+- **Booleans**: Use `.as_bool()` for checkboxes and yes/no questions
+- **Single choice** (required): `.as_one('selection', ...options)` for radio buttons, non-nullable selects
+- **Single choice** (optional): `.as_maybe('selection', ...options)` for nullable selects
+- **Multiple choice** (required): `.as_multi('selections', ...options)` for multi-select that needs ≥1
+- **Multiple choice** (optional): `.as_any('selections', ...options)` for multi-select that allows 0
+- **Email**: Use `.must('valid email address format')` - let LLM validate naturally
+- **Phone**: Use `.must('valid phone number')` with optional format hint
+
+**Advanced Type Casts**:
+- `.as_str(sub_name, prompt)` - For LLM text transformations (formatting, summaries, date parsing)
+- `.as_list()` - When you need structured array output (e.g., "list all previous addresses")
+- `.as_dict()` / `.as_obj()` - For key-value data you'll need to parse and populate
+- `.as_lang(code)` - For non-English forms (get English answer + translated version)
+
+**Validation Mapping from HTML**:
+- `required` attribute → Implicit in Chatfield (all fields required by default)
+- `pattern="regex"` → `.must('satisfy HTML input pattern: {explain pattern in natural language}')`
+- `min` / `max` → `.must('be at minimum X and at maximum Y')`
+- `minlength` / `maxlength` → `.must('be between X and Y characters')`
+- `type="email"` → `.must('be a valid email address')`
+- `type="url"` → `.must('be a valid URL')`
+- `type="tel"` → `.must('be a valid phone number')` + `.hint('Format: ...')` if format shown
+- `placeholder` text → `.hint('Original placeholder: {text}')` - gives user format examples
+
+**Context Preservation**:
+- Use `.hint()` liberally to preserve context for the LLM and yourself
+- Store original help text: `.hint('Original help text: Credit card without spaces or dashes')`
+- Note dependencies: `.hint('Only shown if Country is USA')`
+- Reference selectors: `.hint('Selector: #shipping-postal-code')`
+
+**Non-English Forms**:
+- Bob only speaks English; Chatfield conversations must be in English
+- Set Bob trait "Only speaks English; needs translation and localization help"
+- Make Alice bilingual: Set Bob trait "Only speaks English; needs translation and localization help"
+- Use `.hint()` extensively to explain non-English labels/context
+- Consider `.as_lang()` casts to capture both English answer and target language translation
+
+**Special Field Types**:
+- **Date fields**: Let user give date naturally, use `.as_str('formatted', 'Format as MM/DD/YYYY')` to match form requirements
+- **File uploads**: Note in `.hint()` that file will be provided separately (Chatfield can't handle file data)
+- **Signatures**: Usually post-conversation; note with `.hint('Will be provided after form population')`
+- **Repeated sections**: Use `.as_list()` and structure for multiple entries (e.g., employment history)
+
+**Conditional Logic**:
+- Don't try to replicate complex show/hide logic in Chatfield
+- Collect all possible fields; population step will handle conditional visibility
+- Use `.hint()` to note conditions: `.hint('Only relevant if user selected "Business" account type')`
+
+### Step 3: Integrate your Chatfield file into the boilerplate runner
+
+Modify `@TypeScript/examples/boilerplate.ts` to import your interview object instead of its placeholder.
+
+It should be: `import { interview } from "./cc/<unique-relevant-name>";`
+
+The boilerplate will handle running the interview, collecting responses, and outputting the complete data structure you'll use for population.
