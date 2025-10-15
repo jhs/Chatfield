@@ -10,6 +10,24 @@
         "--shared-browser-context"
       ],
       "env": {}
+    },
+    "awslabs.aws-knowledge-mcp-server": {
+      "command": "uvx awslabs.aws-knowledge-mcp-server@latest",
+      "env": {
+        "AWS_PROFILE": "your-aws-profile",
+        "AWS_REGION": "us-east-1",
+        "FASTMCP_LOG_LEVEL": "ERROR"
+      },
+      "disabled": true,
+      "autoApprove": []
+    },
+    "awslabs.terraform-mcp-server": {
+      "command": "uvx awslabs.terraform-mcp-server@latest",
+      "env": {
+        "FASTMCP_LOG_LEVEL": "ERROR"
+      },
+      "disabled": true,
+      "autoApprove": []
     }
   }
 }
