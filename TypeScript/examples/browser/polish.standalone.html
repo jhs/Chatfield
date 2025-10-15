@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Polish Passport Application Wizard</title>
+  <link rel="stylesheet" href="./chatfield-standalone-styles.css">
+</head>
+<body>
+  <div id="app">
+    <div id="header">
+      <h1>🇵🇱 Polish Passport Application Wizard</h1>
+      <p>Conversational passport application assistant • Enter to send • Shift+Enter for newline</p>
+    </div>
+    <div id="messages"></div>
+    <div id="input-area">
+      <div id="status" class="status"></div>
+      <div id="input-container">
+        <textarea
+          id="user-input"
+          rows="1"
+          placeholder="Type your response..."
+          disabled
+        ></textarea>
+        <button id="send-btn" disabled>▶</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { chatfield, Interviewer } from '../../dist/standalone/esm/index.js';
+    import { runChatfieldInterview } from './chatfield-standalone-common.js';
+
+    // ============================================================
+    // CUSTOMIZE THIS SECTION - Polish Passport Wizard Definition
+    // Adapted from ../polish-passport-wizard.ts
+    // ============================================================
+
+    const interview = chatfield()
+        .type("PassportApplicationWizard")
+        .desc("Polish Passport Application Assistant for Children")
+
+        // Alice is the helpful government service representative
+        .alice()
+            .type("Passport Office Assistant")
+            .trait("Professional and patient")
+            .trait("Helpful with explaining Polish administrative procedures")
+            .trait("Provides context for non-Polish speakers")
+
+        // Bob is an English-speaking parent/guardian
+        .bob()
+            .type("Parent/Guardian")
+            .trait.possible("unfamiliar-with-polish", "asks questions about Polish terms or procedures")
+            .trait.possible("experienced-applicant", "mentions previous passport applications")
+
+        // Field 1: Child's age range
+        .field("child_age_range")
+            .desc("What is the age of the child for whom you're applying for a passport?")
+            .hint("This determines which documents and procedures apply")
+            .hint("Polish passport rules differ by age group")
+            .must("specify one of the three age ranges")
+            .as_one(
+                "up to 5 years old",
+                "5 to 12 years old",
+                "12 to 18 years old (until completion of 18th year)"
+            )
+
+        // Field 2: Application method
+        .field("application_method")
+            .desc("How would you like to submit the passport application?")
+            .hint("Online applications can be submitted through the Polish government portal")
+            .hint("In-office applications are submitted at a passport office (urząd)")
+            .must("choose either online or in-office")
+            .as_one(
+                "online through internet",
+                "in-office at passport office"
+            )
+
+        // Field 3: Application location (where to submit)
+        .field("application_location")
+            .desc("Where do you want to submit the passport application?")
+            .hint("Applications can be submitted in Poland or at Polish consulates abroad")
+            .hint("If you're currently abroad, find your nearest Polish consulate")
+            .must("specify either Poland or abroad")
+            .as_one(
+                "in Poland",
+                "abroad at Polish consulate"
+            )
+
+        // Field 4: Pickup location (where to collect passport)
+        .field("pickup_location")
+            .desc("Where would you like to pick up the completed passport?")
+            .hint("You can collect the passport in Poland or at a Polish consulate abroad")
+            .hint("Pickup location may differ from application location depending on your circumstances")
+            .must("specify either Poland or abroad")
+            .reject("vague answers like 'wherever is convenient'")
+            .as_one(
+                "in Poland",
+                "abroad at Polish consulate"
+            )
+
+        // Confidential field: Track if user seems unfamiliar with process
+        .field("needs_guidance")
+            .desc("User asks clarifying questions or seems unfamiliar with Polish passport procedures")
+            .confidential()
+            .as_bool()
+
+        // Conclusion: Provide next steps assessment
+        .field("recommended_next_steps")
+            .desc("Based on the application choices, provide a comprehensive summary of recommended next steps")
+            .conclude()
+            .hint("Consider the child's age, application method, and locations chosen")
+            .hint("Include specific guidance about required documents for the age range")
+            .as_str()
+
+        .build();
+
+    const config = {
+      baseUrl: 'http://127.0.0.1:4000',
+      apiKey: 'api-key-TEST',
+    };
+
+    // ============================================================
+    // END CUSTOMIZATION - Everything else is handled automatically
+    // ============================================================
+
+    runChatfieldInterview(interview, config, Interviewer);
+  </script>
+</body>
+</html>
