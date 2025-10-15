@@ -1,6 +1,6 @@
 # Chatfield: Conversational Data Collection AI Agent
 
-🎥 **Watch me develop this live!** Follow along as I build Chatfield in real-time: [YouTube Development Streams](https://www.youtube.com/@JasonSmithBuild/streams)
+🎥 **[Watch me develop this live](https://www.youtube.com/@JasonSmithBuild/streams)**.
 
 Chatfield is a library to collect information using conversation rather than forms.
 
