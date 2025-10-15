@@ -749,7 +749,7 @@ export class Interviewer {
    * @param userInput - The user's input message (or null/undefined to start/continue)
    * @returns The content of the latest AI message as a string
    */
-  async go(userInput?: string | null): Promise<string | null> {
+  async go(userInput?: string | null): Promise<string> {
      // console.log('Go: User input:', userInput)
     
     const currentState = await this.graph.getState(this.config)
@@ -790,12 +790,12 @@ export class Interviewer {
     if (interrupts.length === 0) {
       throw new Error('ERROR: No interrupts received - this should not happen as the graph should always route to listen')
     }
-    
+
     if (interrupts.length > 1) {
       throw new Error(`Multiple interrupts received: ${interrupts}`)
     }
-    
-    return interrupts[0] || null
+
+    return interrupts[0]
   }
 
   /**
