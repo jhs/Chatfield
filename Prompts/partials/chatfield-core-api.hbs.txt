@@ -1,0 +1,422 @@
+### Chatfield Core API Reference
+
+Chatfield transforms data collection from rigid forms into natural conversations. You define what data to collect using a fluent builder API, and Chatfield orchestrates an LLM-powered dialogue to gather, validate, and transform the information.
+
+#### Fundamental Concepts
+
+**The Interview Object**: A container representing all fields to collect via conversation.
+
+**Fields**: Data elements you want to collect. Each field has:
+- **Name**: Identifier (e.g., `"email"`, `"age"`)
+- **Description**: Guides what the AI asks the user
+- **Validation**: Requirements (`.must()`), rejections (`.reject()`), hints (`.hint()`)
+- **Transformations**: Type conversions computed by LLM during collection (`.as_int()`, `.as_bool()`, etc.)
+
+**Conversation Flow**: Fields are collected in the order you define them. The LLM asks questions, validates responses, and computes transformations all in one conversational turn.
+
+**The Builder Pattern**: Start with `chatfield()`, chain methods, end with `.build()`. Language-agnostic—Python and TypeScript have identical logic (only syntax differs).
+
+#### Basic Structure
+
+```python
+# Python
+from chatfield import chatfield
+
+interview = chatfield()\
+    .type("Interview Name")\
+    .desc("Purpose of this interview")\
+    .field("field_name")\
+    .desc("Field description")\
+        .must("validation rule")\
+        .as_int()\
+    .build()
+```
+
+```typescript
+// TypeScript
+import { chatfield } from './chatfield'
+
+const interview = chatfield()
+  .type('Interview Name')
+  .desc('Purpose of this interview')
+  .field('field_name')
+    .desc('Field description')
+    .must('validation rule')
+    .asInt()
+  .build()
+```
+
+#### Interview Configuration
+
+**Metadata**:
+- `.type(name)` - Set interview type/title
+- `.desc(description)` - Set interview description/purpose
+
+**Roles and Personalities**:
+- `.alice()` - Configure the interviewer (the AI agent)
+  - `.type('role')` - Set role type (e.g., "Customer Service Rep", "Tax Assistant")
+  - `.trait('description')` - Add personality trait (e.g., "friendly and professional")
+- `.bob()` - Configure the interviewee (the user)
+  - `.type('role')` - Set user role (e.g., "Customer", "Job Applicant")
+  - `.trait('description')` - Add user trait
+
+**Example**:
+```python
+interview = chatfield()\
+    .alice()\
+        .type("Customer Service Representative")\
+        .trait("helpful, patient, and professional")\
+        .trait("knowledgeable about shipping policies")\
+    .bob()\
+        .type("Customer")\
+    .field("name")\
+    .desc("Your name")\
+    .build()
+```
+
+#### Field Definition
+
+**Basic Field**:
+```python
+.field("field_name")  # Uses field name as description
+.field("field_name")
+    .desc("Human-friendly description")  # Explicit description
+```
+
+**Field Naming**:
+- Python: Use `snake_case` (e.g., `"email_address"`, `"phone_number"`)
+- TypeScript: Use `camelCase` (e.g., `"emailAddress"`, `"phoneNumber"`)
+
+**Field Description**: The description guides what the AI asks. Be specific:
+- ❌ Bad: `.field("date")`
+- ✅ Good: `.field("travel_date")
+    .desc("What date do you want to travel?")`
+
+#### Validation Rules
+
+**Requirements (`.must()`)**: Conditions the response must satisfy.
+```python
+.field("email")\
+    .desc("Email address")\
+    .must("be a valid email format")\
+    .must("use a professional domain")
+```
+
+Multiple `.must()` calls create multiple requirements—ALL must be satisfied.
+
+**Rejections (`.reject()`)**: Patterns to avoid.
+```python
+.field("deadline")\
+    .desc("Project deadline")\
+    .reject("vague timeframes like 'ASAP' or 'soon'")\
+    .reject("relative dates without context")
+```
+
+**Hints (`.hint()`)**: Guidance without strict enforcement.
+```python
+.field("phone")\
+    .desc("Phone number")\
+    .hint("Format: 555-1234")\
+    .hint("Include area code if applicable")
+```
+
+**Validation Best Practices**:
+- Write rules in natural language, not regex
+- Be specific: "be between 18 and 120" not "be valid"
+- Use `.hint()` for format examples, `.must()` for requirements
+
+#### Type Transformations
+
+Transformations are **computed by the LLM during collection**, not post-processing. When you define `.as_int()`, the LLM automatically converts natural language like "family of four" → `4`.
+
+**Numeric**:
+- `.as_int()` - Parse as integer
+  ```python
+  .field("travelers")\
+    .desc("How many travelers?")\
+      .as_int()
+  # User: "family of four" → interview.travelers.as_int = 4
+  ```
+
+- `.as_float()` - Parse as floating point
+  ```python
+  .field("budget")\
+    .desc("Budget per person")\
+      .as_float()
+  # User: "2.5k" → interview.budget.as_float = 2500.0
+  ```
+
+- `.as_percent()` - Normalize to 0.0-1.0 range
+  ```python
+  .field("confidence")\
+    .desc("How confident are you?")\
+      .as_percent()
+  # User: "very confident" → interview.confidence.as_percent = 0.9
+  ```
+
+**Boolean**:
+- `.as_bool()` - Parse as true/false
+  ```python
+  .field("subscribe")\
+    .desc("Subscribe to newsletter?")\
+      .as_bool()
+  # User: "yes please" → interview.subscribe.as_bool = True
+  ```
+
+- `.as_bool(sub_name, prompt)` - Named boolean attribute
+  ```python
+  .field("number")\
+    .desc("Your favorite number")\
+      .as_int()\
+      .as_bool("even", "True if even, False if odd")\
+      .as_bool("prime", "True if prime number")
+  # Access: interview.number.as_bool_even, interview.number.as_bool_prime
+  ```
+
+**String**:
+- `.as_str(sub_name, prompt)` - Custom string transformation
+  ```python
+  .field("number")\
+    .desc("Your favorite number")\
+      .as_int()\
+      .as_str("longhand", "Written out in English words")
+  # User: "42" → interview.number.as_str_longhand = "forty-two"
+  ```
+
+**Collections**:
+- `.as_list()` - Parse as array/list
+  ```python
+  .field("countries")\
+    .desc("Countries you want to visit")\
+      .as_list()
+  # User: "France, Italy, and Spain" → interview.countries.as_list = ["France", "Italy", "Spain"]
+  ```
+
+- `.as_set(sub_name)` - Parse as unique set
+  ```python
+  .field("skills")\
+    .desc("Your skills")\
+      .as_list()\
+      .as_set("categories", "Skill categories")
+  # Access: interview.skills.as_set_categories
+  ```
+
+- `.as_dict()` / `.as_obj()` - Parse as key-value dictionary
+  ```python
+  .field("config")\
+    .desc("Configuration settings")\
+      .as_dict()
+  # User: "timeout: 30, retries: 3" → interview.config.as_dict = {'timeout': 30, 'retries': 3}
+  ```
+
+**Language Translation**:
+- `.as_lang(code)` - Translate to specified language
+  ```python
+  .field("greeting")\
+    .desc("Say hello")\
+      .as_lang("fr")\
+      .as_lang("es")\
+      .as_lang("ja")
+  # Access: interview.greeting.as_lang_fr = "Bonjour"
+  #         interview.greeting.as_lang_es = "Hola"
+  #         interview.greeting.as_lang_ja = "こんにちは"
+  ```
+
+**Combining Transformations**: You can chain multiple transformations on the same field.
+```python
+.field("age")\
+    .desc("Your age")\
+    .as_int()\
+    .as_float()\
+    .as_lang("fr")\
+    .as_bool("senior", "True if 65 or older")\
+    .as_str("decade", "Which decade (20s, 30s, etc.)")
+# All transformations computed simultaneously and accessible
+```
+
+#### Choice Cardinality (Multiple Choice)
+
+**Exactly One (`.as_one()`)**: User must select exactly one option.
+```python
+.field("main_course")\
+    .desc("Choose your main course")\
+    .as_one("selection", "Salmon", "Pasta", "Steak", "Salad")
+# Access: interview.main_course.as_one_selection = "Pasta"
+```
+
+**Zero or One (`.as_maybe()`)**: User may optionally select one.
+```python
+.field("dessert")\
+    .desc("Dessert preference")\
+    .as_maybe("selection", "Cheesecake", "Ice Cream", "None")
+# Access: interview.dessert.as_maybe_selection (may be None/null)
+```
+
+**One or More (`.as_multi()`)**: User must select at least one.
+```python
+.field("languages")\
+    .desc("Programming languages you know")\
+    .as_multi("selections", "Python", "JavaScript", "Go", "Rust")
+# Access: interview.languages.as_multi_selections = ["Python", "JavaScript"]
+```
+
+**Zero or More (`.as_any()`)**: User may select any number, including none.
+```python
+.field("preferences")\
+    .desc("Dietary preferences")\
+    .as_any("selections", "Vegetarian", "Vegan", "Gluten-Free", "Dairy-Free")
+# Access: interview.preferences.as_any_selections = ["Vegan", "Gluten-Free"] or []
+```
+
+#### Special Field Behaviors
+
+**Confidential Fields**: Tracked internally but never mentioned in conversation.
+```python
+.field("shows_leadership")\
+    .desc("Evidence of leadership qualities")\
+    .confidential()\
+    .as_bool()
+# LLM infers from conversation without asking directly
+# User never sees this field mentioned
+```
+
+**Conclusion Fields**: Evaluated after all other fields are collected.
+```python
+.field("overall_fit")\
+    .desc("Overall candidate assessment")\
+    .conclude()\
+    .as_one("rating", "Poor Fit", "Potential Fit", "Good Fit", "Excellent Fit")
+# Computed at end based on entire conversation
+# Automatically confidential
+```
+
+#### Field Access After Collection
+
+**String Value (Primary)**:
+```python
+interview.field_name  # Returns the string value
+```
+
+**Transformation Access**:
+```python
+interview.field_name.as_int          # Integer transformation
+interview.field_name.as_bool         # Boolean transformation
+interview.field_name.as_lang_fr      # French translation
+interview.field_name.as_bool_even    # Named boolean attribute
+interview.field_name.as_one_selection # Choice selection
+```
+
+#### Complete API Reference
+
+| Builder Method | Purpose | Example |
+|----------------|---------|---------|
+| `.type(name)` | Set interview type | `.type('Contact Form')` |
+| `.desc(text)` | Set description | `.desc('Collect contact information')` |
+| `.alice()` | Configure interviewer | `.alice().type('Agent')` |
+| `.bob()` | Configure user | `.bob().trait('First-time visitor')` |
+| `.field(name).desc(desc?)` | Define field | `.field('email')
+    .desc('Email address')` |
+| `.must(rule)` | Add requirement | `.must('be a valid email')` |
+| `.reject(pattern)` | Add rejection | `.reject('free email providers')` |
+| `.hint(guidance)` | Add hint | `.hint('Format: user@domain.com')` |
+| `.confidential()` | Mark as hidden | `.confidential()` |
+| `.conclude()` | Mark for end evaluation | `.conclude()` |
+| `.as_int(prompt?)` | Parse as integer | `.as_int()` |
+| `.as_float(prompt?)` | Parse as float | `.as_float()` |
+| `.as_bool(name?, prompt?)` | Parse as boolean | `.as_bool('even', 'True if even')` |
+| `.as_str(name, prompt)` | Custom string transform | `.as_str('formatted', 'As MM/DD/YYYY')` |
+| `.as_list(prompt?)` | Parse as array | `.as_list()` |
+| `.as_set(name)` | Parse as set | `.as_set('categories')` |
+| `.as_dict(prompt?)` | Parse as dictionary | `.as_dict()` |
+| `.as_obj(prompt?)` | Alias for as_dict | `.as_obj()` |
+| `.as_lang(code, prompt?)` | Translate | `.as_lang('fr')` |
+| `.as_percent(prompt?)` | Normalize to 0-1 | `.as_percent()` |
+| `.as_one(name, ...choices)` | Choose exactly one | `.as_one('sel', 'A', 'B', 'C')` |
+| `.as_maybe(name, ...choices)` | Choose 0 or 1 | `.as_maybe('opt', 'X', 'Y')` |
+| `.as_multi(name, ...choices)` | Choose 1+ | `.as_multi('picks', 'P', 'Q')` |
+| `.as_any(name, ...choices)` | Choose 0+ | `.as_any('prefs', 'M', 'N')` |
+| `.build()` | Create Interview | `.build()` |
+
+#### Language Syntax Differences
+
+**Python**:
+```python
+interview = chatfield()\
+    .field('name')\
+    .desc('Your name')\
+    .must('include first and last')\
+    .as_string()\
+    .build()
+```
+- Backslash (`\`) for line continuation
+- Methods: `snake_case` (e.g., `as_int`, `as_lang`)
+
+**TypeScript**:
+```typescript
+const interview = chatfield()
+  .field('name')
+    .desc('Your name')
+  .must('include first and last')
+  .asString()
+  .build()
+```
+- No line continuation needed
+- Methods: `camelCase` (e.g., `asInt`, `asLang`)
+
+**Logic and behavior are identical** across both languages.
+
+#### Complete Example
+
+```python
+from chatfield import chatfield
+
+interview = chatfield()\
+    .type('Restaurant Order')\
+    .desc('Taking a customer order')\
+    .alice()\
+        .type('Server')\
+        .trait('friendly and attentive')\
+        .trait('knowledgeable about menu')\
+    .bob()\
+        .type('Customer')\
+    .field('name')\
+    .desc('Your name for the order')\
+        .must('be provided')\
+    .field('party_size')\
+    .desc('Number of people')\
+        .as_int()\
+        .must('be between 1 and 20')\
+    .field('main_course')\
+    .desc('Main course selection')\
+        .as_one('selection',
+                'Grilled Salmon',
+                'Veggie Pasta',
+                'Beef Tenderloin',
+                'Chicken Parmesan')\
+    .field('sides')\
+    .desc('Side dishes')\
+        .as_multi('selections',
+                  'Fries',
+                  'Rice',
+                  'Steamed Vegetables',
+                  'Garden Salad')\
+    .field('dietary_restrictions')\
+    .desc('Any allergies or restrictions?')\
+        .hint('Please be specific about allergies')\
+    .field('wants_dessert')\
+    .desc('Interested in dessert?')\
+        .as_bool()\
+    .field('politeness_level')\
+    .desc('Customer politeness')\
+        .confidential()\
+        .as_percent()\
+    .build()
+
+# After conversation completes:
+print(interview.name)                              # "Alice"
+print(interview.party_size.as_int)                 # 4
+print(interview.main_course.as_one_selection)      # "Grilled Salmon"
+print(interview.sides.as_multi_selections)         # ["Fries", "Garden Salad"]
+print(interview.wants_dessert.as_bool)             # True
+print(interview.politeness_level.as_percent)       # 0.85
+```
