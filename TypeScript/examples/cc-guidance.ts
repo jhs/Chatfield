@@ -22,18 +22,7 @@ const templateEngine = new TemplateEngine(promptsDir);
 const ccGuidancePrompt = templateEngine.render('CC-guidance', {});
 
 // Use Interviewer's debug prompt visualization for colored output
-const debugView = Interviewer.debugPrompt(ccGuidancePrompt);
+// const debugView = Interviewer.debugPrompt(ccGuidancePrompt);
+const debugView = ccGuidancePrompt;
 
 console.log(debugView);
-console.log('\n' + '='.repeat(80));
-console.log('CC-GUIDANCE PROMPT GENERATED');
-console.log('='.repeat(80));
-console.log(`\nPrompt length: ${ccGuidancePrompt.length} characters`);
-console.log(`Template location: ${promptsDir}/CC-guidance.hbs.txt`);
-console.log('\nThis prompt includes:');
-console.log('  - Phase 1: GATHER (Read-Only Form Inspection)');
-console.log('  - Phase 2: POPULATE (Fill Form Fields)');
-console.log('  - User Submission (User reviews and submits)');
-console.log('\nPartials used:');
-console.log('  - playwright-input.hbs.txt  (Phase 1 field extraction)');
-console.log('  - playwright-output.hbs.txt (Phase 2 population)');
