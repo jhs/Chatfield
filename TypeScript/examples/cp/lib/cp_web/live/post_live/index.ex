@@ -10,8 +10,9 @@ defmodule CpWeb.PostLive.Index do
       <.header>
         Listing Posts
         <:actions>
-          <.button variant="primary" navigate={~p"/posts/new"}>
-            <.icon name="hero-plus" /> New Post
+          <.button variant="primary" navigate={~p"/articles/new"}>
+            <.icon name="hero-plus" />
+            Create Article
           </.button>
         </:actions>
       </.header>
@@ -19,15 +20,15 @@ defmodule CpWeb.PostLive.Index do
       <.table
         id="posts"
         rows={@streams.posts}
-        row_click={fn {_id, post} -> JS.navigate(~p"/posts/#{post}") end}
+        row_click={fn {_id, post} -> JS.navigate(~p"/articles/#{post}") end}
       >
         <:col :let={{_id, post}} label="Title">{post.title}</:col>
         <:col :let={{_id, post}} label="Body">{post.body}</:col>
         <:action :let={{_id, post}}>
           <div class="sr-only">
-            <.link navigate={~p"/posts/#{post}"}>Show</.link>
+            <.link navigate={~p"/articles/#{post}"}>Show</.link>
           </div>
-          <.link navigate={~p"/posts/#{post}/edit"}>Edit</.link>
+          <.link navigate={~p"/articles/#{post}/edit"}>Edit</.link>
         </:action>
         <:action :let={{id, post}}>
           <.link

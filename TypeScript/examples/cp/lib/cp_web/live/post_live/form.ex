@@ -40,7 +40,7 @@ defmodule CpWeb.PostLive.Form do
     post = Blog.get_post!(id)
 
     socket
-    |> assign(:page_title, "Edit Post")
+    |> assign(:page_title, "Edit Article")
     |> assign(:post, post)
     |> assign(:form, to_form(Blog.change_post(post)))
   end
@@ -49,7 +49,7 @@ defmodule CpWeb.PostLive.Form do
     post = %Post{}
 
     socket
-    |> assign(:page_title, "New Post")
+    |> assign(:page_title, "New Article")
     |> assign(:post, post)
     |> assign(:form, to_form(Blog.change_post(post)))
   end
@@ -90,6 +90,6 @@ defmodule CpWeb.PostLive.Form do
     end
   end
 
-  defp return_path("index", _post), do: ~p"/posts"
-  defp return_path("show", post), do: ~p"/posts/#{post}"
+  defp return_path("index", _post), do: ~p"/articles"
+  defp return_path("show", post), do: ~p"/articles/#{post}"
 end

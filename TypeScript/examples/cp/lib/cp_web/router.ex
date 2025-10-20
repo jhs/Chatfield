@@ -20,6 +20,11 @@ defmodule CpWeb.Router do
     get "/", PageController, :home
 
     live "/therm", ThermostatLive
+
+    live "/articles/", PostLive.Index, :index
+    live "/articles/new", PostLive.Form, :new
+    live "/articles/:id", PostLive.Show, :show
+    live "/articles/:id/edit", PostLive.Form, :edit
   end
 
   # Other scopes may use custom stacks.

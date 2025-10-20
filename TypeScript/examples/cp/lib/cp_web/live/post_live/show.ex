@@ -11,10 +11,10 @@ defmodule CpWeb.PostLive.Show do
         Post {@post.id}
         <:subtitle>This is a post record from your database.</:subtitle>
         <:actions>
-          <.button navigate={~p"/posts"}>
+          <.button navigate={~p"/articles"}>
             <.icon name="hero-arrow-left" />
           </.button>
-          <.button variant="primary" navigate={~p"/posts/#{@post}/edit?return_to=show"}>
+          <.button variant="primary" navigate={~p"/articles/#{@post}/edit?return_to=show"}>
             <.icon name="hero-pencil-square" /> Edit post
           </.button>
         </:actions>
