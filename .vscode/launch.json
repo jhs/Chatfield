@@ -296,6 +296,54 @@
             "console": "integratedTerminal",
             "internalConsoleOptions": "neverOpen",
             "envFile": "${workspaceFolder}/.env"
+        },
+        {
+            "name": "Elixir: Phoenix Server (chatfield_phoenix)",
+            "type": "mix_task",
+            "request": "launch",
+            "task": "phx.server",
+            "projectDir": "${workspaceFolder}/TypeScript/examples/chatfield_phoenix",
+            "requireFiles": [
+                "test/**/test_helper.exs",
+                "test/**/*_test.exs"
+            ],
+            "env": {}
+        },
+        {
+            "name": "Elixir: Run Tests (chatfield_phoenix)",
+            "type": "mix_task",
+            "request": "launch",
+            "task": "test",
+            "projectDir": "${workspaceFolder}/TypeScript/examples/chatfield_phoenix",
+            "requireFiles": [
+                "test/**/test_helper.exs",
+                "test/**/*_test.exs"
+            ]
+        },
+        {
+            "name": "Elixir: Run Current Test File",
+            "type": "mix_task",
+            "request": "launch",
+            "task": "test",
+            "taskArgs": [
+                "${relativeFile}"
+            ],
+            "projectDir": "${workspaceFolder}/TypeScript/examples/chatfield_phoenix",
+            "requireFiles": [
+                "test/**/test_helper.exs",
+                "test/**/*_test.exs"
+            ]
+        },
+        {
+            "name": "Elixir: Run iex -S mix",
+            "type": "mix_task",
+            "request": "launch",
+            "task": "run",
+            "taskArgs": [
+                "--no-halt"
+            ],
+            "projectDir": "${workspaceFolder}/TypeScript/examples/chatfield_phoenix",
+            "requireFiles": []
         }
     ],
     "inputs": [

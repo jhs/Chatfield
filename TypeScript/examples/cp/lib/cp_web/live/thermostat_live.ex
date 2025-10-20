@@ -1,10 +1,13 @@
-defmodule MyAppWeb.ThermostatLive do
-  use MyAppWeb, :live_view
+defmodule CpWeb.ThermostatLive do
+  use CpWeb, :live_view
 
   def render(assigns) do
     ~H"""
     Current temperature: {@temperature}°F
+    <br>
     <button phx-click="inc_temperature">+</button>
+    <br>
+    <button phx-click="dec_temperature">-</button>
     """
   end
 
@@ -15,5 +18,9 @@ defmodule MyAppWeb.ThermostatLive do
 
   def handle_event("inc_temperature", _params, socket) do
     {:noreply, update(socket, :temperature, &(&1 + 1))}
+  end
+
+  def handle_event("dec_temperature", _params, socket) do
+    {:noreply, update(socket, :temperature, &(&1 - 2))}
   end
 end
