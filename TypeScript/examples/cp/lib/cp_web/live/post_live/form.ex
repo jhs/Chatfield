@@ -13,6 +13,36 @@ defmodule CpWeb.PostLive.Form do
         <:subtitle>Use this form to manage post records in your database.</:subtitle>
       </.header>
 
+      <!-- Chatfield Conversational UI -->
+      <div id="chatfield-hook" phx-hook="ChatfieldHook">
+        <div id="chatfield-container">
+          <div id="chatfield-header">
+            <h2>Blog Post Assistant</h2>
+            <p>Let's have a conversation to create your blog post • Press Enter to send</p>
+          </div>
+          <div id="chatfield-messages"></div>
+          <div id="chatfield-input-area">
+            <div id="chatfield-status" class="status">Initializing...</div>
+            <div id="chatfield-input-container">
+              <textarea
+                id="chatfield-user-input"
+                class="block w-full rounded-lg border-zinc-300 py-2 px-3 text-zinc-900 focus:border-zinc-400 focus:outline-none focus:ring-4 focus:ring-zinc-800/5"
+                rows="1"
+                placeholder="Type your response..."
+                disabled
+              ></textarea>
+              <button
+                id="chatfield-send-btn"
+                class="phx-submit-loading:opacity-75 rounded-lg bg-zinc-900 hover:bg-zinc-700 py-2 px-3 text-sm font-semibold leading-6 text-white active:text-white/80"
+                disabled
+              >
+                Send
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <.form for={@form} id="post-form" phx-change="validate" phx-submit="save">
         <.input field={@form[:title]} type="text" label="Title" />
         <.input field={@form[:title_th]} type="text" label="Title (Thai)" />
@@ -76,6 +106,11 @@ defmodule CpWeb.PostLive.Form do
 
   def handle_event("save", %{"post" => post_params}, socket) do
     save_post(socket, socket.assigns.live_action, post_params)
+  end
+
+  def handle_event("chatfield_complete", _params, socket) do
+    # Chatfield completed - validate the form
+    {:noreply, socket}
   end
 
   defp save_post(socket, :edit, post_params) do
