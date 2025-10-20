@@ -15,7 +15,13 @@ defmodule CpWeb.PostLive.Form do
 
       <.form for={@form} id="post-form" phx-change="validate" phx-submit="save">
         <.input field={@form[:title]} type="text" label="Title" />
+        <.input field={@form[:title_th]} type="text" label="Title (Thai)" />
         <.input field={@form[:body]} type="textarea" label="Body" />
+        <.input field={@form[:body_th]} type="textarea" label="Body (Thai)" />
+        <.input field={@form[:category]} type="select" label="Category"
+                options={["Technology", "Design", "Business", "Personal"]} />
+        <.input field={@form[:tags]} type="text" label="Tags"
+                placeholder="Comma-separated tags (e.g., elixir, phoenix, web)" />
         <footer>
           <.button phx-disable-with="Saving..." variant="primary">Save Post</.button>
           <.button navigate={return_path(@return_to, @post)}>Cancel</.button>
@@ -38,6 +44,7 @@ defmodule CpWeb.PostLive.Form do
 
   defp apply_action(socket, :edit, %{"id" => id}) do
     post = Blog.get_post!(id)
+    post = prepare_post_for_form(post)
 
     socket
     |> assign(:page_title, "Edit Article")
@@ -53,6 +60,13 @@ defmodule CpWeb.PostLive.Form do
     |> assign(:post, post)
     |> assign(:form, to_form(Blog.change_post(post)))
   end
+
+  # Convert tags array to comma-separated string for form display
+  defp prepare_post_for_form(%Post{tags: tags} = post) when is_list(tags) do
+    %{post | tags: Enum.join(tags, ", ")}
+  end
+
+  defp prepare_post_for_form(post), do: post
 
   @impl true
   def handle_event("validate", %{"post" => post_params}, socket) do

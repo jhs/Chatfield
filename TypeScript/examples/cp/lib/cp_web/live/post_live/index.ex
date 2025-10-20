@@ -23,7 +23,9 @@ defmodule CpWeb.PostLive.Index do
         row_click={fn {_id, post} -> JS.navigate(~p"/articles/#{post}") end}
       >
         <:col :let={{_id, post}} label="Title">{post.title}</:col>
-        <:col :let={{_id, post}} label="Body">{post.body}</:col>
+        <:col :let={{_id, post}} label="Category">{post.category}</:col>
+        <:col :let={{_id, post}} label="Tags">{if post.tags, do: Enum.join(post.tags, ", "), else: ""}</:col>
+        <:col :let={{_id, post}} label="Body">{String.slice(post.body, 0..100)}</:col>
         <:action :let={{_id, post}}>
           <div class="sr-only">
             <.link navigate={~p"/articles/#{post}"}>Show</.link>

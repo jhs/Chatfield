@@ -22,7 +22,11 @@ defmodule CpWeb.PostLive.Show do
 
       <.list>
         <:item title="Title">{@post.title}</:item>
+        <:item title="Title (Thai)">{@post.title_th}</:item>
         <:item title="Body">{@post.body}</:item>
+        <:item title="Body (Thai)">{@post.body_th}</:item>
+        <:item title="Category">{@post.category}</:item>
+        <:item title="Tags">{if @post.tags, do: Enum.join(@post.tags, ", "), else: ""}</:item>
       </.list>
     </Layouts.app>
     """
