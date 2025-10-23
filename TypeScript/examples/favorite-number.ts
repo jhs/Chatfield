@@ -6,8 +6,8 @@
  * This example demonstrates the extensive transformation system:
  * - Basic transformations (as_int, as_float, as_bool)
  * - Language transformations (as_lang)
- * - Set and list transformations (asSet, asList)
- * - Cardinality decorators (asOne, asMaybe, asMulti, asAny)
+ * - Set and list transformations (as_set, as_list)
+ * - Cardinality decorators (as_one, as_maybe, as_multi, as_any)
  * - Complex sub-attribute transformations
  * 
  * Run with:

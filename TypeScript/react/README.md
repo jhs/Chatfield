@@ -29,7 +29,8 @@ const interview = chatfield()
   .field('email')
     .desc('Your email address')
   .field('age')
-    .desc('Your age').asInt()
+    .desc('Your age')
+    .as_int()
   .build()
 
 // Use in React component

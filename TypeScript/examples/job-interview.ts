@@ -55,13 +55,13 @@ function createJobInterview() {
     .field("has_mentored")
       .desc("Gives specific evidence of professionally mentoring junior colleagues")
       .confidential()
-      .asBool()
-    
+      .as_bool()
+
     // Another confidential field
     .field("shows_leadership")
       .desc("Demonstrates leadership qualities or initiatives")
       .confidential()
-      .asBool()
+      .as_bool()
     
     // Conclusion field - assessed at the end
     .field("preparedness")

@@ -114,9 +114,9 @@ interview.age.as_int       # 25 (integer)
 // TypeScript
 const interview = chatfield()
   .field('age')
-  .desc('Your age')
-  .must('be specific')
-  .asInt()
+    .desc('Your age')
+    .must('be specific')
+    .as_int()
   .build()
 ```
 

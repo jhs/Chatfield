@@ -67,10 +67,16 @@ result.age         // number (transformed)
 
 - `.type(name)`: Set the interview type/title
 - `.desc(description)`: Set the interview description
-- `.alice(name)`: Set interviewer role name
-- `.alice_trait(trait)`: Add interviewer personality trait
-- `.bob(name)`: Set interviewee role name
-- `.bob_trait(trait)`: Add interviewee personality trait
+- `.alice()`: Configure the interviewer role (returns RoleBuilder)
+  - `.type(role_type)`: Set the role type
+  - `.trait(trait)`: Add a personality trait
+  - `.trait.apply(trait)`: Add trait that always applies
+  - `.trait.possible(key, condition)`: Add conditional trait
+- `.bob()`: Configure the interviewee role (returns RoleBuilder)
+  - `.type(role_type)`: Set the role type
+  - `.trait(trait)`: Add a personality trait
+  - `.trait.apply(trait)`: Add trait that always applies
+  - `.trait.possible(key, condition)`: Add conditional trait
 
 ### Field Definition
 
@@ -144,9 +150,11 @@ field.asContext            // Conversational context
 
 ```python
 interview = chatfield()\
-    .alice("Interviewer")\
-    .alice_trait("friendly and professional")\
-    .bob("Job Candidate")\
+    .alice()\
+        .type("Interviewer")\
+        .trait("friendly and professional")\
+    .bob()\
+        .type("Job Candidate")\
     .field("desired_position")\
         .desc("What position are you applying for?")\
         .must("include company name")\
@@ -165,20 +173,22 @@ interview = chatfield()\
 
 ```typescript
 const interview = chatfield()
-  .alice('Interviewer')
-  .aliceTrait('friendly and professional')
-  .bob('Job Candidate')
+  .alice()
+    .type('Interviewer')
+    .trait('friendly and professional')
+  .bob()
+    .type('Job Candidate')
   .field('desiredPosition')
     .desc('What position are you applying for?')
     .must('include company name')
     .must('mention specific role')
   .field('yearsExperience')
     .desc('Years of relevant experience')
-    .asInt()
+    .as_int()
     .must('be realistic number')
   .field('languages')
     .desc('Programming languages you know')
-    .asMulti(['Python', 'JavaScript', 'Go', 'Rust'])
+    .as_multi(['Python', 'JavaScript', 'Go', 'Rust'])
   .build()
 ```
 

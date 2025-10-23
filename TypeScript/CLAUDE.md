@@ -92,8 +92,8 @@ const interview = chatfield()
   .type('Contact Form')
   .field('age')
     .desc('Your age')
-  .must('be specific')
-  .asInt()
+    .must('be specific')
+    .as_int()
   .build()
 
 // After collection
