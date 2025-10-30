@@ -71,7 +71,7 @@
             "name": "Python: Module",
             "type": "debugpy",
             "request": "launch",
-            "module": "enter-your-module-name",
+            "module": "${input:pythonModuleName}",
             "cwd": "${workspaceFolder}/Python",
             "env": {
                 "PYTHONPATH": "${workspaceFolder}/Python"
@@ -303,6 +303,12 @@
             "id": "testName",
             "type": "promptString",
             "description": "Enter test name pattern to debug"
+        },
+        {
+            "id": "pythonModuleName",
+            "type": "promptString",
+            "description": "Enter Python module name to debug (e.g., chatfield.server.cli)",
+            "default": "chatfield.server.cli"
         },
         {
             "id": "pytestPattern",
