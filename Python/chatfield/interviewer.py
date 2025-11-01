@@ -29,6 +29,115 @@ from .merge import merge_interviews, merge_has_digested
 # Endpoint security mode type
 EndpointSecurityMode = Literal['strict', 'warn', 'disabled']
 
+def encode_field_name(field_name: str) -> str:
+    """
+    Encode field name to valid Python identifier using URL-encoding-style.
+
+    If the field name is already a valid identifier and not a Python keyword,
+    it is returned as-is. Otherwise:
+    - Prefixes with 'field_' to handle keywords and leading digits
+    - Encodes special characters as _PCTXXXX_ where XXXX is hex code
+
+    This is transparent (you can still read the field name) and guarantees
+    perfect round-trip encoding/decoding with no collisions. Supports full unicode.
+
+    Args:
+        field_name: Original field name (any unicode characters)
+
+    Returns:
+        A valid Python identifier that can be used as a Pydantic field name
+
+    Examples:
+        >>> encode_field_name("name")
+        'name'
+        >>> encode_field_name("email_address")
+        'email_address'
+        >>> encode_field_name("topmostSubform[0].Page1[0].f1_01[0]")
+        'field_topmostSubform_PCT5B_0_PCT5D__PCT2E_Page1_PCT5B_0_PCT5D__PCT2E_f1_01_PCT5B_0_PCT5D_'
+        >>> encode_field_name("user.name")
+        'field_user_PCT2E_name'
+        >>> encode_field_name("class")
+        'field_class'
+        >>> encode_field_name("field[0]")
+        'field_field_PCT5B_0_PCT5D_'
+        >>> encode_field_name("rating😊")
+        'field_rating_PCT1F60A_'
+        >>> encode_field_name("café")
+        'field_caf_PCTE9_'
+    """
+    import keyword
+
+    # Check if field name is already valid identifier and not a keyword
+    if field_name.isidentifier() and not keyword.iskeyword(field_name):
+        # Check if it only contains ASCII alphanumeric and underscore
+        if all(char in 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_' for char in field_name):
+            # Avoid collision: if field name starts with "field_", we must encode it
+            if not field_name.startswith('field_'):
+                return field_name
+
+    result = []
+    for char in field_name:
+        # Only allow ASCII alphanumeric and underscore (not unicode letters)
+        if char in 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_':
+            result.append(char)
+        else:
+            # Encode as _PCTXX_ where XX is hex (at least 2 digits for readability)
+            char_code = ord(char)
+            hex_code = f'{char_code:X}'
+            # Pad to at least 2 digits for consistency
+            if len(hex_code) < 2:
+                hex_code = '0' + hex_code
+            result.append(f'_PCT{hex_code}_')
+
+    # Prefix with 'field_' - handles keywords and leading digits
+    return 'field_' + ''.join(result)
+
+def decode_field_name(encoded_name: str) -> str:
+    """
+    Decode an encoded field name back to original.
+
+    If the encoded name doesn't start with 'field_', it's assumed to be a simple
+    identifier that wasn't encoded, so it's returned as-is.
+
+    Supports variable-length hex codes for full unicode support.
+
+    Args:
+        encoded_name: Encoded field name (may or may not start with 'field_')
+
+    Returns:
+        Original field name
+
+    Examples:
+        >>> decode_field_name('name')
+        'name'
+        >>> decode_field_name('email_address')
+        'email_address'
+        >>> decode_field_name('field_user_PCT2E_name')
+        'user.name'
+        >>> decode_field_name('field_class')
+        'class'
+        >>> decode_field_name('field_field_PCT5B_0_PCT5D_')
+        'field[0]'
+        >>> decode_field_name('field_rating_PCT1F60A_')
+        'rating😊'
+        >>> decode_field_name('field_caf_PCTE9_')
+        'café'
+    """
+    # If it doesn't start with 'field_', it wasn't encoded
+    if not encoded_name.startswith('field_'):
+        return encoded_name
+
+    encoded_name = encoded_name[6:]  # Remove 'field_' prefix
+
+    # Replace _PCTXXXX_ with corresponding character (variable-length hex)
+    def replace_hex(match):
+        hex_code = match.group(1)
+        return chr(int(hex_code, 16))
+
+    # Match _PCT followed by one or more hex digits, then _
+    decoded = re.sub(r'_PCT([0-9A-F]+)_', replace_hex, encoded_name)
+    return decoded
+
 class State(TypedDict):
     messages: Annotated[List[Any] , add_messages    ]
     interview: Annotated[Interview, merge_interviews]
@@ -224,8 +333,11 @@ class Interviewer:
                 continue
             
             field_definition = self.mk_field_definition(interview, field_name, field_metadata)
-            args_schema[field_name] = Optional[field_definition]  # Optional for update
-        
+
+            # Encode field name to valid Python identifier
+            encoded_name = encode_field_name(field_name)
+            args_schema[encoded_name] = (Optional[field_definition], Field())
+
         tool_name = f'update_{interview._id()}'
         tool_desc = f'Record valid information shared by the {interview._bob_role_name} about the {interview._name}'
         UpdateToolArgs = create_model('UpdateToolArgs', **args_schema)
@@ -261,10 +373,13 @@ class Interviewer:
                 continue
             
             field_definition = self.mk_field_definition(interview, field_name, field_metadata)
-            
-            # Conclude fields are non-nullable, non-optional.
-            args_schema[field_name] = field_definition
-        
+
+            # Encode field name to valid Python identifier
+            encoded_name = encode_field_name(field_name)
+
+            # Conclude fields are non-nullable, non-optional
+            args_schema[encoded_name] = (field_definition, Field())
+
         tool_name = f'conclude_{interview._id()}'
         tool_desc = (
             f'Record key required information'
@@ -378,7 +493,10 @@ class Interviewer:
                 # This confidential field must be marked "N/A".
                 fields_prompt.append(f'- {field_name}: {chatfield["desc"]}')
                 field_definition = self.mk_field_definition(interview, field_name, chatfield)
-                field_definitions[field_name] = field_definition
+
+                # Encode field name to valid Python identifier
+                encoded_name = encode_field_name(field_name)
+                field_definitions[encoded_name] = (field_definition, Field())
             else:
                 # Actually, just do not mention it.
                 # field_definitions[field_name] = (Literal[None], Field(description='Must be null because the field is already recorded'))
@@ -590,9 +708,12 @@ class Interviewer:
         """
         defined_args = [X for X in kwargs if kwargs[X] is not None]
         logger.debug(f'Tool input for {len(defined_args)} fields: {", ".join(defined_args)}')
-        for field_name, llm_field_value in kwargs.items():
+        for encoded_name, llm_field_value in kwargs.items():
             if llm_field_value is None:
                 continue
+
+            # Decode the field name from the encoded identifier
+            field_name = decode_field_name(encoded_name)
 
             # Handle both Pydantic models and plain dicts (for testing)
             if hasattr(llm_field_value, 'model_dump'):
