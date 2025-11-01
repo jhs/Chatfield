@@ -29,7 +29,9 @@ The workflow has these stages:
 **Stage 2: Interview Definition** → Edit `Python/chatfield/server/interview.py` with Chatfield builder code
 **Stage 3: Server Execution** → Start Chatfield server subprocess for browser-based data collection
 **Stage 4: Data Collection** → User completes interview in browser, when done the server prints all results and exits
-**Stage 5: PDF Population** → Parse server output and fill PDF form fields
+**Stage 5: PDF Population** → Parse server output and fill PDF form fields to create `<basename>.done.pdf`
+
+**File naming convention**: For any PDF `foo.pdf`, the workflow creates `foo.form.json` (form definition), `foo.values.json` (collected data), and `foo.done.pdf` (filled PDF).
 
 ## Complete Workflow Steps
 
@@ -38,7 +40,7 @@ The workflow has these stages:
 Extract fillable form field metadata from your PDF:
 
 ```bash
-python scripts/extract_form_field_info.py input.pdf field_info.json
+python scripts/extract_form_field_info.py input.pdf input.form.json
 ```
 
 This creates a JSON file containing field metadata in this format:
@@ -96,9 +98,9 @@ This creates a JSON file containing field metadata in this format:
 
 ### Step 2: Define Interview in Server File
 
-Read the created `field_info.json` file to learn and understand this form definition.
+Read the created `<basename>.form.json` file to learn and understand this form definition.
 
-Next, define that form as a Chatfield Interview object by editing `Python/chatfield/server/interview.py` and rewriting the builder code to define `interview` to be identical to the form definition from `field_info.json`. For example:
+Next, define that form as a Chatfield Interview object by editing `Python/chatfield/server/interview.py` and rewriting the builder code to define `interview` to be identical to the form definition from `<basename>.form.json`. For example:
 
 ```python
 interview = (chatfield()
@@ -168,10 +170,8 @@ The server prints interview results to stdout (pretty-printed Python object) whi
 Use the collected data to populate the PDF form:
 
 ```bash
-python scripts/fill_fillable_fields.py input.pdf field_values.json output.pdf
+python scripts/fill_fillable_fields.py input.pdf input.values.json input.done.pdf
 ```
-
-This populates the PDF form fields with the conversationally collected data.
 
 ## Complete Example: W-9 Form
 
@@ -184,14 +184,14 @@ python scripts/check_fillable_fields.py fw9.pdf
 ### 2. Extract form field metadata
 
 ```bash
-python scripts/extract_form_field_info.py fw9.pdf fw9.fields.json
+python scripts/extract_form_field_info.py fw9.pdf fw9.form.json
 ```
 
 ### 3. Use the fields JSON file to build interview.py
 
 First read the file using any tool you wish, example:
 ```bash
-cat fw9.fields.json
+cat fw9.form.json
 ```
 
 Next, edit edit Python/chatfield/server/interview.py
@@ -214,16 +214,32 @@ python -m chatfield.server.cli
 
 ### 5. Create field values JSON and fill PDF
 
-Using the field values from server output, create `fw9_values.json` with those values populated. Example:
+ing the field values from server output, create `fw9.values.json` with those values populated. The format must match what the `fill_fillable_fields.py` script expects:
 
 ```json
 [
   {
-    "field_id": (unique ID for the field),
-    "value": (The field value in its most appropriate cast, or else its raw string value)
+    "field_id": "topmostSubform[0].Page1[0].f1_01[0]",
+    "page": 1,
+    "value": "John Smith"
   },
-  ...etc...
+  {
+    "field_id": "topmostSubform[0].Page1[0].FederalClassification[0].c1_01[0]",
+    "page": 1,
+    "value": "/On"
+  }
 ]
+```
+
+**Required fields in each entry**:
+- `field_id`: Must exactly match the field ID from the `.form.json` file
+- `page`: Page number (1-based) where the field appears
+- `value`: The field value (string for text fields, "/On"/"/Off" for checkboxes, option values for radio/choice fields)
+
+Then fill the PDF:
+
+```bash
+python scripts/fill_fillable_fields.py fw9.pdf fw9.values.json fw9.done.pdf
 ```
 
 ## Field Type Mapping
@@ -252,8 +268,8 @@ Chatfield supports many advanced features for sophisticated form workflows:
 
 **PDF-specific issues**:
 - **Field names with special characters**: The generator uses `getattr(interview, "field_id", None)` to safely access fields with brackets, dots, or other special characters in their IDs.
-- **Checkbox not filling correctly**: Verify `checked_value` and `unchecked_value` in `field_info.json` match what the PDF expects (usually "/On" and "/Off").
-- **PDF fields not populating**: Ensure field IDs in `field_values.json` exactly match those from `extract_form_field_info.py`.
+- **Checkbox not filling correctly**: Verify `checked_value` and `unchecked_value` in `<basename>.form.json` match what the PDF expects (usually "/On" and "/Off").
+- **PDF fields not populating**: Ensure field IDs in `<basename>.values.json` exactly match those from `extract_form_field_info.py` and include the required `page` field.
 
 **Chatfield issues**: See ./chatfield.md troubleshooting section for API key configuration, validation tuning, and field access patterns.
 
