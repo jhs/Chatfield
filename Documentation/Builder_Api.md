@@ -84,6 +84,36 @@ result.age         // number (transformed)
   - `name`: Field identifier (required)
 - `.desc(description)`: Set the field description (user-facing prompt)
 
+### Field Naming and Special Characters
+
+Field names can contain any characters including brackets, dots, spaces, and reserved words. Use **bracket notation** to access fields with special characters:
+
+**Python**:
+```python
+# PDF form fields with complex hierarchical names
+interview["topmostSubform[0].Page1[0].f1_01[0]"]
+interview["user.name"]
+interview["full name"]
+interview["class"]  # Reserved words work with bracket notation
+```
+
+**TypeScript**:
+```typescript
+// Same bracket notation syntax
+interview["topmostSubform[0].Page1[0].f1_01[0]"]
+interview["user.name"]
+interview["full name"]
+interview["class"]  // Reserved words work with bracket notation
+```
+
+**Regular fields** (alphanumeric + underscores) can use dot notation:
+```python
+interview.age        # Python
+interview.age        # TypeScript
+```
+
+**PDF forms** commonly use hierarchical names with brackets - always use bracket notation for these.
+
 ### Field Validation
 
 - `.must(requirement)`: Add a requirement the response must meet

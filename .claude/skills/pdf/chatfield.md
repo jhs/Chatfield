@@ -211,7 +211,7 @@ while not interview._done:
 ## Troubleshooting
 
 **Field access before collection**: Evaluates to None (check `interview._done`)
-**Special char field names**: Use `getattr(interview, "field[0].name", None)` (but avoid defining these)
+**Special char field names**: Use bracket notation `interview["field[0].name"]` for fields with brackets, dots, or spaces
 **Validation issues**: Adjust `.must()`/`.reject()` specificity
 **LLM handles validation**: Invalid input prompts clarification automatically
 

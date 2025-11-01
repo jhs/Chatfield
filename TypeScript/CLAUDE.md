@@ -173,6 +173,56 @@ getFieldValue(fieldName: string): string | null {
 
 **See**: [../Documentation/Isomorphic_Development.md](../Documentation/Isomorphic_Development.md) for complete details.
 
+## Field Access Patterns
+
+TypeScript supports two methods for accessing field values: dot notation for regular fields and bracket notation for fields with special characters.
+
+### Regular Fields (Alphanumeric + Underscores)
+
+```typescript
+interview.field_name              // Dot notation
+interview.field_name.as_int       // With transformations
+```
+
+### Special Character Fields
+
+Fields with brackets, dots, spaces, or reserved words require **bracket notation**:
+
+```typescript
+interview["field[0]"]                               // Brackets in field name
+interview["topmostSubform[0].Page1[0].f1_01[0]"]   // PDF form fields
+interview["user.name"]                              // Dots in field name
+interview["full name"]                              // Spaces in field name
+interview["class"]                                  // TypeScript reserved words
+```
+
+### Implementation Details
+
+- **Proxy**: JavaScript Proxy object intercepts both dot and bracket notation
+- **Dynamic access**: Both `interview.name` and `interview["name"]` work
+- Returns `FieldProxy` instances or `null`
+- PDF forms commonly use hierarchical names with special characters
+
+**Example with PDF form**:
+
+```typescript
+import { chatfield } from '@chatfield/core'
+
+// Define interview with PDF-style field names
+const interview = chatfield()
+  .field('topmostSubform[0].Page1[0].f1_01[0]')
+    .desc('Full legal name')
+  .field('topmostSubform[0].Page1[0].f1_02[0]')
+    .desc('Social Security Number')
+  .build()
+
+// Access via bracket notation
+const name = interview["topmostSubform[0].Page1[0].f1_01[0]"]
+const ssn = interview["topmostSubform[0].Page1[0].f1_02[0]"]
+```
+
+**See**: [../Documentation/Builder_Api.md](../Documentation/Builder_Api.md) for complete field naming documentation.
+
 ## Key Dependencies
 
 - **@langchain/core** (0.3.72+): Core LangChain abstractions

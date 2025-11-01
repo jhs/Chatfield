@@ -267,7 +267,7 @@ Chatfield supports many advanced features for sophisticated form workflows:
 ## Troubleshooting
 
 **PDF-specific issues**:
-- **Field names with special characters**: The generator uses `getattr(interview, "field_id", None)` to safely access fields with brackets, dots, or other special characters in their IDs.
+- **Field names with special characters**: Use bracket notation to access fields with brackets, dots, spaces, or other special characters: `interview["topmostSubform[0].Page1[0].f1_01[0]"]`
 - **Checkbox not filling correctly**: Verify `checked_value` and `unchecked_value` in `<basename>.form.json` match what the PDF expects (usually "/On" and "/Off").
 - **PDF fields not populating**: Ensure field IDs in `<basename>.values.json` exactly match those from `extract_form_field_info.py` and include the required `page` field.
 

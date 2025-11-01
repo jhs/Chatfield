@@ -197,6 +197,56 @@ def get_field_value(self, field_name: str) -> Optional[str]:
 
 **See**: [../Documentation/Architecture.md](../Documentation/Architecture.md) for detailed data structures.
 
+## Field Access Patterns
+
+Python supports two methods for accessing field values: dot notation for regular fields and bracket notation for fields with special characters.
+
+### Regular Fields (Alphanumeric + Underscores)
+
+```python
+interview.field_name              # Dot notation
+interview.field_name.as_int       # With transformations
+```
+
+### Special Character Fields
+
+Fields with brackets, dots, spaces, or reserved words require **bracket notation**:
+
+```python
+interview["field[0]"]                               # Brackets in field name
+interview["topmostSubform[0].Page1[0].f1_01[0]"]   # PDF form fields
+interview["user.name"]                              # Dots in field name
+interview["full name"]                              # Spaces in field name
+interview["class"]                                  # Python reserved words
+```
+
+### Implementation Details
+
+- **`__getattr__`**: Intercepts dot notation access (e.g., `interview.name`)
+- **`__getitem__`**: Intercepts bracket notation access (e.g., `interview["name"]`)
+- Both methods return `FieldProxy` instances or `None`
+- PDF forms commonly use hierarchical names with special characters
+
+**Example with PDF form**:
+
+```python
+from chatfield import chatfield
+
+# Define interview with PDF-style field names
+interview = (chatfield()
+    .field("topmostSubform[0].Page1[0].f1_01[0]")
+        .desc("Full legal name")
+    .field("topmostSubform[0].Page1[0].f1_02[0]")
+        .desc("Social Security Number")
+    .build())
+
+# Access via bracket notation
+name = interview["topmostSubform[0].Page1[0].f1_01[0]"]
+ssn = interview["topmostSubform[0].Page1[0].f1_02[0]"]
+```
+
+**See**: [../Documentation/Builder_Api.md](../Documentation/Builder_Api.md) for complete field naming documentation.
+
 ## Dependencies
 
 ### Core Libraries

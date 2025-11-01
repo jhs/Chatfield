@@ -78,7 +78,7 @@ def convert_field_value_to_pdf_format(field_info, interview_obj, field_id):
         checked_val = field_info.get('checked_value', '/On')
         unchecked_val = field_info.get('unchecked_value', '/Off')
         return f'''    # Checkbox field
-    field_val = getattr(interview, "{field_id}", None)
+    field_val = interview["{field_id}"] if "{field_id}" in interview._chatfield['fields'] else None
     if field_val is not None:
         value = "{checked_val}" if field_val.as_bool else "{unchecked_val}"
         field_values.append({{
@@ -89,7 +89,7 @@ def convert_field_value_to_pdf_format(field_info, interview_obj, field_id):
     else:
         # Text, radio_group, choice - just use the string value
         return f'''    # {field_type} field
-    field_val = getattr(interview, "{field_id}", None)
+    field_val = interview["{field_id}"] if "{field_id}" in interview._chatfield['fields'] else None
     if field_val is not None:
         field_values.append({{
             "field_id": "{field_id}",

@@ -90,10 +90,23 @@ The Interview class is the central data structure representing a conversational 
                 'as_int': 25,                # Transformed values
                 'as_lang_fr': 'vingt-cinq'
             }
+        },
+        # Fields can have special characters (brackets, dots, etc.)
+        'topmostSubform[0].Page1[0].f1_01[0]': {
+            'desc': 'Full legal name from PDF form',
+            'specs': {...},
+            'casts': {},
+            'value': {
+                'value': 'John Smith',
+                'as_quote': 'My name is John Smith',
+                'as_context': '...'
+            }
         }
     }
 }
 ```
+
+**Field Access**: Regular fields use dot notation (`interview.field_name`), while fields with special characters use bracket notation (`interview["field[0]"]`).
 
 #### Key Methods
 
@@ -104,7 +117,6 @@ The Interview class is the central data structure representing a conversational 
 - `_done`: All fields populated
 - `_enough`: Non-confidential/non-conclude fields populated
 - `_pretty()`: Debug-friendly string representation
-- `__getattr__()`: Dynamic field access returning FieldProxy instances
 
 ### 2. Builder API
 

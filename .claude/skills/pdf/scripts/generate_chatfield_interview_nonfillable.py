@@ -161,7 +161,7 @@ def generate_interview_script(fields_json_path, output_path):
     script_lines.append('    for field in fields_data.get("form_fields", []):')
     script_lines.append('        field_id = field["field_id"]')
     script_lines.append('        field_type = field.get("field_type", "text")')
-    script_lines.append('        field_val = getattr(interview, field_id, None)')
+    script_lines.append('        field_val = interview[field_id] if field_id in interview._chatfield["fields"] else None')
     script_lines.append('        ')
     script_lines.append('        if field_val is not None:')
     script_lines.append('            # Initialize entry_text if not present')
