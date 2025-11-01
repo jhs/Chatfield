@@ -217,7 +217,7 @@ with open('fields.json', 'r') as f:
 # Populate entry_text.text values from interview results
 for field in fields_data['form_fields']:
     field_id = field['field_id']
-    field_value = getattr(results, field_id, None)
+    field_value = results[field_id] if field_id in results._chatfield['fields'] else None
 
     if field_value is not None:
         if field['field_type'] == 'checkbox':

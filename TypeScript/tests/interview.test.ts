@@ -207,4 +207,56 @@ describe('Interview', () => {
       expect(pretty.includes('TestInterview') || pretty.includes('name') || pretty.includes('Alice')).toBe(true)
     })
   })
+
+  describe('special character field names', () => {
+    it('supports brackets in field names', () => {
+      const interview = chatfield()
+        .type('TestInterview')
+        .field('field[0]')
+          .desc('Test field with brackets')
+        .build()
+
+      expect(interview['field[0]']).toBeNull()
+    })
+
+    it('supports dots in field names', () => {
+      const interview = chatfield()
+        .type('TestInterview')
+        .field('user.name')
+          .desc('Test field with dots')
+        .build()
+
+      expect(interview['user.name']).toBeNull()
+    })
+
+    it('supports spaces in field names', () => {
+      const interview = chatfield()
+        .type('TestInterview')
+        .field('full name')
+          .desc('Test field with spaces')
+        .build()
+
+      expect(interview['full name']).toBeNull()
+    })
+
+    it('supports reserved words', () => {
+      const interview = chatfield()
+        .type('TestInterview')
+        .field('class')
+          .desc('Test field with reserved word')
+        .build()
+
+      expect(interview['class']).toBeNull()
+    })
+
+    it('supports pdf style hierarchical names', () => {
+      const interview = chatfield()
+        .type('PDFForm')
+        .field('topmostSubform[0].Page1[0].f1_01[0]')
+          .desc('PDF form field')
+        .build()
+
+      expect(interview['topmostSubform[0].Page1[0].f1_01[0]']).toBeNull()
+    })
+  })
 })

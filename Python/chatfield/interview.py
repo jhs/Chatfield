@@ -291,7 +291,21 @@ class Interview:
         primary_value = llm_value['value']
         proxy = create_field_proxy(primary_value, chatfield)
         return proxy
-    
+
+    def __getitem__(self, name: str):
+        """Access fields via bracket notation (supports special characters).
+
+        This method enables bracket notation access for field names containing
+        special characters like brackets, dots, spaces, or reserved words.
+
+        Examples:
+            interview["field[0]"]
+            interview["user.name"]
+            interview["full name"]
+            interview["class"]
+        """
+        return self.__getattr__(name)
+
     def _pretty(self) -> str:
         """Return a pretty representation of this interview."""
         lines = [f'{self._name}']

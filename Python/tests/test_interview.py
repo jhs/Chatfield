@@ -207,7 +207,60 @@ def describe_interview():
             }
             
             pretty = instance._pretty()
-            
+
             assert 'TestInterview' in pretty
             # Should show field values in pretty format
             assert 'name' in pretty or 'Alice' in pretty
+
+    def describe_special_character_field_names():
+        """Field names with special characters accessed via bracket notation."""
+
+        def it_supports_brackets_in_field_names():
+            """Supports brackets in field names via bracket notation."""
+            instance = (chatfield()
+                .type("TestInterview")
+                .field("field[0]")
+                    .desc("Test field with brackets")
+                .build())
+
+            assert instance["field[0]"] is None
+
+        def it_supports_dots_in_field_names():
+            """Supports dots in field names via bracket notation."""
+            instance = (chatfield()
+                .type("TestInterview")
+                .field("user.name")
+                    .desc("Test field with dots")
+                .build())
+
+            assert instance["user.name"] is None
+
+        def it_supports_spaces_in_field_names():
+            """Supports spaces in field names via bracket notation."""
+            instance = (chatfield()
+                .type("TestInterview")
+                .field("full name")
+                    .desc("Test field with spaces")
+                .build())
+
+            assert instance["full name"] is None
+
+        def it_supports_reserved_words():
+            """Supports Python reserved words via bracket notation."""
+            instance = (chatfield()
+                .type("TestInterview")
+                .field("class")
+                    .desc("Test field with reserved word")
+                .build())
+
+            assert instance["class"] is None
+
+        def it_supports_pdf_style_hierarchical_names():
+            """Supports PDF-style hierarchical field names via bracket notation."""
+            instance = (chatfield()
+                .type("PDFForm")
+                .field("topmostSubform[0].Page1[0].f1_01[0]")
+                    .desc("PDF form field")
+                .build())
+
+            assert instance["topmostSubform[0].Page1[0].f1_01[0]"] is None
