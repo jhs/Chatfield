@@ -1,10 +1,13 @@
 """Handlebars template engine for prompt generation."""
 
 import os
+import logging
 from typing import Dict, Any, Optional
 from pathlib import Path
 import textwrap
 import pybars
+
+logger = logging.getLogger(__name__)
 
 class TemplateEngine:
     """Handles loading and rendering of Handlebars templates for prompts."""
@@ -189,9 +192,9 @@ class TemplateEngine:
 
         def debug_helper(this, value, label: str = '') -> str:
             """Debug helper for development."""
-            prefix = f"Debug [{label}]:" if label else "Debug:"
             import json
-            print(prefix, json.dumps(value, indent=2))
+            message = f"Debug [{label}]: {json.dumps(value, indent=2)}" if label else f"Debug: {json.dumps(value, indent=2)}"
+            logger.debug(message)
             return ''
 
         # Register helpers with pybars

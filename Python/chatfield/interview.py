@@ -4,11 +4,14 @@ import re
 # import json
 # import textwrap
 import copy
+import logging
 import traceback
 from typing import Type, TypeVar, List, Dict, Any, Callable
 from types import SimpleNamespace
 
 from .field_proxy import FieldProxy, create_field_proxy
+
+logger = logging.getLogger(__name__)
 
 T = TypeVar('T', bound='Interview')
 
@@ -46,10 +49,7 @@ class Interview:
         except Exception as er:
             # The LangGraph deserializer will silently catch any Exception and then just return
             # the value of kwargs here. For now at least log out any errors that happen.
-            # print(f'Error initializing {self.__class__.__name__}: {er}')
-            print(f'-----------------------------------------')
-            traceback.print_exc()
-            print(f'-----------------------------------------')
+            logger.exception(f'Error initializing {self.__class__.__name__}')
             raise er
 
     def __inner_init__(self, type=None, desc=None, roles=None, fields=None, **kwargs):
@@ -258,8 +258,7 @@ class Interview:
         try:
             return self._chatfield['fields'][field_name]
         except KeyError:
-            print(f'{self._name}: Not a field: {field_name!r}, must be {self._chatfield["fields"].keys()!r}')
-            # print(f'Available fields: {self._fields()}')
+            logger.error(f'{self._name}: Not a field: {field_name!r}, must be {self._chatfield["fields"].keys()!r}')
             raise KeyError(f'{self._name}: Not a field: {field_name!r}')
 
     def _fields(self) -> List[str]:

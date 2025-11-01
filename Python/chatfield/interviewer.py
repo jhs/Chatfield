@@ -2,9 +2,12 @@
 
 import re
 import uuid
+import logging
 import traceback
 import warnings
 from urllib.parse import urlparse
+
+logger = logging.getLogger(__name__)
 
 from pydantic import BaseModel, Field, conset, create_model
 from deepdiff import DeepDiff
@@ -149,7 +152,7 @@ class Interviewer:
 
         def on_dangerous_endpoint(message: str):
             if mode == 'disabled':
-                print(f'Endpoint: {message}')
+                logger.debug(f'Endpoint: {message}')
             elif mode == 'warn':
                 warnings.warn(
                     f'WARNING: {message}. Your API key may be exposed to end users.',
@@ -178,7 +181,7 @@ class Interviewer:
                 message = f'Detected official API endpoint: {endpoint}'
                 return on_dangerous_endpoint(message) # Found a match, no need to check other endpoints
 
-        print(f'Safe endpoint: {hostname}')
+        logger.info(f'Safe endpoint: {hostname}')
 
     # This exists to fail faster in case of serialization bugs with the LangGraph checkpointer.
     # Hopefully it can go away.
@@ -200,8 +203,8 @@ class Interviewer:
 
     # Node
     def initialize(self, state:State):
-        print(f'Initialize> {self._get_state_interview(state).__class__.__name__}')
-        
+        logger.debug(f'Initialize> {self._get_state_interview(state).__class__.__name__}')
+
         # Currently there is an empty/null Interview object in the state. Populate that with the real one.
         return {'interview': self.interview}
     
@@ -286,8 +289,8 @@ class Interviewer:
     def tools(self, state: State):
         """Process tool calls directly without using ToolNode."""
         interview = self._get_state_interview(state)
-        print(f'Tools> {interview._name}')
-        
+        logger.debug(f'Tools> {interview._name}')
+
         output_messages = []
         
         # First dump the interview state before anything happens, in order to detect changes later.
@@ -322,7 +325,7 @@ class Interviewer:
     
     def run_tool(self, interview: Interview, tool_call_id: str, tool_call_name: str, kwargs: Dict[str, Any]) -> ToolMessage:
         """Run a tool and return a ToolMessage."""
-        print(f'Run tool {tool_call_name}: {tool_call_id} {kwargs!r}')
+        logger.debug(f'Run tool {tool_call_name}: {tool_call_id} {kwargs!r}')
         # TODO: This should really decide which tool to run. Currently it hard-codes process_update_tool.
         
         tool_error = None
@@ -349,7 +352,7 @@ class Interviewer:
     # Node
     def digest_data(self, state: State):
         interview = self._get_state_interview(state)
-        print(f'Digest Data> {interview._name}')
+        logger.debug(f'Digest Data> {interview._name}')
 
         # First digest undefined confidential fields. Then digest the conclude fields.
         for field_name, chatfield in interview._chatfield['fields'].items():
@@ -362,7 +365,7 @@ class Interviewer:
     
     def digest_confidentials(self, state: State):
         interview = self._get_state_interview(state)
-        print(f'Digest Confidentials> {interview._name}')
+        logger.debug(f'Digest Confidentials> {interview._name}')
 
         fields_prompt = []
         field_definitions = {}
@@ -492,7 +495,7 @@ class Interviewer:
 
     def digest_concludes(self, state: State):
         interview = self._get_state_interview(state)
-        print(f'Digest Concludes> {interview._name}')
+        logger.debug(f'Digest Concludes> {interview._name}')
 
         # Define the tool for the LLM to call.
         conclude_tool = self.llm_conclude_tool(state)
@@ -524,7 +527,7 @@ class Interviewer:
 
     # Node
     def think(self, state: State):
-        print(f'Think> {self._get_state_interview(state).__class__.__name__}')
+        logger.debug(f'Think> {self._get_state_interview(state).__class__.__name__}')
 
         # Track any system messages that need to be added.
         new_system_message = None
@@ -535,7 +538,7 @@ class Interviewer:
 
         prior_system_messages = [msg for msg in state['messages'] if isinstance(msg, SystemMessage)]
         if len(prior_system_messages) == 0:
-            print(f'Start conversation in thread: {self.config["configurable"]["thread_id"]}')
+            logger.info(f'Start conversation in thread: {self.config["configurable"]["thread_id"]}')
             system_prompt = self.mk_system_prompt(state)
             new_system_message = SystemMessage(content=system_prompt)
 
@@ -586,7 +589,7 @@ class Interviewer:
         Move any LLM-provided field values into the interview state.
         """
         defined_args = [X for X in kwargs if kwargs[X] is not None]
-        print(f'Tool input for {len(defined_args)} fields: {", ".join(defined_args)}')
+        logger.debug(f'Tool input for {len(defined_args)} fields: {", ".join(defined_args)}')
         for field_name, llm_field_value in kwargs.items():
             if llm_field_value is None:
                 continue
@@ -596,7 +599,7 @@ class Interviewer:
                 llm_values = llm_field_value.model_dump()
             else:
                 llm_values = llm_field_value
-            print(f'LLM found a valid field: {field_name!r} = {llm_values!r}')
+            logger.debug(f'LLM found a valid field: {field_name!r} = {llm_values!r}')
             chatfield = interview._get_chat_field(field_name)
             if chatfield.get('value'):
                 # print(f'{self.__class__.__name__}: Overwrite old field {field_name!r} value: {chatfield["value"]!r}')
@@ -740,11 +743,11 @@ class Interviewer:
         return fields
     
     def route_from_think(self, state: State) -> str:
-        print(f'Route from think: {self._get_state_interview(state).__class__.__name__}')
+        logger.debug(f'Route from think: {self._get_state_interview(state).__class__.__name__}')
 
         result = tools_condition(dict(state))
         if result == 'tools':
-            print(f'Route: think -> tools')
+            logger.debug(f'Route: think -> tools')
             return 'tools'
 
         interview = self._get_state_interview(state)
@@ -753,26 +756,26 @@ class Interviewer:
     
     def route_from_tools(self, state: State) -> str:
         interview = self._get_state_interview(state)
-        print(f'Route from tools: {interview._name}')
+        logger.debug(f'Route from tools: {interview._name}')
 
         # Auto-digest only the first time _enough becomes true
         if interview._enough:
             if not state['has_digested_confidentials']:
-                print(f'Route: think -> digest_confidentials (first time _enough is true)')
+                logger.debug(f'Route: think -> digest_confidentials (first time _enough is true)')
                 return 'digest_confidentials'
             if not state['has_digested_concludes']:
-                print(f'Route: think -> digest_concludes (first time _enough is true)')
+                logger.debug(f'Route: think -> digest_concludes (first time _enough is true)')
                 return 'digest_concludes'
 
         return 'think'
     
     def route_from_digest(self, state: State) -> str:
         interview = self._get_state_interview(state)
-        print(f'Route from digest_data: {interview._name}')
+        logger.debug(f'Route from digest_data: {interview._name}')
 
         result = tools_condition(dict(state))
         if result == 'tools':
-            print(f'Route: digest_data -> tools')
+            logger.debug(f'Route: digest_data -> tools')
             return 'tools'
 
         return 'think'
@@ -782,13 +785,13 @@ class Interviewer:
         # Ending will cause a return back to .go() caller.
         # That caller will expect the original interview object to reflect the conversation.
         interview = self._get_state_interview(state)
-        print(f'Teardown> {interview._name}')
+        logger.debug(f'Teardown> {interview._name}')
         self.interview._copy_from(interview)
         
     # Node
     def listen(self, state: State):
         interview = self._get_state_interview(state)
-        print(f'Listen> {interview.__class__.__name__}')
+        logger.debug(f'Listen> {interview.__class__.__name__}')
 
         # The interrupt will cause a return back to .go() caller.
         # That caller will expect the original interview object to reflect the conversation.
@@ -803,7 +806,7 @@ class Interviewer:
         feedback = msg.content.strip()
         update = interrupt(feedback)
 
-        print(f'Interrupt result: {update!r}')
+        logger.debug(f'Interrupt result: {update!r}')
         user_input = update["user_input"]
         user_msg = HumanMessage(content=user_input)
         return {'messages': [user_msg]}
@@ -828,17 +831,17 @@ class Interviewer:
         Returns:
             The content of the latest AI message as a string
         """
-        print(f'Go: User input: {user_input!r}')
+        logger.debug(f'Go: User input: {user_input!r}')
         state_values = self.get_graph_state()
 
         if state_values and state_values['messages']:
-            print(f'Continue conversation: {self.config["configurable"]["thread_id"]}')
+            logger.info(f'Continue conversation: {self.config["configurable"]["thread_id"]}')
             graph_input = Command(update={}, resume={'user_input': user_input})
         else:
-            print(f'New conversation: {self.config["configurable"]["thread_id"]}')
+            logger.info(f'New conversation: {self.config["configurable"]["thread_id"]}')
             thread_id = self.config["configurable"]["thread_id"]
             trace_url = f"https://smith.langchain.com/o/92e94533-dd45-4b1d-bc4f-4fd9476bb1e4/projects/p/1991a1b2-6dad-4d39-8a19-bbc3be33a8b6/t/{thread_id}"
-            print(f'LangSmith trace: {trace_url}')
+            logger.info(f'LangSmith trace: {trace_url}')
             
             user_message = HumanMessage(content=user_input) if user_input else None
             user_messages = [user_message] if user_message else []
@@ -874,7 +877,7 @@ class Interviewer:
         The conversation will not automatically end when all fields are collected.
         Applications must decide when to call this method.
         """
-        print(f'End: Jump to teardown')
+        logger.debug(f'End: Jump to teardown')
         graph_input = Command(goto='teardown')
 
         for event in self.graph.stream(graph_input, config=self.config):
