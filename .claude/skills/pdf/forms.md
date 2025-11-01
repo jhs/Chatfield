@@ -23,9 +23,10 @@ Chatfield transforms rigid form filling into natural conversations. The conversa
 The workflow has these stages:
 
 **Stage 1: PDF Analysis** → Extract form field metadata from the PDF
-**Stage 2: Interview Generation** → Chatfield creates a conversational interview from field definitions
-**Stage 3: Data Collection** → User converses with Chatfield to provide form data
-**Stage 4: PDF Population** → Collected data fills the PDF form fields
+**Stage 2: Interview Definition** → Edit `Python/chatfield/server/interview.py` with Chatfield builder code
+**Stage 3: Server Execution** → Start Chatfield server subprocess for browser-based data collection
+**Stage 4: Data Collection** → User completes interview in browser, when done the server prints all results and exits
+**Stage 5: PDF Population** → Parse server output and fill PDF form fields
 
 ## Complete Workflow Steps
 
@@ -90,82 +91,76 @@ This creates a JSON file containing field metadata in this format:
 - For checkboxes: checked/unchecked values
 - For radio/choice fields: available options
 
-### Step 2: Generate Chatfield Interview Script
+### Step 2: Define Interview in Server File
 
-Generate a Python script that uses Chatfield to collect form data conversationally:
+Read the created `field_info.json` file to learn and understand this form definition.
 
-```bash
-python scripts/generate_chatfield_interview.py field_info.json interview.py
+Next, define that form as a Chatfield Interview object by editing `Python/chatfield/server/interview.py` and rewriting the builder code to define `interview` to be identical to the form definition from `field_info.json`. For example:
+
+```python
+interview = (chatfield()
+    .type("W9TaxForm")
+    .desc("IRS Form W-9")
+    .alice()
+        .type("Tax Form Assistant")
+        .trait("professional and accurate")
+    .field("topmostSubform[0].Page1[0].f1_01[0]")
+        .desc("What is your full legal name?")
+        .must("match the name on your tax return exactly")
+    .field("topmostSubform[0].Page1[0].FederalClassification[0].c1_01[0]")
+        .desc("Federal tax classification")
+        .as_bool()
+    # ... additional fields for each PDF form field
+    .build())
 ```
 
-This creates an executable Python script that:
-- Builds a Chatfield interview with `.field()` calls for each PDF field
-- Maps field types to appropriate Chatfield transformations:
-  - Text fields → basic string collection
-  - Checkboxes → `.as_bool()` transformation
-  - Radio groups → `.as_one("option1", "option2", ...)`
-  - Choice fields → `.as_one("choice1", "choice2", ...)`
-- Runs the conversational interview
-- Saves results in `field_values.json` format
+**Field type mapping**:
+- Text fields → basic string collection with `.desc()`
+- Checkboxes → add `.as_bool()` transformation
+- Radio groups → use `.as_one("option1", "option2", ...)`
+- Choice fields → use `.as_one("choice1", "choice2", ...)`
 
 ### Step 3: Customize Interview (RECOMMENDED)
 
-The generated script is fully customizable. You should enhance it to provide better user experience. **See ./chatfield.md for complete API reference.**
+The interview definition in `Python/chatfield/server/interview.py` is fully customizable. You should enhance it to provide better user experience. **See ./chatfield.md for complete API reference.**
 
 **Recommended customizations**:
-- **Clear descriptions**: Use `.desc("What is your Social Security Number?")` instead of auto-generated text
-- **Validation rules**: Add `.must("be in format ###-##-####")` and `.reject("temporary emails")`
+- **Clear descriptions**: Use `.desc("What is your Social Security Number?")` instead of field IDs
 - **Helpful context**: Add `.hint("Most individuals select 'Individual/sole proprietor'")`
 - **Role configuration**: Use `.alice()` with `.type()` and `.trait()` methods, configure `.bob()` similarly
 
 **Example improvements**:
 ```python
-.field("ssn")
-    .desc("What is your Social Security Number?")
-    .must("be in format ###-##-####")
-
-.field("email")
-    .must("be a valid email address")
-    .reject("temporary or disposable email addresses")
-
 interview = (chatfield()
     .type("W9TaxForm")
     .alice()
         .type("Tax Form Assistant")
-        .trait("professional")
+        .trait("professional and accurate")
+    .field("f1_01[0]")
+        .desc("What is your Social Security Number?")
+        .hint("This is a 9-digit number")
+    .field("f1_02[0]")
+        .desc("What is your email address?")
     .build())
 ```
 
 **For all builder methods, validation syntax, transformations, and role configuration, see ./chatfield.md**
 
-### Step 4: Run Conversational Interview
+### Step 4: Run Chatfield Server and Capture Results
 
-Execute the interview script to collect data through conversation:
+Start the Chatfield server subprocess to collect data via browser-based interview:
 
 ```bash
-export OPENAI_API_KEY=your-api-key
-python interview.py --output field_values.json
+python -m chatfield.server.cli
 ```
 
-The script will:
-- Start a conversational interview in the terminal
-- Ask about each form field naturally
-- Validate responses using Chatfield's LLM-powered validation
-- Transform data to appropriate types (booleans for checkboxes, etc.)
-- Save collected data to `field_values.json`
+Wait for the server CLI to exit. When the user input is complete and valid, the server auto-shuts down and prints all collected data to stdout.
 
-**Example conversation**:
-```
-Assistant: Hi! I'll help you complete this form. What is your full legal name?
-You: John Smith
-Assistant: Thank you, John. What is your Social Security Number?
-You: 123-45-6789
-Assistant: Got it. What is your business name, if different from your name?
-You: Not applicable
-...
-```
+### Step 5: Parse Results and Fill PDF
 
-### Step 5: Fill PDF with Collected Data
+Extract field values from server output and populate the PDF.
+
+The server prints interview results to stdout (pretty-printed Python object) which is easy to parse.
 
 Use the collected data to populate the PDF form:
 
@@ -177,27 +172,55 @@ This populates the PDF form fields with the conversationally collected data.
 
 ## Complete Example: W-9 Form
 
+### 1. Check if form has fillable fields
+
 ```bash
-# 1. Check if form has fillable fields
 python scripts/check_fillable_fields.py fw9.pdf
+```
 
-# 2. Extract form field metadata
-python scripts/extract_form_field_info.py fw9.pdf fw9_fields.json
+### 2. Extract form field metadata
 
-# 3. Generate Chatfield interview script
-python scripts/generate_chatfield_interview.py fw9_fields.json fw9_interview.py
+```bash
+python scripts/extract_form_field_info.py fw9.pdf fw9.fields.json
+```
 
-# 4. Customize fw9_interview.py (RECOMMENDED)
-#    - Add clear field descriptions
-#    - Add validation rules for SSN, ZIP, email, etc.
-#    - Add helpful hints for complex fields
-#    - Configure interview roles and traits
+### 3. Use the fields JSON file to build interview.py
 
-# 5. Run conversational interview
-python fw9_interview.py --output fw9_values.json
+First read the file using any tool you wish, example:
+```bash
+cat fw9.fields.json
+```
 
-# 6. Fill PDF with collected data
-python scripts/fill_fillable_fields.py fw9.pdf fw9_values.json fw9_filled.pdf
+Next, edit edit Python/chatfield/server/interview.py
+- Replace interview with builder code for W-9 fields
+- Add clear field descriptions
+- Add helpful hints for complex fields
+- Configure interview roles and traits
+
+### 4. Run Chatfield server subprocess
+
+```bash
+python -m chatfield.server.cli
+```
+
+- Server prints SERVER_READY to stderr
+- Browser opens automatically
+- User completes interview in browser
+- Server auto-shuts down
+- Capture results from stdout
+
+### 5. Create field values JSON and fill PDF
+
+Using the field values from server output, create `fw9_values.json` with those values populated. Example:
+
+```json
+[
+  {
+    "field_id": (unique ID for the field),
+    "value": (The field value in its most appropriate cast, or else its raw string value)
+  },
+  ...etc...
+]
 ```
 
 ## Field Type Mapping
@@ -295,9 +318,9 @@ For checkboxes:
 - Distinguish between label text ("Yes", "No") and the clickable checkbox squares.
 - The entry bounding box should cover ONLY the small square, not the text label.
 
-### Step 2: Create fields.json with field definitions (REQUIRED)
+### Step 2: Create *_fields.json with field definitions (REQUIRED)
 
-Create `fields.json` with field metadata and bounding boxes. **Do NOT populate entry_text.text values yet** - these will come from the Chatfield conversation.
+Create `*.fields.json` (i.e. the PDF filename with field metadata and bounding boxes. **Do NOT populate entry_text.text values yet** - these will come from the Chatfield conversation.
 
 ```json
 {
@@ -365,29 +388,36 @@ If there are errors, reanalyze the relevant fields, adjust the bounding boxes, a
 
 - If any rectangles look wrong, fix fields.json, regenerate the validation images, and verify again. Repeat this process until the bounding boxes are fully accurate.
 
-### Step 4: Generate Chatfield Interview (REQUIRED)
+### Step 4: Define Interview in Server File (REQUIRED)
 
-Generate a Chatfield interview script from your field definitions:
+Edit `Python/chatfield/server/interview.py` with Chatfield builder code based on your field definitions:
 
-```bash
-python scripts/generate_chatfield_interview_nonfillable.py fields.json interview.py
-```
+**File to edit**: `Python/chatfield/server/interview.py`
 
-**What this does**:
-- Reads `field_id`, `field_type`, and `description` from fields.json
-- Generates Chatfield interview with appropriate transformations:
-  - `field_type: "text"` → `.field("field_id")`
-  - `field_type: "checkbox"` → `.field("field_id").as_bool()`
+**Create builder code from fields.json**:
+- Read `field_id`, `field_type`, and `description` from fields.json
+- Build Chatfield interview with appropriate transformations:
+  - `field_type: "text"` → `.field("field_id").desc(...)`
+  - `field_type: "checkbox"` → `.field("field_id").as_bool().desc(...)`
   - Other types map similarly to fillable form workflow
-- Creates conversion logic to:
-  - Run Chatfield conversation
-  - Map interview results back to fields.json structure
-  - Populate `entry_text.text` values (and "X" for checked checkboxes)
-  - Accept `--fields-json` and `--output` arguments
+
+**Example**:
+```python
+interview = (chatfield()
+    .type("ApplicationForm")
+    .desc("Non-fillable PDF application")
+    .field("last_name")
+        .desc("What is your last name?")
+        .must("be your legal last name")
+    .field("is_over_18")
+        .desc("Are you over 18 years old?")
+        .as_bool()
+    .build())
+```
 
 ### Step 5: Customize Interview (RECOMMENDED)
 
-Edit `interview.py` to improve the conversational experience. **See ./chatfield.md for complete API reference.**
+Enhance the interview definition in `Python/chatfield/server/interview.py` to improve user experience. **See ./chatfield.md for complete API reference.**
 
 **Recommended improvements**:
 - Replace generic descriptions with clear questions using `.desc()`
@@ -395,27 +425,69 @@ Edit `interview.py` to improve the conversational experience. **See ./chatfield.
 - Add helpful hints with `.hint()`
 - Configure interview and participant roles with `.alice()` and `.bob()`
 
-### Step 6: Run Conversational Interview
+### Step 6: Run Chatfield Server and Capture Results
 
-Collect data through conversation:
+Start the Chatfield server subprocess to collect data via browser-based interview (same as fillable workflow):
 
-```bash
-export OPENAI_API_KEY=your-key
-python interview.py --fields-json fields.json --output fields_completed.json
+```python
+import subprocess
+import json
+
+# Start server subprocess
+proc = subprocess.Popen(
+    ["python", "-m", "chatfield.server.cli", "--port", "0"],
+    cwd="Python",
+    stdout=subprocess.PIPE,
+    stderr=subprocess.PIPE,
+    text=True
+)
+
+# Capture SERVER_READY signal from stderr
+for line in proc.stderr:
+    if line.startswith("SERVER_READY:"):
+        server_url = line.split("SERVER_READY:")[1].strip()
+        break
+
+# User completes interview in browser
+# Server auto-shuts down when done
+
+# Capture results from stdout
+stdout, stderr = proc.communicate()
+results = json.loads(stdout)  # Parse interview results
 ```
 
-**What this does**:
-- Runs Chatfield conversation to collect all field values
-- Maps interview results back to the fields.json structure
-- Populates `entry_text.text` values for each field
-- Outputs `fields_completed.json` with all data ready for annotation
+### Step 7: Map Results to fields.json and Annotate PDF
 
-### Step 7: Add annotations to the PDF
+Extract field values from server output, populate fields.json, and annotate the PDF:
 
-Use the completed fields.json to annotate the PDF:
+```python
+# Load original fields.json
+with open('fields.json', 'r') as f:
+    fields_data = json.load(f)
 
-```bash
-python scripts/fill_pdf_form_with_annotations.py input.pdf fields_completed.json output.pdf
+# Populate entry_text.text values from interview results
+for field in fields_data['form_fields']:
+    field_id = field['field_id']
+    field_value = getattr(results, field_id, None)
+
+    if field_value is not None:
+        if field['field_type'] == 'checkbox':
+            # Checkbox: add "X" if checked
+            is_checked = field_value.as_bool if hasattr(field_value, 'as_bool') else False
+            field['entry_text']['text'] = "X" if is_checked else ""
+        else:
+            # Text field: use string value
+            field['entry_text']['text'] = str(field_value)
+
+# Save completed fields.json
+with open('fields_completed.json', 'w') as f:
+    json.dump(fields_data, f, indent=2)
+
+# Annotate PDF with collected data
+subprocess.run([
+    "python", "scripts/fill_pdf_form_with_annotations.py",
+    "input.pdf", "fields_completed.json", "output.pdf"
+])
 ```
 
 ## Complete Example: Non-fillable Application Form
@@ -428,27 +500,32 @@ python scripts/convert_pdf_to_images.py application.pdf images/
 #    - field_id, field_type, description for each field
 #    - Bounding boxes (label_bounding_box, entry_bounding_box)
 #    - DO NOT populate entry_text.text values yet
-# Save as: application_fields.json
+# Save as: application.fields.json
 
 # 3. Create validation images
-python scripts/create_validation_image.py 1 application_fields.json images/page_1.png validation_1.png
+python scripts/create_validation_image.py 1 application.fields.json images/page_1.png validation_1.png
 # Repeat for each page
 
 # 4. Validate bounding boxes
 python scripts/check_bounding_boxes.py application_fields.json
 # Manually inspect validation images, fix any issues
 
-# 5. Generate Chatfield interview
-python scripts/generate_chatfield_interview_nonfillable.py application_fields.json application_interview.py
+# 5. Edit Python/chatfield/server/interview.py
+#    - Build interview from application_fields.json field definitions
+#    - Add clear descriptions and validation rules
+#    - Configure roles and traits
 
-# 6. Customize application_interview.py
-#    - Improve field descriptions
-#    - Add validation rules
-#    - Configure roles
+# 6. Start Chatfield server subprocess
+#    - Server prints SERVER_READY to stderr
+#    - Browser opens automatically
+#    - User completes interview in browser
+#    - Server auto-shuts down when done
+#    - Capture results from stdout
 
-# 7. Run conversation
-export OPENAI_API_KEY=sk-...
-python application_interview.py --fields-json application_fields.json --output application_completed.json
+# 7. Parse results and populate fields.json
+#    - Map interview results to application_fields.json
+#    - Populate entry_text.text values
+#    - Save as application_completed.json
 
 # 8. Annotate PDF
 python scripts/fill_pdf_form_with_annotations.py application.pdf application_completed.json application_filled.pdf
