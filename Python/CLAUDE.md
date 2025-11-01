@@ -81,13 +81,13 @@ Python/
 ```python
 from chatfield import chatfield
 
-interview = chatfield()\
-    .field("age")\
-    .desc("Your age")\
-    .must("be specific")\
-    .as_int()\
-    .as_lang("fr")\
-    .build()
+interview = (chatfield()
+    .field("age")
+        .desc("Your age")
+        .must("be specific")
+        .as_int()
+        .as_lang("fr")
+    .build())
 
 # After collection
 interview.age              # "25" (base string value)

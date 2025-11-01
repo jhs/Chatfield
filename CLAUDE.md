@@ -98,12 +98,12 @@ initialize → think → listen → tools → teardown
 
 ```python
 # Python
-interview = chatfield()\
-    .field("age")\
-    .desc("Your age")\
-    .must("be specific")\
-    .as_int()\
-    .build()
+interview = (chatfield()
+    .field("age")
+        .desc("Your age")
+        .must("be specific")
+        .as_int()
+    .build())
 
 # After collection
 interview.age              # "25" (string)

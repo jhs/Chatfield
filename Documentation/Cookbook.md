@@ -118,16 +118,16 @@ console.log(`Budget: ${trip.budget}`)
 ```python
 from chatfield import chatfield
 
-interview = chatfield()\
-    .type("ContactForm")\
-    .desc("Collecting contact information")\
-    .field("name")\
-    .desc("Your full name")\
-    .field("email")\
-    .desc("Your email address")\
-    .field("phone")\
-    .desc("Your phone number")\
-    .build()
+interview = (chatfield()
+    .type("ContactForm")
+    .desc("Collecting contact information")
+    .field("name")
+    .desc("Your full name")
+    .field("email")
+    .desc("Your email address")
+    .field("phone")
+    .desc("Your phone number")
+    .build())
 ```
 
 **TypeScript:**
@@ -150,12 +150,12 @@ Field descriptions guide the AI on what to ask for:
 
 **Python:**
 ```python
-interview = chatfield()\
-    .field("favorite_color")\
-        .desc("Ask about their favorite color and why they like it")\
-    .field("mood")\
-        .desc("Current emotional state")\
-    .build()
+interview = (chatfield()
+    .field("favorite_color")
+        .desc("Ask about their favorite color and why they like it")
+    .field("mood")
+        .desc("Current emotional state")
+    .build())
 ```
 
 **TypeScript:**
@@ -229,13 +229,13 @@ async function runAutomated(interview: Interview) {
 
 **Python:**
 ```python
-interview = chatfield()\
-    .field("email")\
-    .desc("Your email address")\
-        .must("be a valid email format")\
-        .must("use a professional domain")\
-        .reject("gmail, yahoo, or other free email providers")\
-    .build()
+interview = (chatfield()
+    .field("email")
+    .desc("Your email address")
+        .must("be a valid email format")
+        .must("use a professional domain")
+        .reject("gmail, yahoo, or other free email providers")
+    .build())
 ```
 
 **TypeScript:**
@@ -255,13 +255,13 @@ Hints provide guidance without being strict requirements:
 
 **Python:**
 ```python
-interview = chatfield()\
-    .field("company_name")\
-    .desc("Your company name")\
-        .must("be specific and complete")\
-        .hint("Include Inc, LLC, or other legal entity type")\
-        .hint("Use proper capitalization")\
-    .build()
+interview = (chatfield()
+    .field("company_name")
+    .desc("Your company name")
+        .must("be specific and complete")
+        .hint("Include Inc, LLC, or other legal entity type")
+        .hint("Use proper capitalization")
+    .build())
 ```
 
 **TypeScript:**
@@ -279,15 +279,15 @@ const interview = chatfield()
 
 **Python:**
 ```python
-interview = chatfield()\
-    .field("password")\
-    .desc("Create a secure password")\
-        .must("be at least 12 characters long")\
-        .must("contain uppercase, lowercase, numbers, and symbols")\
-        .reject("common passwords like 'password123'")\
-        .reject("personal information like names or birthdays")\
-        .hint("Use a passphrase with random words")\
-    .build()
+interview = (chatfield()
+    .field("password")
+    .desc("Create a secure password")
+        .must("be at least 12 characters long")
+        .must("contain uppercase, lowercase, numbers, and symbols")
+        .reject("common passwords like 'password123'")
+        .reject("personal information like names or birthdays")
+        .hint("Use a passphrase with random words")
+    .build())
 ```
 
 **TypeScript:**
@@ -307,17 +307,17 @@ const interview = chatfield()
 
 **Python:**
 ```python
-interview = chatfield()\
-    .field("phone")\
-    .desc("Your phone number")\
-        .must("be a valid US phone number")\
-        .must("include area code")\
-        .reject("international numbers")\
-    .field("zip_code")\
-    .desc("Your ZIP code")\
-        .must("be a 5-digit US ZIP code")\
-        .reject("ZIP+4 format")\
-    .build()
+interview = (chatfield()
+    .field("phone")
+    .desc("Your phone number")
+        .must("be a valid US phone number")
+        .must("include area code")
+        .reject("international numbers")
+    .field("zip_code")
+    .desc("Your ZIP code")
+        .must("be a 5-digit US ZIP code")
+        .reject("ZIP+4 format")
+    .build())
 ```
 
 **TypeScript:**
@@ -409,14 +409,14 @@ Translate responses to different languages:
 
 **Python:**
 ```python
-interview = chatfield()\
-    .field("greeting")\
-    .desc("Say hello")\
-        .as_lang('fr', "French translation")\
-        .as_lang('es', "Spanish translation")\
-        .as_lang('de', "German translation")\
-        .as_lang('ja', "Japanese translation")\
-    .build()
+interview = (chatfield()
+    .field("greeting")
+    .desc("Say hello")
+        .as_lang('fr', "French translation")
+        .as_lang('es', "Spanish translation")
+        .as_lang('de', "German translation")
+        .as_lang('ja', "Japanese translation")
+    .build())
 
 # After collection
 print(interview.greeting.as_lang_fr)  # "Bonjour"
@@ -447,14 +447,14 @@ console.log(interview.greeting.as_lang_ja)  // "こんにちは"
 
 **Python:**
 ```python
-interview = chatfield()\
-    .field("number")\
-    .desc("Pick a number")\
-        .as_int()\
-        .as_bool('even', "True if even, False if odd")\
-        .as_bool('prime', "True if prime number")\
-        .as_bool('perfect_square', "True if perfect square")\
-    .build()
+interview = (chatfield()
+    .field("number")
+    .desc("Pick a number")
+        .as_int()
+        .as_bool('even', "True if even, False if odd")
+        .as_bool('prime', "True if prime number")
+        .as_bool('perfect_square', "True if perfect square")
+    .build())
 
 # After collection
 if interview.number.as_bool_even:
@@ -489,12 +489,12 @@ Convert to 0.0-1.0 range:
 
 **Python:**
 ```python
-interview = chatfield()\
-    .field("satisfaction")\
-    .desc("Rate your satisfaction from 0-100")\
-        .as_int()\
-        .as_percent("Normalized to 0.0-1.0")\
-    .build()
+interview = (chatfield()
+    .field("satisfaction")
+    .desc("Rate your satisfaction from 0-100")
+        .as_int()
+        .as_percent("Normalized to 0.0-1.0")
+    .build())
 
 # After collection
 satisfaction_pct = interview.satisfaction.as_percent  # 0.85 for "85"
@@ -517,12 +517,12 @@ const satisfactionPct = interview.satisfaction.as_percent  // 0.85 for "85"
 
 **Python:**
 ```python
-interview = chatfield()\
-    .field("skills")\
-    .desc("List your programming skills")\
-        .as_list("Array of individual skills")\
-        .as_set("factors", "Unique skill categories")\
-    .build()
+interview = (chatfield()
+    .field("skills")
+    .desc("List your programming skills")
+        .as_list("Array of individual skills")
+        .as_set("factors", "Unique skill categories")
+    .build())
 
 # After collection
 skills_list = interview.skills.as_list  # ["Python", "JavaScript", "Go"]
@@ -547,12 +547,12 @@ const skillsSet = interview.skills.as_set_factors  // Set {"Backend", "Frontend"
 
 **Python:**
 ```python
-interview = chatfield()\
-    .field("number")\
-    .desc("Your favorite number")\
-        .as_int()\
-        .as_str('longhand', "Written out in English words")\
-    .build()
+interview = (chatfield()
+    .field("number")
+    .desc("Your favorite number")
+        .as_int()
+        .as_str('longhand', "Written out in English words")
+    .build())
 
 # After collection
 print(interview.number.as_str_longhand)  # "forty-two" for 42
@@ -577,15 +577,15 @@ Preserve conversational context and exact user quotes for detailed records:
 
 **Python:**
 ```python
-support_ticket = chatfield()\
-    .field("issue")\
-        .desc("What problem are you experiencing?")\
-        .as_quote()    # Capture exact words\
-        .as_context()  # Capture conversation context\
-    .field("impact")\
-        .desc("How is this affecting your work?")\
-        .as_quote()\
-    .build()
+support_ticket = (chatfield()
+    .field("issue")
+        .desc("What problem are you experiencing?")
+        .as_quote()    # Capture exact words
+        .as_context()  # Capture conversation context
+    .field("impact")
+        .desc("How is this affecting your work?")
+        .as_quote()
+    .build())
 
 # After collection:
 issue = support_ticket.issue                # "Cannot access dashboard"
@@ -657,17 +657,17 @@ const config = apiForm.config.as_dict  // {timeout: 30, retries: 3, debug: true}
 
 **Python:**
 ```python
-interview = chatfield()\
-    .alice()\
-        .type("Professional Recruiter")\
-        .trait("Friendly and encouraging")\
-        .trait("Asks follow-up questions")\
-    .bob()\
-        .type("Job Candidate")\
-        .trait("Nervous but prepared")\
-    .field("experience")\
-    .desc("Tell me about your work experience")\
-    .build()
+interview = (chatfield()
+    .alice()
+        .type("Professional Recruiter")
+        .trait("Friendly and encouraging")
+        .trait("Asks follow-up questions")
+    .bob()
+        .type("Job Candidate")
+        .trait("Nervous but prepared")
+    .field("experience")
+    .desc("Tell me about your work experience")
+    .build())
 ```
 
 **TypeScript:**
@@ -689,16 +689,16 @@ const interview = chatfield()
 
 **Python:**
 ```python
-interview = chatfield()\
-    .alice()\
-        .type("Server")\
-        .trait("Speaks in limericks")\
-        .trait("Enthusiastic about food")\
-    .bob()\
-        .type("Hungry Diner")\
-    .field("order")\
-    .desc("What would you like to eat?")\
-    .build()
+interview = (chatfield()
+    .alice()
+        .type("Server")
+        .trait("Speaks in limericks")
+        .trait("Enthusiastic about food")
+    .bob()
+        .type("Hungry Diner")
+    .field("order")
+    .desc("What would you like to eat?")
+    .build())
 ```
 
 **TypeScript:**
@@ -721,17 +721,17 @@ Traits that activate based on conversation content:
 
 **Python:**
 ```python
-interview = chatfield()\
-    .alice()\
-        .type("Technology Consultant")\
-    .bob()\
-        .type("Product Owner")\
-        .trait.possible("career-changer", "mentions different industry")\
-        .trait.possible("senior-level", "10+ years experience")\
-        .trait.possible("startup-founder", "mentions founding a company")\
-    .field("background")\
-    .desc("Tell me about your background")\
-    .build()
+interview = (chatfield()
+    .alice()
+        .type("Technology Consultant")
+    .bob()
+        .type("Product Owner")
+        .trait.possible("career-changer", "mentions different industry")
+        .trait.possible("senior-level", "10+ years experience")
+        .trait.possible("startup-founder", "mentions founding a company")
+    .field("background")
+    .desc("Tell me about your background")
+    .build())
 
 # After collection, check activated traits
 traits = interview._chatfield['roles']['bob'].get('possible_traits', {})
@@ -764,20 +764,20 @@ if (traits['career-changer']?.active) {
 
 **Python:**
 ```python
-interview = chatfield()\
-    .alice()\
-        .type("Expert Technology Consultant")\
-        .trait("Technology partner for the Product Owner")\
-        .trait("Understands business and technical requirements")\
-        .trait("Keeps things simple without overwhelming")\
-    .bob()\
-        .type("Product Owner")\
-        .trait("Not deeply technical, but has clear vision")\
-    .field("project_scope")\
-    .desc("What would you like to build?")\
-        .must("specific enough to implement")\
-        .reject("anything requiring HIPAA or SOC2 compliance")\
-    .build()
+interview = (chatfield()
+    .alice()
+        .type("Expert Technology Consultant")
+        .trait("Technology partner for the Product Owner")
+        .trait("Understands business and technical requirements")
+        .trait("Keeps things simple without overwhelming")
+    .bob()
+        .type("Product Owner")
+        .trait("Not deeply technical, but has clear vision")
+    .field("project_scope")
+    .desc("What would you like to build?")
+        .must("specific enough to implement")
+        .reject("anything requiring HIPAA or SOC2 compliance")
+    .build())
 ```
 
 **TypeScript:**
@@ -808,15 +808,15 @@ const interview = chatfield()
 
 **Python:**
 ```python
-interview = chatfield()\
-    .field("main_course")\
-    .desc("Choose your main course")\
+interview = (chatfield()
+    .field("main_course")
+    .desc("Choose your main course")
         .as_one("selection",
                 "Grilled Salmon",
                 "Veggie Pasta",
                 "Beef Tenderloin",
-                "Chicken Parmesan")\
-    .build()
+                "Chicken Parmesan")
+    .build())
 ```
 
 **TypeScript:**
@@ -836,14 +836,14 @@ const interview = chatfield()
 
 **Python:**
 ```python
-interview = chatfield()\
-    .field("number")\
-    .desc("Your favorite number")\
+interview = (chatfield()
+    .field("number")
+    .desc("Your favorite number")
         .as_maybe('special_property',
                   "fibonacci",
                   "perfect number",
-                  "triangular number")\
-    .build()
+                  "triangular number")
+    .build())
 ```
 
 **TypeScript:**
@@ -862,13 +862,13 @@ const interview = chatfield()
 
 **Python:**
 ```python
-interview = chatfield()\
-    .field("number")\
-    .desc("Your favorite number")\
+interview = (chatfield()
+    .field("number")
+    .desc("Your favorite number")
         .as_multi('math_properties',
                   "even", "odd", "prime",
-                  "composite", "square", "cubic")\
-    .build()
+                  "composite", "square", "cubic")
+    .build())
 ```
 
 **TypeScript:**
@@ -886,12 +886,12 @@ const interview = chatfield()
 
 **Python:**
 ```python
-interview = chatfield()\
-    .field("number")\
-    .desc("Your favorite number")\
+interview = (chatfield()
+    .field("number")
+    .desc("Your favorite number")
         .as_any('cultural_significance',
-                "lucky", "unlucky", "sacred", "mystical")\
-    .build()
+                "lucky", "unlucky", "sacred", "mystical")
+    .build())
 ```
 
 **TypeScript:**
@@ -910,18 +910,18 @@ Fields tracked internally but never mentioned in conversation:
 
 **Python:**
 ```python
-interview = chatfield()\
-    .field("experience")\
-    .desc("Tell me about your experience")\
-    .field("has_mentored")\
-    .desc("Shows evidence of mentoring others")\
-        .confidential()\
-        .as_bool()\
-    .field("shows_leadership")\
-    .desc("Demonstrates leadership")\
-        .confidential()\
-        .as_bool()\
-    .build()
+interview = (chatfield()
+    .field("experience")
+    .desc("Tell me about your experience")
+    .field("has_mentored")
+    .desc("Shows evidence of mentoring others")
+        .confidential()
+        .as_bool()
+    .field("shows_leadership")
+    .desc("Demonstrates leadership")
+        .confidential()
+        .as_bool()
+    .build())
 
 # After collection
 if interview.has_mentored.as_bool:
@@ -955,19 +955,19 @@ Fields assessed at the end of the conversation:
 
 **Python:**
 ```python
-interview = chatfield()\
-    .field("experience")\
-    .desc("Your work experience")\
-    .field("skills")\
-    .desc("Your technical skills")\
-    .field("preparedness")\
-    .desc("Overall preparation level")\
-        .conclude()\
+interview = (chatfield()
+    .field("experience")
+    .desc("Your work experience")
+    .field("skills")
+    .desc("Your technical skills")
+    .field("preparedness")
+    .desc("Overall preparation level")
+        .conclude()
         .as_one.assessment("unprepared",
                           "somewhat prepared",
                           "well prepared",
-                          "exceptionally prepared")\
-    .build()
+                          "exceptionally prepared")
+    .build())
 ```
 
 **TypeScript:**
@@ -991,17 +991,17 @@ const interview = chatfield()
 
 **Python:**
 ```python
-interview = chatfield()\
-    .field("age")\
-    .desc("Your age")\
-        .must("be between 18 and 120")\
-        .as_int()\
-        .as_float("Age as decimal")\
-        .as_lang('fr', "French")\
-        .as_lang('es', "Spanish")\
-        .as_bool('senior', "True if 65 or older")\
-        .as_str('decade', "Which decade (20s, 30s, etc)")\
-    .build()
+interview = (chatfield()
+    .field("age")
+    .desc("Your age")
+        .must("be between 18 and 120")
+        .as_int()
+        .as_float("Age as decimal")
+        .as_lang('fr', "French")
+        .as_lang('es', "Spanish")
+        .as_bool('senior', "True if 65 or older")
+        .as_str('decade', "Which decade (20s, 30s, etc)")
+    .build())
 
 # After collection - all transformations available
 print(interview.age)              # "42" (string)
@@ -1043,32 +1043,32 @@ console.log(interview.age.as_str_decade)  // "40s"
 
 **Python:**
 ```python
-interview = chatfield()\
-    .type("TechWorkRequest")\
-    .desc("Gathering project requirements")\
-    .alice()\
-        .type("Expert Technology Consultant")\
-    .bob()\
-        .type("Product Owner")\
-    .field("project_name")\
-    .desc("Project name")\
-        .hint("Short and memorable")\
-    .field("scope")\
-    .desc("What to build")\
-        .must("specific enough to implement")\
-        .reject("anything requiring HIPAA compliance")\
-    .field("target_users")\
-    .desc("Who will use this")\
-        .must("specific user groups or roles")\
-    .field("timeline")\
-    .desc("Completion deadline")\
-        .must("specific timeframe or deadline")\
-        .reject("ASAP without specific dates")\
-    .field("budget")\
-    .desc("Project budget")\
-        .must("specific amount")\
-        .as_int("USD amount, or -1 if unlimited")\
-    .build()
+interview = (chatfield()
+    .type("TechWorkRequest")
+    .desc("Gathering project requirements")
+    .alice()
+        .type("Expert Technology Consultant")
+    .bob()
+        .type("Product Owner")
+    .field("project_name")
+    .desc("Project name")
+        .hint("Short and memorable")
+    .field("scope")
+    .desc("What to build")
+        .must("specific enough to implement")
+        .reject("anything requiring HIPAA compliance")
+    .field("target_users")
+    .desc("Who will use this")
+        .must("specific user groups or roles")
+    .field("timeline")
+    .desc("Completion deadline")
+        .must("specific timeframe or deadline")
+        .reject("ASAP without specific dates")
+    .field("budget")
+    .desc("Project budget")
+        .must("specific amount")
+        .as_int("USD amount, or -1 if unlimited")
+    .build())
 ```
 
 **TypeScript:**
@@ -1105,41 +1105,41 @@ const interview = chatfield()
 
 **Python:**
 ```python
-interview = chatfield()\
-    .type("Restaurant Order")\
-    .alice()\
-        .type("Server")\
-        .trait("Speaks in limericks")\
-    .bob()\
-        .type("Diner")\
-        .trait("First-time visitor")\
-    .field("starter")\
-    .desc("Starter or appetizer")\
+interview = (chatfield()
+    .type("Restaurant Order")
+    .alice()
+        .type("Server")
+        .trait("Speaks in limericks")
+    .bob()
+        .type("Diner")
+        .trait("First-time visitor")
+    .field("starter")
+    .desc("Starter or appetizer")
         .as_one("selection",
                 "Caesar Salad",
                 "Shrimp Cocktail",
-                "Garden Salad")\
-    .field("main_course")\
-    .desc("Main course")\
+                "Garden Salad")
+    .field("main_course")
+    .desc("Main course")
         .as_one("selection",
                 "Grilled Salmon",
                 "Veggie Pasta",
-                "Beef Tenderloin")\
-    .field("dessert")\
-    .desc("Dessert selection")\
+                "Beef Tenderloin")
+    .field("dessert")
+    .desc("Dessert selection")
         .as_one("selection",
                 "Cheesecake",
                 "Chocolate Mousse",
-                "Fruit Sorbet")\
-    .field("hurry")\
-    .desc("Wants quick service")\
-        .confidential()\
-        .as_bool()\
-    .field("politeness")\
-    .desc("Politeness level")\
-        .conclude()\
-        .as_percent()\
-    .build()
+                "Fruit Sorbet")
+    .field("hurry")
+    .desc("Wants quick service")
+        .confidential()
+        .as_bool()
+    .field("politeness")
+    .desc("Politeness level")
+        .conclude()
+        .as_percent()
+    .build())
 ```
 
 **TypeScript:**
@@ -1185,45 +1185,45 @@ const interview = chatfield()
 
 **Python:**
 ```python
-interview = chatfield()\
-    .type("JobInterview")\
-    .desc("Software Engineer position")\
-    .alice()\
-        .type("Hiring Manager")\
-        .trait("Professional and encouraging")\
-    .bob()\
-        .type("Candidate")\
-        .trait.possible("career-changer", "mentions different industry")\
-        .trait.possible("senior-level", "10+ years experience")\
-    .field("experience")\
-    .desc("Relevant experience")\
-        .must("specific examples or projects")\
-    .field("technical_skills")\
-    .desc("Programming languages and tech")\
-        .hint("Mention specific languages and frameworks")\
-    .field("has_mentored")\
-    .desc("Evidence of mentoring")\
-        .confidential()\
-        .as_bool()\
-    .field("shows_leadership")\
-    .desc("Leadership qualities")\
-        .confidential()\
-        .as_bool()\
-    .field("preparedness")\
-    .desc("Preparation level")\
-        .conclude()\
+interview = (chatfield()
+    .type("JobInterview")
+    .desc("Software Engineer position")
+    .alice()
+        .type("Hiring Manager")
+        .trait("Professional and encouraging")
+    .bob()
+        .type("Candidate")
+        .trait.possible("career-changer", "mentions different industry")
+        .trait.possible("senior-level", "10+ years experience")
+    .field("experience")
+    .desc("Relevant experience")
+        .must("specific examples or projects")
+    .field("technical_skills")
+    .desc("Programming languages and tech")
+        .hint("Mention specific languages and frameworks")
+    .field("has_mentored")
+    .desc("Evidence of mentoring")
+        .confidential()
+        .as_bool()
+    .field("shows_leadership")
+    .desc("Leadership qualities")
+        .confidential()
+        .as_bool()
+    .field("preparedness")
+    .desc("Preparation level")
+        .conclude()
         .as_one.assessment("unprepared",
                           "somewhat prepared",
                           "well prepared",
-                          "exceptionally prepared")\
-    .field("cultural_fit")\
-    .desc("Cultural fit assessment")\
-        .conclude()\
+                          "exceptionally prepared")
+    .field("cultural_fit")
+    .desc("Cultural fit assessment")
+        .conclude()
         .as_one.assessment("poor fit",
                           "potential fit",
                           "good fit",
-                          "excellent fit")\
-    .build()
+                          "excellent fit")
+    .build())
 ```
 
 **TypeScript:**
@@ -1991,12 +1991,12 @@ const tracker = new CostTracker()
 ```python
 import json
 
-interview = chatfield()\
-    .field("name")\
-    .desc("Your name")\
-        .must("include first and last")\
-        .as_string()\
-    .build()
+interview = (chatfield()
+    .field("name")
+    .desc("Your name")
+        .must("include first and last")
+        .as_string()
+    .build())
 
 # View full structure
 print(json.dumps(interview._chatfield, indent=2))

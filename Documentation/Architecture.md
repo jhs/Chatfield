@@ -137,15 +137,15 @@ ChatfieldBuilder (root)
 #### Usage Example
 
 ```python
-interview = chatfield()\
-    .type('Job Application')\
-    .alice().type('Interviewer').trait('professional')\
-    .field('name').desc('Your full name')\
-        .must('include first and last')\
-    .field('years_exp').as_int()\
-        .must('be between 0 and 50')\
-    .field('languages').as_multi('language', 'Python', 'JavaScript', 'Go')\
-    .build()
+interview = (chatfield()
+    .type('Job Application')
+    .alice().type('Interviewer').trait('professional')
+    .field('name').desc('Your full name')
+        .must('include first and last')
+    .field('years_exp').as_int()
+        .must('be between 0 and 50')
+    .field('languages').as_multi('language', 'Python', 'JavaScript', 'Go')
+    .build())
 ```
 
 ### 3. Interviewer Class

@@ -11,21 +11,21 @@ Both Python and TypeScript implementations use a fluent builder pattern as the p
 ```python
 from chatfield import chatfield
 
-interview = chatfield()\
-    .type("Contact Form")\
-    .desc("Collect contact information")\
-    .field("name")\
-        .desc("Your full name")\
-        .must("include first and last")\
-        .hint("Format: First Last")\
-    .field("email")\
-        .desc("Email address")\
-        .must("be valid email format")\
-    .field("age")\
-        .desc("Your age")\
-        .as_int()\
-        .must("be between 18 and 120")\
-    .build()
+interview = (chatfield()
+    .type("Contact Form")
+    .desc("Collect contact information")
+    .field("name")
+        .desc("Your full name")
+        .must("include first and last")
+        .hint("Format: First Last")
+    .field("email")
+        .desc("Email address")
+        .must("be valid email format")
+    .field("age")
+        .desc("Your age")
+        .as_int()
+        .must("be between 18 and 120")
+    .build())
 
 # After collection
 interview.name        # string value
@@ -118,13 +118,13 @@ result.age         // number (transformed)
 
 ```python
 # During definition
-interview = chatfield()\
-    .field("age")\
-    .desc("Your age")\
-    .must("be specific")\
-    .as_int()\
-    .as_lang("fr")\
-    .build()
+interview = (chatfield()
+    .field("age")
+        .desc("Your age")
+        .must("be specific")
+        .as_int()
+        .as_lang("fr")
+    .build())
 
 # After collection (via FieldProxy)
 interview.age              # "25" (base string value)
@@ -149,24 +149,24 @@ field.asContext            // Conversational context
 ### Python
 
 ```python
-interview = chatfield()\
-    .alice()\
-        .type("Interviewer")\
-        .trait("friendly and professional")\
-    .bob()\
-        .type("Job Candidate")\
-    .field("desired_position")\
-        .desc("What position are you applying for?")\
-        .must("include company name")\
-        .must("mention specific role")\
-    .field("years_experience")\
-        .desc("Years of relevant experience")\
-        .as_int()\
-        .must("be realistic number")\
-    .field("languages")\
-        .desc("Programming languages you know")\
-        .as_multi(["Python", "JavaScript", "Go", "Rust"])\
-    .build()
+interview = (chatfield()
+    .alice()
+        .type("Interviewer")
+        .trait("friendly and professional")
+    .bob()
+        .type("Job Candidate")
+    .field("desired_position")
+        .desc("What position are you applying for?")
+        .must("include company name")
+        .must("mention specific role")
+    .field("years_experience")
+        .desc("Years of relevant experience")
+        .as_int()
+        .must("be realistic number")
+    .field("languages")
+        .desc("Programming languages you know")
+        .as_multi(["Python", "JavaScript", "Go", "Rust"])
+    .build())
 ```
 
 ### TypeScript
