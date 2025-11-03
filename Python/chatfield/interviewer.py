@@ -554,7 +554,7 @@ class Interviewer:
         field_definition = create_model(
             field_name,
             __doc__= chatfield['desc'],
-            value  = (str, Field(title=f'Natural Value', description=f'The most typical valid representation of a {interview._name} {field_name}')),
+            value  = (str, Field(title=f'Natural Value', description=f'The most typical valid representation of a {interview._name} {field_name}. Use empty string "" if user wants to skip/leave blank, null if not yet discussed.')),
             **casts_definitions,
         )
         return field_definition

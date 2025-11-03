@@ -996,13 +996,13 @@ export class Interviewer {
 
   private mkFieldDefinition(interview: Interview, fieldName: string, chatfield: any): z.ZodTypeAny {
     const castsDefinitions = this.mkCastsDefinitions(chatfield)
-    
+
     // Build the Zod schema for this field
     const fieldSchema = z.object({
-      value: z.string().describe(`The most typical valid representation of a ${interview._name} ${fieldName}`),
+      value: z.string().describe(`The most typical valid representation of a ${interview._name} ${fieldName}. Use empty string "" if user wants to skip/leave blank, null if not yet discussed.`),
       ...castsDefinitions
     }).describe(chatfield.desc)
-    
+
     return fieldSchema
   }
   
