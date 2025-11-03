@@ -49,6 +49,33 @@ PDF forms are often complex, print-oriented documents with specific layouts and 
 | Date Field | `.field().must('be a valid date in MM/DD/YYYY format')` |
 | Numeric Field | `.field().as_int()` or `.as_float()` |
 
+### Handling Optional Fields
+
+**IMPORTANT: Chatfield does not have an `.optional()` method.** When a PDF form field is marked as optional:
+
+1. **For text fields**: Describe the field as optional in `.desc()` or `.hint()`:
+   ```python
+   .field("middle_name")
+       .desc("Middle name (optional)")
+   ```
+
+2. **For choice fields**: Use optional cardinality methods:
+   - `.as_maybe()` - select zero or one option
+   - `.as_any()` - select zero or more options
+
+3. **Avoid strict validation on optional fields**: Don't use `.must()` rules that would fail on empty responses
+
+4. **The LLM understands optionality**: If you clearly describe a field as optional, the conversational agent will naturally allow users to skip it
+
+**Example**:
+```python
+.field("business_name")
+    .desc("Business name (leave blank if same as legal name)")
+.field("preferred_contact")
+    .desc("Preferred contact method (optional)")
+    .as_maybe("method", "email", "phone", "mail")
+```
+
 ## Workflow
 
 1. **Extract PDF metadata**: Use PDF parsing tools to extract field names, types, and properties
