@@ -100,7 +100,7 @@ This creates a JSON file containing field metadata in this format:
 
 Read the created `<basename>.form.json` file to learn and understand this form definition.
 
-Next, define that form as a Chatfield Interview object by editing `Python/chatfield/server/interview.py` and rewriting the builder code to define `interview` to be identical to the form definition from `<basename>.form.json`. For example:
+Next, define that form as a Chatfield Interview object by editing `Python/chatfield/server/interview.py`. Defining the `interview` to be identical to the form definition from `<basename>.form.json` within the "EDITABLE ZONE" BEGIN and END markers. For example:
 
 ```python
 interview = (chatfield()
