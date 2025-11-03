@@ -193,7 +193,10 @@ export class Interview {
       } else {
         // Field is a proxy - print the value and its transformations
         lines.push(`  ${fieldName}: ${JSON.stringify(String(proxy))}`)
-        lines.push(proxy._pretty())
+        const pretty = proxy._pretty()
+        if (pretty) {
+          lines.push(pretty)
+        }
       }
     }
 

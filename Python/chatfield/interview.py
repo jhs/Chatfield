@@ -318,7 +318,9 @@ class Interview:
                 # field is a proxy
                 # llm_value = chatfield['value']
                 lines.append(f'  {field_name}: {proxy!r}')
-                lines.append(proxy._pretty())
+                pretty = proxy._pretty()
+                if pretty:
+                    lines.append(pretty)
         return '\n'.join(lines)
     
     @property
