@@ -91,6 +91,8 @@ RoleBuilder methods:
 .field("email").desc("What is your email address?")
 ```
 
+**Important**: All fields are mandatory to populate (must be non-`None` for interview to be "done"), but field content can be empty strings `""`. Distinction: not yet discussed (`None`) vs. explicitly left blank (`""`). Exceptions: `.as_one()`, `.as_multi()`, and fields with strict validation require non-empty values.
+
 ### Validation Specifications
 
 **`.must(requirement: str)`** - Requirement LLM enforces (AND logic for multiple)
@@ -143,21 +145,23 @@ LLM computes transformations **during** collection. Access via `interview.field.
 
 ### Choice Cardinality
 
-**`.as_one(*choices)`** - Exactly one (required)
-**`.as_maybe(*choices)`** - Zero or one (optional)
+**`.as_one(*choices)`** - Exactly one (required selection)
+**`.as_maybe(*choices)`** - Zero or one (can be left blank)
 **`.as_multi(*choices)`** - One or more (at least one required)
-**`.as_any(*choices)`** - Zero or more (all optional)
+**`.as_any(*choices)`** - Zero or more (can be left blank)
 
 ```python
 .field("tax_class")
-    .as_one("Individual", "C Corp", "S Corp", "Partnership")
+    .as_one("Individual", "C Corp", "S Corp", "Partnership")  # Must select one
 .field("dietary")
-    .as_maybe("Vegetarian", "Vegan", "Gluten-free", "None")
+    .as_maybe("Vegetarian", "Vegan", "Gluten-free", "None")  # Can leave blank
 .field("languages")
-    .as_multi("Python", "JavaScript", "Go", "Rust")
+    .as_multi("Python", "JavaScript", "Go", "Rust")  # Must select at least one
 .field("interests")
-    .as_any("ML", "Web Dev", "DevOps", "Security")
+    .as_any("ML", "Web Dev", "DevOps", "Security")  # Can leave blank
 ```
+
+**Note**: For optional non-choice fields, optionality is communicated through `.desc()` (e.g., "Middle name (optional)") and by avoiding strict validation.
 
 ### Build
 

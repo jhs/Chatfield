@@ -253,6 +253,74 @@ Chatfield automatically maps PDF field types to appropriate conversational patte
 | Radio Group | `.as_one("opt1", "opt2", ...)` | Presents choices, ensures one selection | "Individual, C Corp, or Partnership?" |
 | Dropdown/Choice | `.as_one("choice1", ...)` | Presents options from PDF metadata | "Select your state" |
 
+## Understanding Optional Fields
+
+**Critical Distinction**: In Chatfield, all fields are **mandatory to discuss** but field **content can be optional**.
+
+### Mandatory vs. Optional Concepts
+
+1. **Field Presence (Mandatory)**: All defined fields must be populated (non-`None`) for an interview to be "done"
+2. **Field Content (Optional)**: Fields can contain empty strings `""` or other "blank" values
+3. **Key Distinction**: Not yet discussed (`None`) vs. explicitly left blank (`""`)
+
+### Exceptions - Truly Mandatory Content
+
+These field types require non-empty values:
+- **`.as_one()`** - Must select exactly one choice
+- **`.as_multi()`** - Must select at least one choice
+- **Fields with strict validation** - e.g., `.must("be a valid email")` requires actual content
+
+### Handling Optional PDF Form Fields
+
+When a PDF form field is marked "optional", follow this process:
+
+1. **Avoid strict validation** - Don't use `.must()` rules that would fail on empty strings:
+   ```python
+   # ❌ Bad - rejects empty values
+   .field("middle_name")
+       .desc("Middle name (optional)")
+       .must("be at least 2 characters")
+
+   # ✅ Good - allows empty values
+   .field("middle_name")
+       .desc("Middle name (optional)")
+   ```
+
+2. **Describe as optional in `.desc()`**:
+   ```python
+   .field("phone_extension")
+       .desc("Phone extension (optional, leave blank if none)")
+   ```
+
+3. **Configure Alice to record blanks** - Give Alice a trait to handle optional fields:
+   ```python
+   .alice()
+       .type("Form Assistant")
+       .trait("professional and accurate")
+       .trait("records optional fields as empty string when user indicates or implies no answer")
+   ```
+
+**Complete Example**:
+```python
+interview = (chatfield()
+    .alice()
+        .type("Tax Form Assistant")
+        .trait("records optional fields as empty string when explicitly or implicitly left blank by the user")
+    .field("legal_name")
+        .desc("Full legal name")
+        .must("match your tax return exactly")  # Mandatory content
+    .field("middle_name")
+        .desc("Middle name (optional)")  # Optional content - can be ""
+    .field("business_name")
+        .desc("Business name (optional, leave blank if same as legal name)")
+    .field("preferred_contact")
+        .desc("Preferred contact method (optional)")
+        .as_maybe("method", "email", "phone", "mail")  # Optional selection
+    .build())
+```
+
+**Result**: All four fields must be discussed and populated, but `middle_name`, `business_name`, and possibly `preferred_contact` can contain empty values.
+
 ## Advanced Chatfield Features
 
 Chatfield supports many advanced features for sophisticated form workflows:
