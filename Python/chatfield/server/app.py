@@ -67,6 +67,32 @@ class ChatResponse(BaseModel):
 app = FastAPI(title="Chatfield Server")
 
 
+def handle_shutdown_signal(signum, frame):
+    """Handle shutdown signals (SIGINT/SIGTERM) gracefully."""
+    global current_session
+
+    print(f"\n\nReceived signal {signum}, shutting down...", file=sys.stderr, flush=True)
+
+    if current_session:
+        try:
+            results = current_session.get_results()
+            print(f'\n------------ Pretty Print Output ---------------', flush=True)
+            print(results, flush=True)
+            print(f'------------------------------------------------', flush=True)
+            print(f"Interview data printed (may be incomplete)", file=sys.stderr, flush=True)
+        except Exception as e:
+            print(f"Error printing results: {e}", file=sys.stderr, flush=True)
+    else:
+        print("No active interview session", file=sys.stderr, flush=True)
+
+    sys.exit(0)
+
+
+# Register signal handlers for graceful shutdown
+signal.signal(signal.SIGINT, handle_shutdown_signal)
+signal.signal(signal.SIGTERM, handle_shutdown_signal)
+
+
 async def shutdown_server():
     """Shutdown the server gracefully after a brief delay."""
     await asyncio.sleep(0.5)  # Allow response to be sent
