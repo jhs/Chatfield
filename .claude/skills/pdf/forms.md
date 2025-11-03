@@ -52,6 +52,7 @@ This creates a JSON file containing field metadata in this format:
     "page": (page number, 1-based),
     "rect": ([left, bottom, right, top] bounding box in PDF coordinates, y=0 is the bottom of the page),
     "type": ("text", "checkbox", "radio_group", or "choice"),
+    "tooltip": (optional: tooltip text from PDF field metadata, if present)
   },
   // Checkboxes have "checked_value" and "unchecked_value" properties:
   {
@@ -60,12 +61,14 @@ This creates a JSON file containing field metadata in this format:
     "type": "checkbox",
     "checked_value": (Set the field to this value to check the checkbox),
     "unchecked_value": (Set the field to this value to uncheck the checkbox),
+    "tooltip": (optional: tooltip text, if present)
   },
   // Radio groups have a "radio_options" list with the possible choices.
   {
     "field_id": (unique ID for the field),
     "page": (page number, 1-based),
     "type": "radio_group",
+    "tooltip": (optional: tooltip text, if present),
     "radio_options": [
       {
         "value": (set the field to this value to select this radio option),
@@ -79,6 +82,7 @@ This creates a JSON file containing field metadata in this format:
     "field_id": (unique ID for the field),
     "page": (page number, 1-based),
     "type": "choice",
+    "tooltip": (optional: tooltip text, if present),
     "choice_options": [
       {
         "value": (set the field to this value to select this option),
@@ -93,6 +97,7 @@ This creates a JSON file containing field metadata in this format:
 **Key Information Extracted**:
 - Field IDs and types (text, checkbox, radio_group, choice)
 - Page numbers and coordinates
+- **Tooltips** (optional): User-facing guidance text embedded in PDF field metadata
 - For checkboxes: checked/unchecked values
 - For radio/choice fields: available options
 
@@ -132,20 +137,24 @@ The interview definition in `Python/chatfield/server/interview.py` is fully cust
 **Recommended customizations**:
 - **Clear descriptions**: Use `.desc("What is your Social Security Number?")` instead of field IDs
 - **Helpful context**: Add `.hint("Most individuals select 'Individual/sole proprietor'")`
+- **Use PDF tooltips**: If a field has a `tooltip` in the `.form.json`, use it as `.hint()` text prefixed with "Tooltip: " - tooltips are user-facing guidance from the original PDF
 - **Role configuration**: Use `.alice()` with `.type()` and `.trait()` methods, configure `.bob()` similarly
 
 **Example improvements**:
 ```python
+# Example showing tooltip usage
+# If the .form.json shows: {"field_id": "ssn_field", "tooltip": "Enter 9-digit SSN"}
 interview = (chatfield()
     .type("W9TaxForm")
     .alice()
         .type("Tax Form Assistant")
         .trait("professional and accurate")
-    .field("f1_01[0]")
+    .field("ssn_field")
         .desc("What is your Social Security Number?")
-        .hint("This is a 9-digit number")
+        .hint("Tooltip: Enter 9-digit SSN")  # Prefix tooltip text with "Tooltip: "
     .field("f1_02[0]")
         .desc("What is your email address?")
+        .hint("Format: user@example.com")  # Add your own hints too
     .build())
 ```
 
