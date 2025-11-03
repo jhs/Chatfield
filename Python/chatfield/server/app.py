@@ -1,9 +1,6 @@
 """FastAPI server for Chatfield conversational data collection."""
 
 import sys
-import os
-import signal
-import asyncio
 import traceback
 from pathlib import Path
 from typing import Optional
@@ -67,39 +64,6 @@ class ChatResponse(BaseModel):
 app = FastAPI(title="Chatfield Server")
 
 
-def handle_shutdown_signal(signum, frame):
-    """Handle shutdown signals (SIGINT/SIGTERM) gracefully."""
-    global current_session
-
-    print(f"\n\nReceived signal {signum}, shutting down...", file=sys.stderr, flush=True)
-
-    if current_session:
-        try:
-            results = current_session.get_results()
-            print(f'\n------------ Pretty Print Output ---------------', flush=True)
-            print(results, flush=True)
-            print(f'------------------------------------------------', flush=True)
-            print(f"Interview data printed (may be incomplete)", file=sys.stderr, flush=True)
-        except Exception as e:
-            print(f"Error printing results: {e}", file=sys.stderr, flush=True)
-    else:
-        print("No active interview session", file=sys.stderr, flush=True)
-
-    sys.exit(0)
-
-
-# Register signal handlers for graceful shutdown
-signal.signal(signal.SIGINT, handle_shutdown_signal)
-signal.signal(signal.SIGTERM, handle_shutdown_signal)
-
-
-async def shutdown_server():
-    """Shutdown the server gracefully after a brief delay."""
-    await asyncio.sleep(0.5)  # Allow response to be sent
-    print("Shutting down server...", file=sys.stderr, flush=True)
-    os.kill(os.getpid(), signal.SIGTERM)
-
-
 # Global exception handler - prints full tracebacks to stderr
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
@@ -159,17 +123,9 @@ async def chat(request: ChatRequest):
         result = ChatResponse(response=response, done=done)
 
         if done:
-            # Get pretty-printed results
+            # Include results in response for API consumers
             results = current_session.get_results()
             result.results = results
-
-            print(f'------------ Pretty Print Output ---------------')
-            print(results)
-            print(f'------------------------------------------------', flush=True)
-            print(f"Interview completed", file=sys.stderr, flush=True)
-
-            # Trigger server shutdown after sending response
-            asyncio.create_task(shutdown_server())
 
         return result
     except Exception as e:

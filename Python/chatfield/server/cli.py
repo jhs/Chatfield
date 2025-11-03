@@ -1,11 +1,14 @@
 """CLI entry point for Chatfield FastAPI server."""
 
-import sys
 import os
-import argparse
+import sys
+import signal
 import socket
 import logging
+import uvicorn
+import argparse
 
+from . import app
 
 def find_free_port():
     """Find a free port on localhost."""
@@ -14,6 +17,21 @@ def find_free_port():
         s.listen(1)
         port = s.getsockname()[1]
     return port
+
+
+def print_interview_results():
+    """Print interview results with consistent formatting."""
+    # Access the server's global session
+    if app.current_session:
+        try:
+            results = app.current_session.get_results()
+            print(f'------------ Pretty Print Output ---------------', flush=True)
+            print(results, flush=True)
+            print(f'------------------------------------------------', flush=True)
+        except Exception as e:
+            print(f"Error printing results: {e}", file=sys.stderr, flush=True)
+    else:
+        print(f"No active interview session", file=sys.stderr, flush=True)
 
 
 def main():
@@ -53,14 +71,21 @@ def main():
     pid = os.getpid()
     print(f"SERVER_READY with PID {pid}: {server_url}", file=sys.stderr, flush=True)
 
-    # Import here to avoid loading FastAPI/uvicorn if --help is used
-    import uvicorn
-    from .app import app
+    # Set up signal handlers for graceful shutdown
+    def handle_shutdown_signal(signum, frame):
+        """Handle shutdown signals (SIGINT/SIGTERM) gracefully."""
+        signal_name = signal.Signals(signum).name
+        print(f"\n\nReceived {signal_name}, shutting down...", file=sys.stderr, flush=True)
+        print_interview_results()
+        sys.exit(0)
+
+    signal.signal(signal.SIGINT, handle_shutdown_signal)
+    signal.signal(signal.SIGTERM, handle_shutdown_signal)
 
     # Run server with minimal logging
     # All logs go to stderr, stdout is reserved for interview results
     uvicorn.run(
-        app,
+        app.app,
         host=args.host,
         port=port,
         log_level="warning",  # Minimal logging
