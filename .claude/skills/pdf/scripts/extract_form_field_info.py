@@ -47,6 +47,12 @@ def make_field_dict(field, field_id):
         } for state in states]
     else:
         field_dict["type"] = f"unknown ({ft})"
+
+    # Extract tooltip (TU = tooltip/user-facing text)
+    tooltip = field.get('/TU')
+    if tooltip:
+        field_dict["tooltip"] = tooltip
+
     return field_dict
 
 
