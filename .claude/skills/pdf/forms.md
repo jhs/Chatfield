@@ -105,7 +105,13 @@ This creates a JSON file containing field metadata in this format:
 
 Read the created `<basename>.form.json` file to learn and understand this form definition.
 
-Next, define that form as a Chatfield Interview object by editing `Python/chatfield/server/interview.py`. Defining the `interview` to be identical to the form definition from `<basename>.form.json` within the "EDITABLE ZONE" BEGIN and END markers. For example:
+Next, define that form as a Chatfield Interview object by editing `Python/chatfield/server/interview.py`. Defining the `interview` to be identical to the form definition from `<basename>.form.json` within the "EDITABLE ZONE" BEGIN and END markers.
+
+**REQUIRED: Always configure Alice and Bob roles** with these traits:
+- **Alice**: Uses plain language when asking questions, converts responses to valid form data
+- **Bob**: Speaks colloquially, needs help converting plain language to form format
+
+For example:
 
 ```python
 interview = (chatfield()
@@ -113,7 +119,11 @@ interview = (chatfield()
     .desc("IRS Form W-9")
     .alice()
         .type("Tax Form Assistant")
-        .trait("professional and accurate")
+        .trait("uses plain language when asking questions rather than strict field format rules")
+        .trait("converts received plain language into the valid form data")
+    .bob()
+        .type("Person completing W-9")
+        .trait("speaks colloquially and plainly, needs help converting to the form format")
     .field("topmostSubform[0].Page1[0].f1_01[0]")
         .desc("What is your full legal name?")
         .must("match the name on your tax return exactly")
@@ -134,27 +144,60 @@ interview = (chatfield()
 
 The interview definition in `Python/chatfield/server/interview.py` is fully customizable. You should enhance it to provide better user experience. **See ./chatfield.md for complete API reference.**
 
+**Required configuration**:
+- **Alice and Bob roles**: Always configure with `.alice().type()` and `.bob().type()` plus the traits shown above
+- **Alice traits**: "uses plain language when asking questions" and "converts received plain language into valid form data"
+- **Bob traits**: "speaks colloquially and plainly, needs help converting to the form format"
+
 **Recommended customizations**:
 - **Clear descriptions**: Use `.desc("What is your Social Security Number?")` instead of field IDs
 - **Helpful context**: Add `.hint("Most individuals select 'Individual/sole proprietor'")`
 - **Use PDF tooltips**: If a field has a `tooltip` in the `.form.json`, use it as `.hint()` text prefixed with "Tooltip: " - tooltips are user-facing guidance from the original PDF
-- **Role configuration**: Use `.alice()` with `.type()` and `.trait()` methods, configure `.bob()` similarly
+- **Roll-up related fields**: When a PDF splits one logical value into multiple fields (e.g., SSN prefix/middle/suffix or DOB year/month/day), use `.hint()` to ask once and populate all parts:
+  - First field: `.desc("What is your Social Security Number?").hint("Ask for the full SSN, then populate this field with the first 3 digits")`
+  - Other fields: `.desc("SSN middle digits").hint("Populate from the SSN asked earlier")`
+- **Additional traits**: Add context-specific traits (e.g., "professional and accurate" for tax forms, "records optional fields as empty string when user indicates or implies no answer")
 
 **Example improvements**:
 ```python
-# Example showing tooltip usage
-# If the .form.json shows: {"field_id": "ssn_field", "tooltip": "Enter 9-digit SSN"}
+# Example showing complete role configuration, tooltip usage, and roll-up pattern
 interview = (chatfield()
     .type("W9TaxForm")
     .alice()
         .type("Tax Form Assistant")
-        .trait("professional and accurate")
-    .field("ssn_field")
+        .trait("uses plain language when asking questions rather than strict field format rules")
+        .trait("converts received plain language into the valid form data")
+        .trait("professional and accurate")  # Additional context-specific trait
+        .trait("records optional fields as empty string when user indicates or implies no answer")
+    .bob()
+        .type("Person completing W-9")
+        .trait("speaks colloquially and plainly, needs help converting to the form format")
+
+    # Roll-up pattern: Ask for SSN once, populate three separate PDF fields
+    .field("ssn_prefix")
         .desc("What is your Social Security Number?")
-        .hint("Tooltip: Enter 9-digit SSN")  # Prefix tooltip text with "Tooltip: "
-    .field("f1_02[0]")
+        .hint("Ask for the full SSN, then populate this field with the first 3 digits")
+    .field("ssn_middle")
+        .desc("SSN middle digits")
+        .hint("Populate this with digits 4-5 from the SSN asked earlier")
+    .field("ssn_suffix")
+        .desc("SSN last digits")
+        .hint("Populate this with the last 4 digits from the SSN asked earlier")
+
+    # Roll-up pattern: Ask for date of birth once, populate separate year/month/day fields
+    .field("dob_month")
+        .desc("What is your date of birth?")
+        .hint("Ask for the full date of birth, then populate this field with the month (MM)")
+    .field("dob_day")
+        .desc("Birth day")
+        .hint("Populate this with the day (DD) from the date of birth asked earlier")
+    .field("dob_year")
+        .desc("Birth year")
+        .hint("Populate this with the year (YYYY) from the date of birth asked earlier")
+
+    .field("email_field")
         .desc("What is your email address?")
-        .hint("Format: user@example.com")  # Add your own hints too
+        .hint("Format: user@example.com")
     .build())
 ```
 
@@ -314,7 +357,12 @@ When a PDF form field is marked "optional", follow this process:
 interview = (chatfield()
     .alice()
         .type("Tax Form Assistant")
+        .trait("uses plain language when asking questions rather than strict field format rules")
+        .trait("converts received plain language into the valid form data")
         .trait("records optional fields as empty string when explicitly or implicitly left blank by the user")
+    .bob()
+        .type("Person completing tax form")
+        .trait("speaks colloquially and plainly, needs help converting to the form format")
     .field("legal_name")
         .desc("Full legal name")
         .must("match your tax return exactly")  # Mandatory content

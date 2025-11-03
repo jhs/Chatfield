@@ -168,11 +168,20 @@ interview = (chatfield()
 
 Enhance the interview definition in `Python/chatfield/server/interview.py` to improve user experience. **See ./chatfield.md for complete API reference.**
 
+**Required configuration**:
+- **Alice and Bob roles**: Always configure with `.alice().type()` and `.bob().type()` plus these traits:
+  - **Alice traits**: "uses plain language when asking questions rather than strict field format rules" and "converts received plain language into the valid form data"
+  - **Bob trait**: "speaks colloquially and plainly, needs help converting to the form format"
+- **Bob type**: Use "Person completing <form name>" (e.g., "Person completing application form")
+
 **Recommended improvements**:
 - Replace generic descriptions with clear questions using `.desc()`
 - Add validation rules with `.must()` and `.reject()`
 - Add helpful hints with `.hint()`
-- Configure interview and participant roles with `.alice()` and `.bob()`
+- **Roll-up related fields**: When a form splits one logical value into multiple fields (e.g., SSN parts or DOB components), use `.hint()` to ask once and populate all:
+  - First field: `.desc("What is your Social Security Number?").hint("Ask for the full SSN, then populate this field with the first 3 digits")`
+  - Other fields: `.desc("SSN middle digits").hint("Populate from the SSN asked earlier")`
+- Add context-specific traits (e.g., "records optional fields as empty string when user indicates or implies no answer")
 
 ## Step 6: Run Chatfield Server and Capture Results
 
