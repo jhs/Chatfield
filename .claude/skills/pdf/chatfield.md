@@ -2,7 +2,7 @@
 
 ## What is Chatfield?
 
-Chatfield transforms rigid forms into natural, LLM-powered conversations. Instead of traditional form fields, you collect structured data through intelligent dialogue.
+**Chatfield** - Library for collecting structured form-like data through LLM-powered conversations.
 
 **Location**: `/home/dev/src/Chatfield/Python`
 
@@ -198,22 +198,10 @@ while not interview._done:
 - `interview.field_name` - Field access
 - `interview.field_name.as_*` - Transformations
 
-## Best Practices
-
-1. **Clear descriptions**: `.desc("What is your Social Security Number?")` not `.desc("SSN?")`
-2. **Add validation**: `.must("be valid email").reject("temporary emails")`
-3. **Helpful hints**: `.hint("5-digit ZIP or ZIP+4 format")`
-4. **Appropriate transforms**: Numbers→`.as_int()`, Booleans→`.as_bool()`, Choices→`.as_one()`
-5. **Configure roles**: `.alice().type("Assistant").trait("professional")`
-6. **Order fields logically**: Prerequisites first (natural skip if not applicable)
-7. **Special fields**: `.confidential()` for tracking, `.conclude()` for post-conversation synthesis
-
 ## Troubleshooting
 
 **Field access before collection**: Evaluates to None (check `interview._done`)
 **Special char field names**: Use bracket notation `interview["field[0].name"]` for fields with brackets, dots, or spaces
-**Validation issues**: Adjust `.must()`/`.reject()` specificity
-**LLM handles validation**: Invalid input prompts clarification automatically
 
 ## Next Steps
 
