@@ -194,7 +194,7 @@ First read the file using any tool you wish, example:
 cat fw9.form.json
 ```
 
-Next, edit edit Python/chatfield/server/interview.py
+Next, edit from this software project root: `Python/chatfield/server/interview.py`
 - Replace interview with builder code for W-9 fields
 - Add clear field descriptions
 - Add helpful hints for complex fields
