@@ -11,6 +11,13 @@
       ],
       "env": {}
     },
+    "markitdown": {
+      "type": "stdio",
+      "command": "markitdown-mcp",
+      "args": [
+      ],
+      "env": {}
+    },
     "awslabs.aws-knowledge-mcp-server": {
       "command": "uvx awslabs.aws-knowledge-mcp-server@latest",
       "env": {
