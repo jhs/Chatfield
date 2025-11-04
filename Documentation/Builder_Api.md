@@ -71,12 +71,10 @@ result.age         // number (transformed)
   - `.type(role_type)`: Set the role type
   - `.trait(trait)`: Add a personality trait
   - `.trait.apply(trait)`: Add trait that always applies
-  - `.trait.possible(key, condition)`: Add conditional trait
 - `.bob()`: Configure the interviewee role (returns RoleBuilder)
   - `.type(role_type)`: Set the role type
   - `.trait(trait)`: Add a personality trait
   - `.trait.apply(trait)`: Add trait that always applies
-  - `.trait.possible(key, condition)`: Add conditional trait
 
 ### Field Definition
 

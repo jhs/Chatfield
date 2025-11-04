@@ -4,7 +4,6 @@
  * =====================
  * 
  * This example demonstrates:
- * - Possible traits that activate based on conversation
  * - Confidential fields (has_mentored, shows_leadership)
  * - Conclusion fields (preparedness and cultural_fit assessment)
  * - Regular fields with validation (@must)
@@ -40,9 +39,7 @@ function createJobInterview() {
     
     .bob()
       .type("Candidate")
-      .trait.possible("career-changer", "mentions different industry or transferable skills")
-      .trait.possible("senior-level", "10+ years of experience or leadership roles")
-    
+
     .field("experience")
       .desc("Tell me about your relevant experience")
       .must("specific examples or projects")
@@ -211,22 +208,6 @@ function displayResults(interview: any): void {
       ? interview.technical_skills.substring(0, 100) + "..."
       : interview.technical_skills
     console.log(`  ${preview}`)
-  }
-  
-  // Check activated traits
-  const bobRole = interview._chatfield.roles.get('bob')
-  const traits: string[] = []
-  
-  if (bobRole?.possibleTraits.get('career-changer')?.active) {
-    traits.push("Career Changer")
-  }
-  if (bobRole?.possibleTraits.get('senior-level')?.active) {
-    traits.push("Senior Level")
-  }
-  
-  if (traits.length > 0) {
-    console.log("\nCandidate Profile:")
-    traits.forEach(trait => console.log(`  • ${trait}`))
   }
   
   // Confidential assessments (internal only)

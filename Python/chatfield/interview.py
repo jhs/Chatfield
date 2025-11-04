@@ -67,13 +67,11 @@ class Interview:
         roles = roles or {
             'alice': {
                 'type': 'Agent',
-                'traits': [],
-                'possible_traits': {},
+                'traits': []
             },
             'bob': {
                 'type': 'User',
-                'traits': [],
-                'possible_traits': {},
+                'traits': []
             },
         }
 
@@ -167,24 +165,18 @@ class Interview:
     
     def _get_role_info(self, role_name: str):
         """Get role information as an object with type and traits.
-        
+
         Args:
             role_name: Either 'alice' or 'bob'
-            
+
         Returns:
             SimpleNamespace with type and traits properties
         """
         role = self._chatfield.get('roles', {}).get(role_name, {})
-        
-        # Start with explicit traits
-        traits = set(role.get('traits', []))
-        
-        # Add possible traits that have been activated
-        possible_traits = role['possible_traits']
-        for trait_name, trait_info in possible_traits.items():
-            if trait_info['active']:
-                traits.add(trait_name)
-        
+
+        # Get explicit traits
+        traits = role.get('traits', [])
+
         return SimpleNamespace(
             type=role.get('type'),
             traits=list(traits)
@@ -203,17 +195,11 @@ class Interview:
     def _get_oneliner(self, role_name: str):
         """Return a one-line string of all role info, given a role name."""
         role = self._get_role(role_name)
-        # role_type = role.get('type') or 'User' if role_name == 'bob' else 'Agent'
         role_type = role['type']
-        # traits = role.get('traits', [])
         traits = role['traits']
-        # possible_traits = role.get('possible_traits', {})
-        possible_traits = role['possible_traits']
 
-        active_possible_traits = [ name for name, info in possible_traits.items() if info['active'] ]
-        all_traits = traits + active_possible_traits
-        if all_traits:
-            traits_str = ', '.join(all_traits)
+        if traits:
+            traits_str = ', '.join(traits)
             return f'{role_type} ({traits_str})'
         else:
             return role_type

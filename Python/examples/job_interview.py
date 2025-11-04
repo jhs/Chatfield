@@ -4,7 +4,6 @@ Job Interview Example
 =====================
 
 This example demonstrates:
-- Possible traits that activate based on conversation
 - Confidential fields (has_mentored)
 - Conclusion fields (preparedness assessment)
 - Regular fields with validation (@must)
@@ -41,9 +40,7 @@ def create_job_interview():
         
         .bob()
             .type("Candidate")
-            .trait.possible("career-changer", "mentions different industry or transferable skills")
-            .trait.possible("senior-level", "10+ years of experience or leadership roles")
-        
+
         .field("experience")
             .desc("Tell me about your relevant experience")
             .must("specific examples or projects")
@@ -194,16 +191,6 @@ def display_results(interview):
     
     if interview.cultural_fit:
         print(f"Cultural fit: {interview.cultural_fit}")
-    
-    # Check activated traits
-    print("\n--- Candidate Profile ---")
-    
-    traits = interview._chatfield['roles']['bob'].get('possible_traits', {})
-    if traits.get('career-changer', {}).get('active'):
-        print("• Career changer: Yes")
-    
-    if traits.get('senior-level', {}).get('active'):
-        print("• Senior level: Yes")
     
     print("=" * 60)
 

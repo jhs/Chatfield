@@ -8,20 +8,15 @@ from .interview import Interview
 
 
 class TraitBuilder:
-    """Builder for trait.possible() pattern."""
-    
+    """Builder for adding traits to roles."""
+
     def __init__(self, parent: 'RoleBuilder', role: str):
         self.parent = parent
         self.role = role
-    
+
     def __call__(self, trait: str):
         """Add a regular trait."""
         self.parent._add_trait(self.role, trait)
-        return self.parent
-    
-    def possible(self, name: str, trigger: str = ""):
-        """Add a possible trait with optional trigger guidance."""
-        self.parent._add_possible_trait(self.role, name, trigger)
         return self.parent
 
 
@@ -41,8 +36,7 @@ class RoleBuilder:
         if self.role not in self.parent._chatfield['roles']:
             self.parent._chatfield['roles'][self.role] = {
                 'type': None,
-                'traits': [],
-                'possible_traits': {}
+                'traits': []
             }
     
     def type(self, role_type: str):
@@ -54,13 +48,6 @@ class RoleBuilder:
         """Add a regular trait."""
         if trait not in self.parent._chatfield['roles'][role]['traits']:
             self.parent._chatfield['roles'][role]['traits'].append(trait)
-    
-    def _add_possible_trait(self, role: str, name: str, trigger: str):
-        """Add a possible trait."""
-        self.parent._chatfield['roles'][role]['possible_traits'][name] = {
-            'active': False,
-            'desc': trigger
-        }
     
     def field(self, name: str):
         """Start defining a new field."""
@@ -306,21 +293,14 @@ class ChatfieldBuilder:
         if 'alice' not in interview._chatfield['roles']:
             interview._chatfield['roles']['alice'] = {
                 'type': 'Agent',
-                'traits': [],
-                'possible_traits': {}
+                'traits': []
             }
         if 'bob' not in interview._chatfield['roles']:
             interview._chatfield['roles']['bob'] = {
-                'type': 'User', 
-                'traits': [],
-                'possible_traits': {}
+                'type': 'User',
+                'traits': []
             }
-        
-        # Ensure possible_traits dict exists for each role
-        for role in interview._chatfield['roles'].values():
-            if 'possible_traits' not in role:
-                role['possible_traits'] = {}
-        
+
         return interview
 
 

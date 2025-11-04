@@ -628,9 +628,6 @@ adaptive_interview = (chatfield()
 
     .bob()
         .type("Professional")
-        .trait.possible("junior", "less than 3 years experience")
-        .trait.possible("senior", "10+ years or leadership")
-        .trait.possible("career_changer", "switching industries")
 
     .field("background")
         .desc("Tell me about your background")
@@ -650,9 +647,6 @@ const adaptiveInterview = chatfield()
 
   .bob()
     .type('Professional')
-    .trait.possible('junior', 'less than 3 years experience')
-    .trait.possible('senior', '10+ years or leadership')
-    .trait.possible('careerChanger', 'switching industries')
 
   .field('background')
     .desc('Tell me about your background')
@@ -842,8 +836,6 @@ job_application = (chatfield()
 
     .bob()
         .type("Candidate")
-        .trait.possible("startup_experience", "mentions startups")
-        .trait.possible("enterprise_experience", "mentions large companies")
 
     # Basic information
     .field("name")
@@ -935,8 +927,6 @@ const jobApplication = chatfield()
 
   .bob()
     .type('Candidate')
-    .trait.possible('startupExperience', 'mentions startups')
-    .trait.possible('enterpriseExperience', 'mentions large companies')
 
   // Basic information
   .field('name')
@@ -1182,7 +1172,6 @@ const productLaunch = chatfield()
 - `.bob()` - Configure the interviewee role
 - `.type(role_type)` - Set role type (after .alice() or .bob())
 - `.trait(trait)` - Add a trait
-- `.trait.possible(name, trigger)` - Add a conditional trait
 
 #### Field Definition
 - `.field(name)` - Start defining a field

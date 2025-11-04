@@ -79,8 +79,7 @@ describe('Conversations', () => {
         .bob()
           .type('Diner')
           .trait('First-time visitor')
-          .trait.possible('Vegan', 'needs vegan, plant-based, non animal product')
-        
+
         .field('starter')
           .desc('starter or appetizer')
           .as_one('selection','Sir Digby Chicken Caesar', 'Shrimp cocktail', 'Garden salad')
@@ -145,13 +144,6 @@ describe('Conversations', () => {
       expect(String(order.starter)).toBe('Garden salad');
       expect(String(order.main_course)).toBe('Veggie pasta');
       expect(String(order.dessert)).toBe('Fruit sorbet');
-      
-      // Check that vegan trait was activated
-      const traits = order._chatfield.roles.bob.possible_traits || {};
-      expect('Vegan' in traits).toBe(true);
-      
-      // TODO: Activating traits is not implemented yet
-      // expect(traits.Vegan?.active).toBe(true);
     });
     
     test('handles regular order', async () => {
@@ -222,8 +214,7 @@ describe('Conversations', () => {
         
         .bob()
           .type('Candidate')
-          .trait.possible('career-changer', 'mentions different industry or transferable skills')
-        
+
         .field('experience')
           .desc('Tell me about your relevant experience')
           .must('specific examples')
@@ -287,14 +278,6 @@ describe('Conversations', () => {
       // Check confidential field
       expect(interview.has_mentored).toBeTruthy();
       expect(interview.has_mentored?.as_bool).toBe(true);
-      
-      // Check career-changer trait
-      const traits = interview._chatfield.roles.bob.possible_traits || {};
-      expect('career-changer' in traits).toBe(true);
-      // TODO: Trait activation not yet implemented
-      // if ('career-changer' in traits) {
-      //   expect(traits['career-changer'].active).toBe(true);
-      // }
     });
     
     test('handles technical interview', async () => {

@@ -62,8 +62,7 @@ def describe_conversations():
                 .bob()
                     .type("Diner")
                     .trait("First-time visitor")
-                    .trait.possible("Vegan", "needs vegan, plant-based, non animal product")
-                
+
                 .field("starter")
                     .desc("starter or appetizer")
                     .as_one('selection', "Sir Digby Chicken Caesar", "Shrimp cocktail", "Garden salad")
@@ -126,13 +125,6 @@ def describe_conversations():
             assert order.starter == "Garden salad", f"Expected 'Garden salad', got {order.starter}"
             assert order.main_course == "Veggie pasta", f"Expected 'Veggie pasta', got {order.main_course}"
             assert order.dessert == "Fruit sorbet", f"Expected 'Fruit sorbet', got {order.dessert}"
-            
-            # Check that vegan trait was activated
-            traits = order._chatfield['roles']['bob'].get('possible_traits', {})
-            assert 'Vegan' in traits, "Vegan trait should be tracked"
-            
-            # TODO: Activating traits is not implemented yet, I don't think.
-            # assert traits.get('Vegan', {}).get('active') == True, "Vegan trait should be active"
         
         def it_handles_regular_order():
             """Handles regular order without dietary restrictions."""
@@ -202,8 +194,7 @@ def describe_conversations():
                 
                 .bob()
                     .type("Candidate")
-                    .trait.possible("career-changer", "mentions different industry or transferable skills")
-                
+
                 .field("experience")
                     .desc("Tell me about your relevant experience")
                     .must("specific examples")
@@ -266,13 +257,6 @@ def describe_conversations():
             # Check confidential field
             assert interview.has_mentored is not None, "Mentoring should be detected"
             assert interview.has_mentored.as_bool == True, "Should detect mentoring activity"
-            
-            # Check career-changer trait
-            traits = interview._chatfield['roles']['bob'].get('possible_traits', {})
-            assert 'career-changer' in traits, "Career-changer trait should be tracked"
-            # TODO: Trait activation not yet implemented
-            # if 'career-changer' in traits:
-            #     assert traits['career-changer'].get('active') == True, "Career changer trait should be active"
         
         def it_handles_technical_interview():
             """Handles standard technical interview flow."""

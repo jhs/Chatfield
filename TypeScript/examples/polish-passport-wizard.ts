@@ -58,8 +58,6 @@ function createPassportWizard(): Interview {
         // Bob is an English-speaking parent/guardian
         .bob()
             .type("Parent/Guardian")
-            .trait.possible("unfamiliar-with-polish", "asks questions about Polish terms or procedures")
-            .trait.possible("experienced-applicant", "mentions previous passport applications")
 
         // Field 1: Child's age range
         .field("child_age_range")
@@ -248,14 +246,6 @@ function displayResults(interview: Interview): void {
         console.log(`Pickup Location: ${pickupLocationField}`);
     }
 
-    // Check if user needed extra guidance (access roles as object, not Map)
-    const bobRole = interview._chatfield.roles['bob'];
-    if (bobRole?.possible_traits?.['unfamiliar-with-polish']?.active) {
-        console.log("\n[Note: Additional guidance was provided for Polish procedures]");
-    }
-    if (bobRole?.possible_traits?.['experienced-applicant']?.active) {
-        console.log("\n[Note: User has previous experience with passport applications]");
-    }
 
     // Display recommended next steps
     const nextStepsField = (interview as any).recommended_next_steps;

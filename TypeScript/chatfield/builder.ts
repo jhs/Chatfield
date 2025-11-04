@@ -25,12 +25,7 @@ function createTraitBuilder(parent: RoleBuilder, role: string): TraitBuilder {
     parent._addTrait(role, trait)
     return parent
   }
-  
-  addTrait.possible = (name: string, trigger: string = "") => {
-    parent._addPossibleTrait(role, name, trigger)
-    return parent
-  }
-  
+
   return addTrait
 }
 
@@ -187,8 +182,7 @@ export class RoleBuilder<Fields extends string = never> {
     if (!(this.role in this.parent._chatfield.roles)) {
       this.parent._chatfield.roles[this.role] = {
         type: null,
-        traits: [],
-        possible_traits: {}
+        traits: []
       }
     }
   }
@@ -207,17 +201,6 @@ export class RoleBuilder<Fields extends string = never> {
     const roleData = this.parent._chatfield.roles[role]
     if (roleData && !roleData.traits.includes(trait)) {
       roleData.traits.push(trait)
-    }
-  }
-
-  _addPossibleTrait(role: string, name: string, trigger: string): void {
-    // Add a possible trait
-    const roleData = this.parent._chatfield.roles[role]
-    if (roleData && roleData.possible_traits) {
-      roleData.possible_traits[name] = {
-        active: false,
-        desc: trigger
-      }
     }
   }
 
@@ -405,13 +388,11 @@ export class ChatfieldBuilder<Fields extends string = never> {
       roles: {
         alice: {
           type: null,
-          traits: [],
-          possible_traits: {}
+          traits: []
         },
         bob: {
           type: null,
-          traits: [],
-          possible_traits: {}
+          traits: []
         }
       },
       fields: {} as Record<Fields, FieldMeta>

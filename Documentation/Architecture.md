@@ -49,18 +49,11 @@ The Interview class is the central data structure representing a conversational 
     'roles': {
         'alice': {                           # Interviewer (agent)
             'type': 'Agent',
-            'traits': ['friendly', 'professional'],
-            'possible_traits': {             # Conditional traits
-                'empathetic': {
-                    'active': False,
-                    'desc': 'when user seems stressed'
-                }
-            }
+            'traits': ['friendly', 'professional']
         },
         'bob': {                             # Interviewee (user)
             'type': 'User',
-            'traits': [],
-            'possible_traits': {}
+            'traits': []
         }
     },
     'fields': {
@@ -131,7 +124,7 @@ ChatfieldBuilder (root)
 ├── type(), desc()          # Interview metadata
 ├── alice() → RoleBuilder
 │   ├── type()              # Role type
-│   └── trait()             # TraitBuilder (regular/possible traits)
+│   └── trait()             # TraitBuilder for adding traits
 ├── bob() → RoleBuilder
 └── field(name) → FieldBuilder
     ├── desc()              # Field description

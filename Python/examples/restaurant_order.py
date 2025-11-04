@@ -43,8 +43,7 @@ def create_restaurant_order():
         .bob()
             .type("Diner")
             .trait("First-time visitor")
-            # .trait.possible("Vegan", "needs vegan, plant-based, non animal product")
-        
+
         .field("starter")
             .desc("starter or appetizer")
             .as_one("selection", "Sir Digby Chicken Caesar", "Shrimp cocktail", "Garden salad")

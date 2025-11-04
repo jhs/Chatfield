@@ -75,10 +75,6 @@ export interface FieldMeta {
 export interface RoleMeta {
   type: string | null
   traits: string[]
-  possible_traits: Record<string, {
-    active: boolean
-    desc: string
-  }>
 }
 
 /**
@@ -100,7 +96,6 @@ export interface InterviewMeta<Fields extends string = string> {
  */
 export interface TraitBuilder {
   (trait: string): any  // Returns RoleBuilder but avoiding circular dependency
-  possible(name: string, trigger?: string): any
 }
 
 /**

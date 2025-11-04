@@ -16,8 +16,8 @@ export class Interview {
     type: string
     desc: string
     roles: {
-      alice: { type: string; traits: string[]; possible_traits?: Record<string, any> }
-      bob: { type: string; traits: string[]; possible_traits?: Record<string, any> }
+      alice: { type: string; traits: string[] }
+      bob: { type: string; traits: string[] }
     }
     fields: Record<string, {
       desc: string
@@ -40,13 +40,11 @@ export class Interview {
       roles: roles || {
         alice: {
           type: 'Agent',
-          traits: [],
-          possible_traits: {}
+          traits: []
         },
         bob: {
-          type: 'User', 
-          traits: [],
-          possible_traits: {}
+          type: 'User',
+          traits: []
         }
       },
       fields: fields || {}

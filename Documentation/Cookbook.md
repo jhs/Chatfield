@@ -715,52 +715,7 @@ const interview = chatfield()
   .build()
 ```
 
-### 5.3 Possible Traits (Conditional Activation)
-
-Traits that activate based on conversation content:
-
-**Python:**
-```python
-interview = (chatfield()
-    .alice()
-        .type("Technology Consultant")
-    .bob()
-        .type("Product Owner")
-        .trait.possible("career-changer", "mentions different industry")
-        .trait.possible("senior-level", "10+ years experience")
-        .trait.possible("startup-founder", "mentions founding a company")
-    .field("background")
-    .desc("Tell me about your background")
-    .build())
-
-# After collection, check activated traits
-traits = interview._chatfield['roles']['bob'].get('possible_traits', {})
-if traits.get('career-changer', {}).get('active'):
-    print("Candidate is a career changer")
-```
-
-**TypeScript:**
-```typescript
-const interview = chatfield()
-  .alice()
-    .type('Technology Consultant')
-  .bob()
-    .type('Product Owner')
-    .trait.possible('career-changer', 'mentions different industry')
-    .trait.possible('senior-level', '10+ years experience')
-    .trait.possible('startup-founder', 'mentions founding a company')
-  .field('background')
-    .desc('Tell me about your background')
-  .build()
-
-// After collection, check activated traits
-const traits = interview._chatfield.roles.bob?.possible_traits || {}
-if (traits['career-changer']?.active) {
-  console.log('Candidate is a career changer')
-}
-```
-
-### 5.4 Specialized Domain Experts
+### 5.3 Specialized Domain Experts
 
 **Python:**
 ```python
@@ -1193,8 +1148,6 @@ interview = (chatfield()
         .trait("Professional and encouraging")
     .bob()
         .type("Candidate")
-        .trait.possible("career-changer", "mentions different industry")
-        .trait.possible("senior-level", "10+ years experience")
     .field("experience")
     .desc("Relevant experience")
         .must("specific examples or projects")
@@ -1236,8 +1189,6 @@ const interview = chatfield()
     .trait('Professional and encouraging')
   .bob()
     .type('Candidate')
-    .trait.possible('career-changer', 'mentions different industry')
-    .trait.possible('senior-level', '10+ years experience')
   .field('experience')
     .desc('Relevant experience')
     .must('specific examples or projects')
