@@ -108,9 +108,9 @@ For example `as_bool_correct` implies a confidential correct answer which you mu
 {{#if counters.hint }}
     # How Hints Work
 
-    Fields may have one or more "Hints", which are clarifications to you,
-    or "tooltip"-style explanations, or example content.
-    Remember these hints, and provide this information to the {{{form._bob_role_name}}} as needed.
+    Fields may have one or more "Hints", which are either "Background" background notes
+    for your reference, or direct "Tooltip" explanations and examples.
+    Remember these hints and provide this information to the {{{form._bob_role_name}}} as needed.
 
     {{#tidy at=1}}
     {{#if (any counters.must counters.reject) }}
