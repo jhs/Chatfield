@@ -31,13 +31,19 @@ The workflow has these stages:
 **Stage 4: Data Collection** → User completes interview in browser, when done the server prints all results and exits
 **Stage 5: PDF Population** → Parse server output and fill PDF form fields to create `<basename>.done.pdf`
 
-**File naming convention**: For any PDF `foo.pdf`, the workflow creates `foo.form.json` (form definition), `foo.values.json` (collected data), and `foo.done.pdf` (filled PDF).
+**File naming convention**: For any PDF `foo.pdf`, the workflow creates:
+- `foo.form.md` - PDF content as Markdown
+- `foo.form.json` - Form definition
+- `foo.values.json` - Collected data
+- `foo.done.pdf` - Filled PDF
 
 ## Complete Workflow Steps
 
-### Step 1: Extract Form Fields
+### Step 1: Extract Content and Form Fields
 
-Extract fillable form field metadata from your PDF:
+First, extract the PDF content as plain Markdown using the markitdown MCP tool to produce `<basename>.form.md`.
+
+Next, extract fillable form field metadata from your PDF:
 
 ```bash
 python scripts/extract_form_field_info.py input.pdf input.form.json
@@ -103,12 +109,13 @@ This creates a JSON file containing field metadata in this format:
 
 ### Step 2: Define Interview in Server File
 
-Read the created `<basename>.form.json` file to learn and understand this form definition.
+Read the created `<basename>.form.json` and `<basename>.form.md` to learn and understand this form: its broad focus, its fields and validations, its usage instructions, if any.
 
 Next, define that form as a Chatfield Interview object by editing `Python/chatfield/server/interview.py`. Defining the `interview` to be identical to the form definition from `<basename>.form.json` within the "EDITABLE ZONE" BEGIN and END markers.
 
-**REQUIRED: Always configure Alice and Bob roles** with these traits:
+**REQUIRED: Always configure Alice and Bob roles** with these traits as a starting point:
 - **Alice**: Uses plain language when asking questions, converts responses to valid form data
+- **Alice**: Records optional fields as empty string when the feedback indicates or implies no answer
 - **Bob**: Speaks colloquially, needs help converting plain language to form format
 
 For example:
@@ -119,8 +126,8 @@ interview = (chatfield()
     .desc("IRS Form W-9")
     .alice()
         .type("Tax Form Assistant")
-        .trait("uses plain language when asking questions rather than strict field format rules")
-        .trait("converts received plain language into the valid form data")
+        .trait("Uses plain language when asking questions rather than strict field format rules")
+        .trait("Converts received plain language into the valid form data")
     .bob()
         .type("Person completing W-9")
         .trait("speaks colloquially and plainly, needs help converting to the form format")
@@ -140,23 +147,22 @@ interview = (chatfield()
 - Radio groups → use `.as_one("option1", "option2", ...)`
 - Choice fields → use `.as_one("choice1", "choice2", ...)`
 
-### Step 3: Customize Interview (RECOMMENDED)
+### Step 3: Customize Interview
 
-The interview definition in `Python/chatfield/server/interview.py` is fully customizable. You should enhance it to provide better user experience. **See ./chatfield.md for complete API reference.**
-
-**Required configuration**:
-- **Alice and Bob roles**: Always configure with `.alice().type()` and `.bob().type()` plus the traits shown above
-- **Alice traits**: "uses plain language when asking questions" and "converts received plain language into valid form data"
-- **Bob traits**: "speaks colloquially and plainly, needs help converting to the form format"
+The interview definition in `Python/chatfield/server/interview.py` is fully customizable. Where possible, improve it to provide a more human-friendly mental model and thus user experience, based on your analysis of the form's Markdown content and all of its fields.
 
 **Recommended customizations**:
-- **Clear descriptions**: Use `.desc("What is your Social Security Number?")` instead of field IDs
-- **Helpful context**: Add `.hint("Most individuals select 'Individual/sole proprietor'")`
-- **Use PDF tooltips**: If a field has a `tooltip` in the `.form.json`, use it as `.hint()` text prefixed with "Tooltip: " - tooltips are user-facing guidance from the original PDF
+- **Helpful context for LLM**: Add `.hint("Background: ...")` containing reference material, instructions, or other LLM guidance about a field
+- **Helpful context for human**: Add `.hint("Tooltip: ...")` containing user-facing tooltip content. Do this for all `tooltip` fields from the `.form.json`, and add your own if it improves the form clarity
+- **Clear descriptions**: Use `.desc("Social Security Number")` instead of field IDs
 - **Roll-up related fields**: When a PDF splits one logical value into multiple fields (e.g., SSN prefix/middle/suffix or DOB year/month/day), use `.hint()` to ask once and populate all parts:
-  - First field: `.desc("What is your Social Security Number?").hint("Ask for the full SSN, then populate this field with the first 3 digits")`
-  - Other fields: `.desc("SSN middle digits").hint("Populate from the SSN asked earlier")`
-- **Additional traits**: Add context-specific traits (e.g., "professional and accurate" for tax forms, "records optional fields as empty string when user indicates or implies no answer")
+  - First field: `.desc("SSN first digits").hint("Background: Ask for the full SSN, then populate this field with the first 3 digits")`
+  - Other fields: `.desc("SSN middle digits").hint("Background: Populate from full SSN if and when provided")`
+- **Keep field IDs unchanged** because the downstream software needs them
+
+**How to incoporate instructions**
+- Form-level instructions (e.g. "Instructions", "Purpose of Form", "Glossary", definitions, FAQ, Q&A) become Alice traits indicating background knowledge which Alice can volunteer on demand: `.trait("Background knowledge: ...")`
+- Field-level instructions (e.g. "Line 3b", "Note", instruction prose referencing the form, inline instructions within the primary form layout and content become hints for that field, either LLM-facing `.hint("Background: ...")` or user-facing `.hint("Tooltip: ...")`
 
 **Example improvements**:
 ```python
@@ -165,39 +171,39 @@ interview = (chatfield()
     .type("W9TaxForm")
     .alice()
         .type("Tax Form Assistant")
-        .trait("uses plain language when asking questions rather than strict field format rules")
-        .trait("converts received plain language into the valid form data")
-        .trait("professional and accurate")  # Additional context-specific trait
+        .trait("Uses plain language when asking questions rather than strict field format rules")
+        .trait("Converts received plain language into the valid form data")
+        .trait("Professional and accurate")  # Additional context-specific trait
         .trait("records optional fields as empty string when user indicates or implies no answer")
     .bob()
         .type("Person completing W-9")
         .trait("speaks colloquially and plainly, needs help converting to the form format")
 
     # Roll-up pattern: Ask for SSN once, populate three separate PDF fields
-    .field("ssn_prefix")
+    .field("topmostSubform[0].Page1[0].social_security[0]")
         .desc("What is your Social Security Number?")
-        .hint("Ask for the full SSN, then populate this field with the first 3 digits")
-    .field("ssn_middle")
+        .hint("Background: Ask for the full SSN, then populate this field with the first 3 digits")
+    .field("topmostSubform[0].Page1[0].social_security[1]")
         .desc("SSN middle digits")
-        .hint("Populate this with digits 4-5 from the SSN asked earlier")
-    .field("ssn_suffix")
+        .hint("Background: Populate this with digits 4-5 from the SSN asked earlier")
+    .field("topmostSubform[0].Page1[0].social_security[2]")
         .desc("SSN last digits")
-        .hint("Populate this with the last 4 digits from the SSN asked earlier")
+        .hint("Background: Populate this with the last 4 digits from the SSN asked earlier")
 
     # Roll-up pattern: Ask for date of birth once, populate separate year/month/day fields
-    .field("dob_month")
+    .field("topmostSubform[0].Page1[0].dob_month[0]")
         .desc("What is your date of birth?")
-        .hint("Ask for the full date of birth, then populate this field with the month (MM)")
-    .field("dob_day")
+        .hint("Background: Ask for the full date of birth, then populate this field with the month (MM)")
+    .field("topmostSubform[0].Page1[0].dob_day[0]")
         .desc("Birth day")
-        .hint("Populate this with the day (DD) from the date of birth asked earlier")
-    .field("dob_year")
+        .hint("Background: Populate this with the day (DD) from the date of birth asked earlier")
+    .field("topmostSubform[0].Page1[0].dob_year[0]")
         .desc("Birth year")
-        .hint("Populate this with the year (YYYY) from the date of birth asked earlier")
+        .hint("Background: Populate this with the year (YYYY) from the date of birth asked earlier")
 
-    .field("email_field")
+    .field("topmostSubform[0].Page1[0].email[0]")
         .desc("What is your email address?")
-        .hint("Format: user@example.com")
+        .hint("Background: Format: user@example.com")
     .build())
 ```
 
@@ -348,7 +354,7 @@ When a PDF form field is marked "optional", follow this process:
    ```python
    .alice()
        .type("Form Assistant")
-       .trait("professional and accurate")
+       .trait("Professional and accurate")
        .trait("records optional fields as empty string when user indicates or implies no answer")
    ```
 
@@ -357,26 +363,26 @@ When a PDF form field is marked "optional", follow this process:
 interview = (chatfield()
     .alice()
         .type("Tax Form Assistant")
-        .trait("uses plain language when asking questions rather than strict field format rules")
-        .trait("converts received plain language into the valid form data")
+        .trait("Uses plain language when asking questions rather than strict field format rules")
+        .trait("Converts received plain language into the valid form data")
         .trait("records optional fields as empty string when explicitly or implicitly left blank by the user")
     .bob()
         .type("Person completing tax form")
         .trait("speaks colloquially and plainly, needs help converting to the form format")
-    .field("legal_name")
+    .field("topmostSubform[0].Page1[0].f1_01[0]")
         .desc("Full legal name")
         .must("match your tax return exactly")  # Mandatory content
-    .field("middle_name")
+    .field("topmostSubform[0].Page1[0].f1_02[0]")
         .desc("Middle name (optional)")  # Optional content - can be ""
-    .field("business_name")
+    .field("topmostSubform[0].Page1[0].f1_03[0]")
         .desc("Business name (optional, leave blank if same as legal name)")
-    .field("preferred_contact")
+    .field("topmostSubform[0].Page1[0].contact_method[0]")
         .desc("Preferred contact method (optional)")
         .as_maybe("method", "email", "phone", "mail")  # Optional selection
     .build())
 ```
 
-**Result**: All four fields must be discussed and populated, but `middle_name`, `business_name`, and possibly `preferred_contact` can contain empty values.
+**Result**: All four fields must be discussed and populated, but the middle name, business name, and contact method fields can contain empty values.
 
 ## Advanced Chatfield Features
 
