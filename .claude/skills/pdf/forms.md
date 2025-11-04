@@ -41,9 +41,21 @@ The workflow has these stages:
 
 ### Step 1: Extract Content and Form Fields
 
-First, extract the PDF content as plain Markdown using the markitdown MCP tool to produce `<basename>.form.md`.
+**Step 1a: Convert PDF to Markdown**
 
-Next, extract fillable form field metadata from your PDF:
+YOU MUST call the `mcp__markitdown__convert_to_markdown` tool to extract the PDF content:
+- Parameter: `uri` = `"file:///absolute/path/to/input.pdf"` (use the full absolute path)
+- This tool **returns markdown content as output** (it does NOT create files)
+
+**Step 1b: Save Markdown to File**
+
+YOU MUST use the Write tool to save the markdown content from Step 1a:
+- Target file: `<basename>.form.md` (e.g., for `fw9.pdf` → `fw9.form.md`)
+- Content: The exact markdown output from the MCP tool in Step 1a
+
+**Step 1c: Extract Form Field Metadata**
+
+Run the extraction script to create form field metadata:
 
 ```bash
 python scripts/extract_form_field_info.py input.pdf input.form.json
@@ -109,9 +121,98 @@ This creates a JSON file containing field metadata in this format:
 
 ### Step 2: Define Interview in Server File
 
-Read the created `<basename>.form.json` and `<basename>.form.md` to learn and understand this form: its broad focus, its fields and validations, its usage instructions, if any.
+**YOU MUST NOW EDIT THE SERVER FILE - This is the critical step**
 
-Next, define that form as a Chatfield Interview object by editing `Python/chatfield/server/interview.py`. Defining the `interview` to be identical to the form definition from `<basename>.form.json` within the "EDITABLE ZONE" BEGIN and END markers.
+**Step 2a: Extract ALL Form Knowledge (CRITICAL)**
+
+**This is the most critical step** - The Chatfield interview definition is the ONLY source of information during the conversation. The PDF and all files will be absent. Alice must have ALL form knowledge embedded as traits and hints to function as a RAG system.
+
+YOU MUST thoroughly read and extract ALL instructional content from `<basename>.form.md`:
+
+**What to extract (KEY KNOWLEDGE ONLY):**
+1. **Purpose/overview** - What this form is for, when it's used (1-2 sentences)
+2. **Definitions of key terms** - Only terms that directly help complete fields (e.g., "U.S. person", "disregarded entity", "EIN vs SSN")
+3. **How to complete specific fields** - Instructions for each line/field
+4. **Valid options/codes** - Tables of codes, options, mappings needed to populate fields
+5. **Decision logic** - "If X, then Y" rules that affect field completion
+6. **Common scenarios** - Brief examples that clarify confusing fields
+
+**What NOT to extract:**
+- Legal statements, privacy notices, penalty descriptions
+- Procedural info (where to send form, how to get forms)
+- Lengthy background that doesn't help complete the form
+- Certification language, signature requirements (user will handle this separately)
+
+**Where to put extracted knowledge:**
+- **Form-level knowledge** → Alice traits using `.trait("Background knowledge: ...")`
+  - Purpose of form
+  - Definitions of key terms
+  - General instructions
+  - Legal context and penalties
+  - Special cases and exceptions
+
+- **Field-level knowledge** → Field hints using `.hint("Background: ...")` or `.hint("Tooltip: ...")`
+  - Line-by-line instructions for that specific field
+  - Valid options/codes for that field
+  - Validation rules and requirements
+  - Examples for that field
+
+**Example extractions from W-9 form:**
+
+**Form-level knowledge (Alice traits):**
+```python
+.alice()
+    .type("Tax Form Assistant")
+    .trait("Uses plain language when asking questions rather than strict field format rules")
+    .trait("Converts received plain language into the valid form data")
+    .trait("records optional fields as empty string when user indicates or implies no answer")
+    .trait("Background knowledge: Form W-9 collects taxpayer ID numbers for IRS information returns")
+    .trait("Background knowledge: U.S. persons include citizens, resident aliens, U.S. entities, and domestic trusts")
+    .trait("Background knowledge: Individuals use SSN, entities use EIN. Sole proprietors can use either")
+    .trait("Background knowledge: Disregarded entities report owner's information, not entity information")
+    .trait("Background knowledge: LLC tax classification depends on how it's taxed: C, S, or P for partnership")
+```
+
+**Field-level knowledge (field hints):**
+```python
+.field("topmostSubform[0].Page1[0].f1_01[0]")
+    .desc("What is your full legal name?")
+    .hint("Background: For individuals, use name as shown on tax return. For sole proprietors, this is the owner's name (business name goes on line 2)")
+    .hint("Background: For disregarded entities, enter the owner's name, never the entity's name")
+
+.field("topmostSubform[0].Page1[0].Boxes3a-b_ReadOrder[0].c1_1[0]")
+    .desc("Are you an Individual/sole proprietor?")
+    .hint("Background: Only ONE of the seven tax classification boxes should be checked")
+    .hint("Background: Sole proprietors are individuals who own unincorporated businesses")
+    .as_bool()
+
+.field("topmostSubform[0].Page1[0].Boxes3a-b_ReadOrder[0].f1_03[0]")
+    .desc("LLC tax classification code")
+    .hint("Background: Only complete if LLC box is checked. Enter C, S, or P based on how the LLC is taxed")
+    .hint("Background: C = C corporation, S = S corporation, P = Partnership")
+```
+
+**Critical:** Comprehensive extraction of actionable knowledge is essential. Alice relies entirely on these traits and hints.
+
+**Step 2b: Edit the Interview Definition**
+
+Target file for editing: `/home/dev/src/Chatfield/Python/chatfield/server/interview.py`
+
+This file contains an EDITABLE ZONE marked by these exact comments:
+- BEGIN marker: `# ---- BEGIN PDF SKILL EDITABLE ZONE ----`
+- END marker: `# ---- END PDF SKILL EDITABLE ZONE ----`
+
+**What you must do:**
+1. Use the Read tool to read `Python/chatfield/server/interview.py` to see the current content and locate the EDITABLE ZONE
+2. Use the Edit tool to replace ONLY the content between the BEGIN and END markers
+3. The new content must be a complete Chatfield interview definition using the builder API
+4. Include all fields from `<basename>.form.json` with the exact field IDs as-is
+
+**What you must NOT do:**
+- Do NOT create new Python files (e.g., in `examples/` or anywhere else)
+- Do NOT create standalone scripts that run the interview directly
+- Do NOT modify anything outside the EDITABLE ZONE markers
+- Do NOT change the file location - it must be `Python/chatfield/server/interview.py`
 
 **REQUIRED: Always configure Alice and Bob roles** with these traits as a starting point:
 - **Alice**: Uses plain language when asking questions, converts responses to valid form data
@@ -147,22 +248,27 @@ interview = (chatfield()
 - Radio groups → use `.as_one("option1", "option2", ...)`
 - Choice fields → use `.as_one("choice1", "choice2", ...)`
 
-### Step 3: Customize Interview
+### Step 3: Additional Customizations (Optional)
 
-The interview definition in `Python/chatfield/server/interview.py` is fully customizable. Where possible, improve it to provide a more human-friendly mental model and thus user experience, based on your analysis of the form's Markdown content and all of its fields.
+After completing the core interview definition with extracted knowledge (Step 2), you may add these optional customizations to improve the user experience:
 
-**Recommended customizations**:
-- **Helpful context for LLM**: Add `.hint("Background: ...")` containing reference material, instructions, or other LLM guidance about a field
-- **Helpful context for human**: Add `.hint("Tooltip: ...")` containing user-facing tooltip content. Do this for all `tooltip` fields from the `.form.json`, and add your own if it improves the form clarity
-- **Clear descriptions**: Use `.desc("Social Security Number")` instead of field IDs
-- **Roll-up related fields**: When a PDF splits one logical value into multiple fields (e.g., SSN prefix/middle/suffix or DOB year/month/day), use `.hint()` to ask once and populate all parts:
-  - First field: `.desc("SSN first digits").hint("Background: Ask for the full SSN, then populate this field with the first 3 digits")`
-  - Other fields: `.desc("SSN middle digits").hint("Background: Populate from full SSN if and when provided")`
-- **Keep field IDs unchanged** because the downstream software needs them
+**UX Improvements**:
+- **User-friendly descriptions**: Use `.desc("Social Security Number")` instead of field IDs
+- **Tooltips for users**: Add `.hint("Tooltip: ...")` for user-facing guidance (appears in the UI). Use this for all `tooltip` fields from `.form.json`, plus add your own where helpful
+- **Roll-up related fields**: When a PDF splits one logical value into multiple fields (e.g., SSN as 3 separate fields: XXX-XX-XXXX), use hints to ask once and populate all:
+  ```python
+  .field("ssn_field_1")
+      .desc("What is your Social Security Number?")
+      .hint("Background: Ask for full SSN (XXX-XX-XXXX), populate this field with first 3 digits")
+  .field("ssn_field_2")
+      .desc("SSN middle digits")
+      .hint("Background: Populate with digits 4-5 from the SSN asked earlier")
+  .field("ssn_field_3")
+      .desc("SSN last digits")
+      .hint("Background: Populate with last 4 digits from the SSN asked earlier")
+  ```
 
-**How to incoporate instructions**
-- Form-level instructions (e.g. "Instructions", "Purpose of Form", "Glossary", definitions, FAQ, Q&A) become Alice traits indicating background knowledge which Alice can volunteer on demand: `.trait("Background knowledge: ...")`
-- Field-level instructions (e.g. "Line 3b", "Note", instruction prose referencing the form, inline instructions within the primary form layout and content become hints for that field, either LLM-facing `.hint("Background: ...")` or user-facing `.hint("Tooltip: ...")`
+**Important**: Keep field IDs unchanged - downstream software needs the exact IDs from `.form.json`
 
 **Example improvements**:
 ```python
@@ -219,17 +325,81 @@ python -m chatfield.server.cli
 
 Wait for the server CLI to exit. When the user input is complete and valid, the server auto-shuts down and prints all collected data to stdout.
 
+**Server Output Format**
+
+The server prints collected field values to stdout in this format:
+
+```python
+{
+    'topmostSubform[0].Page1[0].f1_01[0]': {
+        'value': 'Jason Smith',
+        'context': 'User provided their full legal name',
+        'as_quote': 'My name is Jason Smith'
+    },
+    'topmostSubform[0].Page1[0].Boxes3a-b_ReadOrder[0].c1_1[0]': {
+        'value': True,
+        'context': 'User confirmed they are an individual/sole proprietor'
+    },
+    'topmostSubform[0].Page1[0].Address_ReadOrder[0].f1_07[0]': {
+        'value': '123 Main St',
+        'context': 'User provided street address'
+    },
+    # ... all other fields with their collected values
+}
+```
+
+YOU MUST capture this stdout output and parse it to extract field values for Step 5.
+
 ### Step 5: Parse Results and Fill PDF
 
-Extract field values from server output and populate the PDF.
+**Step 5a: Parse Server Output**
 
-The server prints interview results to stdout (pretty-printed Python object) which is easy to parse.
+Extract the field values from the server's stdout output (format shown in Step 4).
 
-Use the collected data to populate the PDF form:
+For each field in the output dictionary:
+- Get the field ID (e.g., `'topmostSubform[0].Page1[0].f1_01[0]'`)
+- Get the `'value'` property from the nested dictionary
+- The value may be a string, boolean, number, or other type
+
+**Step 5b: Create Values JSON File**
+
+YOU MUST use the Write tool to create `<basename>.values.json` with the collected data.
+
+Format requirements:
+- Must be a JSON array of objects
+- Each object must have exactly three keys: `field_id`, `page`, and `value`
+- Convert boolean values to checkbox format:
+  - Read the `.form.json` to find the `checked_value` and `unchecked_value` for each checkbox field
+  - `True` → use the `checked_value` (typically `"/1"` or `"/On"`)
+  - `False` → use the `unchecked_value` (typically `"/Off"`)
+- Convert all other values to strings
+
+Example `<basename>.values.json` format:
+
+```json
+[
+  {
+    "field_id": "topmostSubform[0].Page1[0].f1_01[0]",
+    "page": 1,
+    "value": "Jason Smith"
+  },
+  {
+    "field_id": "topmostSubform[0].Page1[0].Boxes3a-b_ReadOrder[0].c1_1[0]",
+    "page": 1,
+    "value": "/1"
+  }
+]
+```
+
+**Step 5c: Fill the PDF**
+
+Run the fill script to populate the PDF form:
 
 ```bash
 python scripts/fill_fillable_fields.py input.pdf input.values.json input.done.pdf
 ```
+
+This creates the final filled PDF at `<basename>.done.pdf`.
 
 ## Complete Example: W-9 Form
 
@@ -239,24 +409,34 @@ python scripts/fill_fillable_fields.py input.pdf input.values.json input.done.pd
 python scripts/check_fillable_fields.py fw9.pdf
 ```
 
-### 2. Extract form field metadata
+### 2. Extract content and form fields (Step 1)
 
+**2a. Convert PDF to markdown:**
+- Call `mcp__markitdown__convert_to_markdown` with `uri: "file:///absolute/path/to/fw9.pdf"`
+- Write the output to `fw9.form.md`
+
+**2b. Extract form field metadata:**
 ```bash
 python scripts/extract_form_field_info.py fw9.pdf fw9.form.json
 ```
 
-### 3. Use the fields JSON file to build interview.py
+### 3. Extract knowledge and edit interview.py (Step 2)
 
-First read the file using any tool you wish, example:
-```bash
-cat fw9.form.json
-```
+**3a. Thoroughly read `fw9.form.md`** to extract ALL actionable knowledge:
+- Purpose: Form W-9 collects taxpayer ID numbers for IRS information returns
+- Key definitions: U.S. person, disregarded entity, LLC classifications, backup withholding
+- Line-by-line instructions for each field
+- Decision logic (e.g., "If LLC, enter C/S/P classification")
+- Valid codes (13 exempt payee codes, FATCA codes)
 
-Next, edit from this software project root: `Python/chatfield/server/interview.py`
-- Replace interview with builder code for W-9 fields
-- Add clear field descriptions
-- Add helpful hints for complex fields
-- Configure interview roles and traits
+**3b. Edit `Python/chatfield/server/interview.py`** within the EDITABLE ZONE:
+- Add extracted form-level knowledge as Alice traits (`.trait("Background knowledge: ...")`)
+- For each field from `fw9.form.json`:
+  - Use exact field ID
+  - Add user-friendly `.desc()`
+  - Add extracted field-level knowledge as hints (`.hint("Background: ...")`)
+  - Add appropriate transformations (`.as_bool()`, `.as_one()`, etc.)
+- Configure Alice and Bob roles with required baseline traits
 
 ### 4. Run Chatfield server subprocess
 
@@ -270,35 +450,37 @@ python -m chatfield.server.cli
 - Server auto-shuts down
 - Capture results from stdout
 
-### 5. Create field values JSON and fill PDF
+### 5. Parse results and fill PDF (Step 5)
 
-ing the field values from server output, create `fw9.values.json` with those values populated. The format must match what the `fill_fillable_fields.py` script expects:
+**5a. Parse the server output** from Step 4 to extract field values.
 
+**5b. Create `fw9.values.json`** using the Write tool:
+- Format as JSON array with objects containing `field_id`, `page`, and `value`
+- Convert boolean checkbox values to "/1" (checked) or "/Off" (unchecked)
+- Convert all other values to strings
+
+Example format:
 ```json
 [
   {
     "field_id": "topmostSubform[0].Page1[0].f1_01[0]",
     "page": 1,
-    "value": "John Smith"
+    "value": "Jason Smith"
   },
   {
-    "field_id": "topmostSubform[0].Page1[0].FederalClassification[0].c1_01[0]",
+    "field_id": "topmostSubform[0].Page1[0].Boxes3a-b_ReadOrder[0].c1_1[0]",
     "page": 1,
-    "value": "/On"
+    "value": "/1"
   }
 ]
 ```
 
-**Required fields in each entry**:
-- `field_id`: Must exactly match the field ID from the `.form.json` file
-- `page`: Page number (1-based) where the field appears
-- `value`: The field value (string for text fields, "/On"/"/Off" for checkboxes, option values for radio/choice fields)
-
-Then fill the PDF:
-
+**5c. Fill the PDF:**
 ```bash
 python scripts/fill_fillable_fields.py fw9.pdf fw9.values.json fw9.done.pdf
 ```
+
+This creates the completed form at `fw9.done.pdf`.
 
 ## Field Type Mapping
 
