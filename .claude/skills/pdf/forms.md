@@ -32,7 +32,6 @@ The workflow has these stages:
 **Stage 5: PDF Population** → Parse server output and fill PDF form fields to create `<basename>.done.pdf`
 
 **File naming convention**: For any PDF `foo.pdf`, the workflow creates:
-- `foo.form.md` - PDF content as Markdown
 - `foo.form.json` - Form definition
 - `foo.values.json` - Collected data
 - `foo.done.pdf` - Filled PDF
@@ -41,19 +40,14 @@ The workflow has these stages:
 
 ### Step 1: Extract Content and Form Fields
 
-**Step 1a: Convert PDF to Markdown**
+**Step 1a: Convert PDF to Markdown and Extract Form Knowledge**
 
 YOU MUST call the `mcp__markitdown__convert_to_markdown` tool to extract the PDF content:
 - Parameter: `uri` = `"file:///absolute/path/to/input.pdf"` (use the full absolute path)
 - This tool **returns markdown content as output** (it does NOT create files)
+- **DO NOT write the markdown to a file** - you will analyze it directly in Step 2a
 
-**Step 1b: Save Markdown to File**
-
-YOU MUST use the Write tool to save the markdown content from Step 1a:
-- Target file: `<basename>.form.md` (e.g., for `fw9.pdf` → `fw9.form.md`)
-- Content: The exact markdown output from the MCP tool in Step 1a
-
-**Step 1c: Extract Form Field Metadata**
+**Step 1b: Extract Form Field Metadata**
 
 Run the extraction script to create form field metadata:
 
@@ -127,7 +121,7 @@ This creates a JSON file containing field metadata in this format:
 
 **This is the most critical step** - The Chatfield interview definition is the ONLY source of information during the conversation. The PDF and all files will be absent. Alice must have ALL form knowledge embedded as traits and hints to function as a RAG system.
 
-YOU MUST thoroughly read and extract ALL instructional content from `<basename>.form.md`:
+YOU MUST thoroughly analyze the markdown content from Step 1a and extract ALL instructional content:
 
 **What to extract (KEY KNOWLEDGE ONLY):**
 1. **Purpose/overview** - What this form is for, when it's used (1-2 sentences)
@@ -411,9 +405,9 @@ python scripts/check_fillable_fields.py fw9.pdf
 
 ### 2. Extract content and form fields (Step 1)
 
-**2a. Convert PDF to markdown:**
+**2a. Convert PDF to markdown and analyze:**
 - Call `mcp__markitdown__convert_to_markdown` with `uri: "file:///absolute/path/to/fw9.pdf"`
-- Write the output to `fw9.form.md`
+- **DO NOT write the output to a file** - analyze it directly in the next step
 
 **2b. Extract form field metadata:**
 ```bash
@@ -422,7 +416,7 @@ python scripts/extract_form_field_info.py fw9.pdf fw9.form.json
 
 ### 3. Extract knowledge and edit interview.py (Step 2)
 
-**3a. Thoroughly read `fw9.form.md`** to extract ALL actionable knowledge:
+**3a. Thoroughly analyze the markdown from step 2a** to extract ALL actionable knowledge:
 - Purpose: Form W-9 collects taxpayer ID numbers for IRS information returns
 - Key definitions: U.S. person, disregarded entity, LLC classifications, backup withholding
 - Line-by-line instructions for each field
