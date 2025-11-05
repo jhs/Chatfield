@@ -136,6 +136,105 @@ interview.age        # TypeScript
 - `.as_multi(choices)`: Choose one or more options from choices
 - `.as_any(choices)`: Choose zero or more options from choices
 
+### Field Lifecycle Control
+
+- `.confidential()`: Mark field as confidential - tracked silently without asking user directly
+- `.conclude()`: Mark field for post-conversation synthesis (automatically sets confidential)
+
+#### Confidential Fields
+
+Confidential fields are collected silently during conversation without explicit questions:
+
+**Python**:
+```python
+interview = (chatfield()
+    .field("salary_expectation")
+        .desc("Salary expectations")  # Asked explicitly
+    .field("actual_budget")
+        .desc("Company's actual budget for this role")
+        .confidential()  # NOT asked - derived from conversation context
+    .build())
+```
+
+**Use cases**:
+- Assessment fields evaluated from conversation (politeness, enthusiasm)
+- Internal categorizations not shown to user
+- Derived insights from explicit answers
+
+**Behavior**:
+- Excluded from `._enough` calculation
+- When `._enough` becomes true, confidential fields are auto-processed
+- Fields not mentioned in conversation get marked as N/A
+
+#### Conclude Fields
+
+Conclude fields are synthesized after the main conversation completes, perfect for deriving structured data:
+
+**Python**:
+```python
+interview = (chatfield()
+    # Master field - conversational
+    .field("social_security_number")
+        .desc("What is your Social Security Number?")
+        .must("be a valid 9-digit SSN")
+
+    # Conclude fields - derived from master
+    .field("ssn_part1")
+        .desc("First 3 digits of social_security_number")
+        .conclude()
+
+    .field("ssn_part2")
+        .desc("Middle 2 digits of social_security_number")
+        .conclude()
+
+    .field("ssn_part3")
+        .desc("Last 4 digits of social_security_number")
+        .conclude()
+    .build())
+```
+
+**Use cases**:
+- Splitting one input into multiple fields (SSN → 3 parts, name → first/middle/last)
+- Mapping choices to multiple checkboxes (one classification → 7 boolean fields)
+- Format transformations (full address → street + city/state/zip)
+- Post-conversation assessments combining multiple inputs
+
+**Behavior**:
+- Automatically sets `.confidential()` (conclude fields are always confidential)
+- Excluded from `._enough` calculation
+- When `._enough` is true, conclude fields are auto-synthesized in one pass
+- All conclude fields can use `.as_int()`, `.as_bool()`, `.as_one()`, etc.
+- Required fields in tool schema - LLM must populate all of them
+
+**Execution order**:
+1. Regular fields collected → `._enough` becomes true
+2. Confidential fields processed first
+3. Conclude fields synthesized second
+4. All fields populated → `._done` becomes true
+
+**PDF form example**:
+```python
+# One master question
+.field("tax_classification")
+    .desc("What is your tax classification?")
+    .as_one("Individual", "C Corp", "S Corp", "Partnership", "Trust/Estate", "LLC", "Other")
+
+# Seven conclude fields mapping to PDF checkboxes
+.field("pdf_checkbox_individual")
+    .desc("True if tax_classification is 'Individual', else false")
+    .conclude()
+    .as_bool()
+
+.field("pdf_checkbox_ccorp")
+    .desc("True if tax_classification is 'C Corp', else false")
+    .conclude()
+    .as_bool()
+
+# ... 5 more conclude fields for remaining options
+```
+
+This pattern enables natural conversation while automatically populating technical PDF field requirements.
+
 ### Build
 
 - `.build()`: Complete the builder and return an Interview instance
