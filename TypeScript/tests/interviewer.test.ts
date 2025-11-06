@@ -461,6 +461,58 @@ describe('Interviewer', () => {
   })
 
   describe('conversation flow', () => {
+    it('routes to digest_concludes after digest_confidentials when _enough is true', () => {
+      /**
+       * This test demonstrates issue #71: the state machine fails to execute
+       * digest_concludes after digest_confidentials completes, leaving conclude
+       * fields as null and preventing the interview from reaching _done state.
+       */
+      const mockLlm = new MockLLMBackend()
+
+      // Create interview with conclude fields
+      const interview = chatfield()
+        .type('TestForm')
+        .field('name').desc('Your name')
+        .field('summary').desc('Summary of conversation').conclude()
+        .build()
+      const interviewer = new Interviewer(interview, { llm: mockLlm })
+
+      // Manually set _enough to true (simulating all master fields collected)
+      if (interview._chatfield.fields.name) {
+        interview._chatfield.fields.name.value = {
+          value: 'John Doe',
+          context: 'User provided name',
+          as_quote: 'My name is John Doe'
+        }
+      }
+
+      // Create state after digest_confidentials has completed
+      // Import AIMessage for proper typing
+      const { AIMessage } = require('@langchain/core/messages')
+      const state = {
+        messages: [new AIMessage('Confidentials digested')],
+        interview: interview,
+        hasDigestedConfidentials: true,  // Already digested
+        hasDigestedConcludes: false      // Not yet digested
+      }
+
+      // Call routeFromDigest (this is called after digest_confidentials completes)
+      // Use 'any' to access private method for testing purposes
+      const route = (interviewer as any).routeFromDigest(state)
+
+      // BUG: Should route to 'digest_concludes' but actually routes to 'think'
+      // This is the core bug in issue #71
+      expect(route).toBe('digest_concludes')
+      // Error message for when this fails
+      if (route !== 'digest_concludes') {
+        throw new Error(
+          `Expected route to 'digest_concludes' after digest_confidentials ` +
+          `when _enough=true and hasDigestedConcludes=false, but got '${route}'. ` +
+          `This causes conclude fields to remain null and prevents interview completion.`
+        )
+      }
+    })
+
     it('updates field values', () => {
       const mockLlm = new MockLLMBackend()
       const interview = chatfield()

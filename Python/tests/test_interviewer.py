@@ -332,7 +332,49 @@ def describe_interviewer():
 
     def describe_conversation_flow():
         """Tests for conversation flow management."""
-        
+
+        def it_routes_to_digest_concludes_after_digest_confidentials():
+            """Routes to digest_concludes after digest_confidentials when _enough is true.
+
+            This test demonstrates issue #71: the state machine fails to execute
+            digest_concludes after digest_confidentials completes, leaving conclude
+            fields as None and preventing the interview from reaching _done state.
+            """
+            # Create interview with conclude fields
+            interview = (chatfield()
+                .type("TestForm")
+                .field("name").desc("Your name")
+                .field("summary").desc("Summary of conversation").conclude()
+                .build())
+            interviewer = Interviewer(interview)
+
+            # Manually set _enough to true (simulating all master fields collected)
+            interview._chatfield['fields']['name']['value'] = {
+                'value': 'John Doe',
+                'context': 'User provided name',
+                'as_quote': 'My name is John Doe'
+            }
+
+            # Create state after digest_confidentials has completed
+            from chatfield.interviewer import State
+            state = State(
+                messages=[AIMessage(content="Confidentials digested")],
+                interview=interview,
+                has_digested_confidentials=True,  # Already digested
+                has_digested_concludes=False      # Not yet digested
+            )
+
+            # Call route_from_digest (this is called after digest_confidentials completes)
+            route = interviewer.route_from_digest(state)
+
+            # BUG: Should route to 'digest_concludes' but actually routes to 'think'
+            # This is the core bug in issue #71
+            assert route == 'digest_concludes', (
+                f"Expected route to 'digest_concludes' after digest_confidentials "
+                f"when _enough=True and has_digested_concludes=False, but got '{route}'. "
+                f"This causes conclude fields to remain None and prevents interview completion."
+            )
+
         def it_updates_field_values():
             """Updates field values when collected."""
             interview = (chatfield()

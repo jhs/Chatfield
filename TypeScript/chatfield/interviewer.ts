@@ -181,7 +181,7 @@ export class Interviewer {
       .addEdge('listen', 'think')
 
       .addConditionalEdges('tools', this.routeFromTools.bind(this), ['think', 'digest_confidentials', 'digest_concludes'])
-      .addConditionalEdges('digest_confidentials', this.routeFromDigest.bind(this), ['tools', 'think'])
+      .addConditionalEdges('digest_confidentials', this.routeFromDigest.bind(this), ['tools', 'think', 'digest_concludes'])
       .addConditionalEdges('digest_concludes', this.routeFromDigest.bind(this), ['tools', 'think'])
       .addEdge('teardown', END)
 
@@ -1106,6 +1106,14 @@ export class Interviewer {
   private routeFromDigest(state: InterviewStateType): string {
     const interview = this.getStateInterview(state)
     console.log(`Route from digest_data: ${interview._name}`)
+
+    // Check if we need to digest concludes after confidentials
+    if (interview._enough) {
+      if (!state.hasDigestedConcludes) {
+        console.log(`Route: digest_data -> digest_concludes`)
+        return 'digest_concludes'
+      }
+    }
 
     // Use toolsCondition to check for tool calls
     const result = toolsCondition(state as any)
