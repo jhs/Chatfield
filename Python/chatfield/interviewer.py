@@ -236,7 +236,7 @@ class Interviewer:
         builder.add_conditional_edges('think'     , self.route_from_think)
         builder.add_edge             ('listen'    , 'think')
         builder.add_conditional_edges('tools'     , self.route_from_tools, ['think', 'digest_confidentials', 'digest_concludes'])
-        builder.add_conditional_edges('digest_confidentials', self.route_from_digest, ['tools', 'think'])
+        builder.add_conditional_edges('digest_confidentials', self.route_from_digest, ['tools', 'think', 'digest_concludes'])
         builder.add_conditional_edges('digest_concludes'    , self.route_from_digest, ['tools', 'think'])
         builder.add_edge             ('teardown'  , END    )
 
