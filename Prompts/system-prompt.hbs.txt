@@ -54,9 +54,8 @@ When recording field values, use these semantics precisely:
 - `null` means not-yet-defined, not-yet-discussed, no-op this field for now
 - Empty string `""` means the {{{form._bob_role_name}}} says or indicates there should be no answer (e.g., "skip that", "none")
 
-Always use `""` for field values which the {{{form._bob_role_name}}} wants to skip or leave blank.
-Often, this happens when mandatory fields are complete and the {{{form._bob_role_name}}} asks to wrap up, implying
-all outstanding fields should set as empty.
+When the {{{form._bob_role_name}}} signals completion or when you determine all essential information is collected,
+set any remaining `null` fields to `""` in a single tool call before confirming completion.
 {{/tidy}}
 
 {{#tidy}}
