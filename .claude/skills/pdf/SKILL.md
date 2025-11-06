@@ -1,294 +1,225 @@
 ---
-name: pdf
-description: Comprehensive PDF manipulation toolkit for extracting text and tables, creating new PDFs, merging/splitting documents, and handling forms. When Claude needs to fill in a PDF form or programmatically process, generate, or analyze PDF documents at scale.
-license: Proprietary. LICENSE.txt has complete terms
+name: pdf-form-filler
+description: Fill PDF forms conversationally through natural dialogue. This skill should be used when filling out PDF forms (fillable or non-fillable) through natural conversation instead of rigid form interfaces. Transforms form completion into LLM-powered dialogues that collect, validate, and populate structured data.
+license: Apache 2.0
 ---
 
-# PDF Processing Guide
+# PDF Form Filler
 
-## Overview
+Fill PDF forms through natural conversation instead of rigid form interfaces.
 
-This guide covers essential PDF processing operations using Python libraries and command-line tools. For advanced features, JavaScript libraries, and detailed examples, see reference.md. If you need to fill out a PDF form, read forms.md and follow its instructions.
+## When to Use This Skill
 
-## Quick Start
+Use this skill when filling out PDF forms with user-provided information, whether the PDF has fillable form fields or not.
 
-```python
-from pypdf import PdfReader, PdfWriter
+## Determine Form Type
 
-# Read a PDF
-reader = PdfReader("document.pdf")
-print(f"Pages: {len(reader.pages)}")
-
-# Extract text
-text = ""
-for page in reader.pages:
-    text += page.extract_text()
-```
-
-## Python Libraries
-
-### pypdf - Basic Operations
-
-#### Merge PDFs
-```python
-from pypdf import PdfWriter, PdfReader
-
-writer = PdfWriter()
-for pdf_file in ["doc1.pdf", "doc2.pdf", "doc3.pdf"]:
-    reader = PdfReader(pdf_file)
-    for page in reader.pages:
-        writer.add_page(page)
-
-with open("merged.pdf", "wb") as output:
-    writer.write(output)
-```
-
-#### Split PDF
-```python
-reader = PdfReader("input.pdf")
-for i, page in enumerate(reader.pages):
-    writer = PdfWriter()
-    writer.add_page(page)
-    with open(f"page_{i+1}.pdf", "wb") as output:
-        writer.write(output)
-```
-
-#### Extract Metadata
-```python
-reader = PdfReader("document.pdf")
-meta = reader.metadata
-print(f"Title: {meta.title}")
-print(f"Author: {meta.author}")
-print(f"Subject: {meta.subject}")
-print(f"Creator: {meta.creator}")
-```
-
-#### Rotate Pages
-```python
-reader = PdfReader("input.pdf")
-writer = PdfWriter()
-
-page = reader.pages[0]
-page.rotate(90)  # Rotate 90 degrees clockwise
-writer.add_page(page)
-
-with open("rotated.pdf", "wb") as output:
-    writer.write(output)
-```
-
-### pdfplumber - Text and Table Extraction
-
-#### Extract Text with Layout
-```python
-import pdfplumber
-
-with pdfplumber.open("document.pdf") as pdf:
-    for page in pdf.pages:
-        text = page.extract_text()
-        print(text)
-```
-
-#### Extract Tables
-```python
-with pdfplumber.open("document.pdf") as pdf:
-    for i, page in enumerate(pdf.pages):
-        tables = page.extract_tables()
-        for j, table in enumerate(tables):
-            print(f"Table {j+1} on page {i+1}:")
-            for row in table:
-                print(row)
-```
-
-#### Advanced Table Extraction
-```python
-import pandas as pd
-
-with pdfplumber.open("document.pdf") as pdf:
-    all_tables = []
-    for page in pdf.pages:
-        tables = page.extract_tables()
-        for table in tables:
-            if table:  # Check if table is not empty
-                df = pd.DataFrame(table[1:], columns=table[0])
-                all_tables.append(df)
-
-# Combine all tables
-if all_tables:
-    combined_df = pd.concat(all_tables, ignore_index=True)
-    combined_df.to_excel("extracted_tables.xlsx", index=False)
-```
-
-### reportlab - Create PDFs
-
-#### Basic PDF Creation
-```python
-from reportlab.lib.pagesizes import letter
-from reportlab.pdfgen import canvas
-
-c = canvas.Canvas("hello.pdf", pagesize=letter)
-width, height = letter
-
-# Add text
-c.drawString(100, height - 100, "Hello World!")
-c.drawString(100, height - 120, "This is a PDF created with reportlab")
-
-# Add a line
-c.line(100, height - 140, 400, height - 140)
-
-# Save
-c.save()
-```
-
-#### Create PDF with Multiple Pages
-```python
-from reportlab.lib.pagesizes import letter
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, PageBreak
-from reportlab.lib.styles import getSampleStyleSheet
-
-doc = SimpleDocTemplate("report.pdf", pagesize=letter)
-styles = getSampleStyleSheet()
-story = []
-
-# Add content
-title = Paragraph("Report Title", styles['Title'])
-story.append(title)
-story.append(Spacer(1, 12))
-
-body = Paragraph("This is the body of the report. " * 20, styles['Normal'])
-story.append(body)
-story.append(PageBreak())
-
-# Page 2
-story.append(Paragraph("Page 2", styles['Heading1']))
-story.append(Paragraph("Content for page 2", styles['Normal']))
-
-# Build PDF
-doc.build(story)
-```
-
-## Command-Line Tools
-
-### pdftotext (poppler-utils)
+**Check fillability first:**
 ```bash
-# Extract text
-pdftotext input.pdf output.txt
-
-# Extract text preserving layout
-pdftotext -layout input.pdf output.txt
-
-# Extract specific pages
-pdftotext -f 1 -l 5 input.pdf output.txt  # Pages 1-5
+python scripts/check_fillable_fields.py <file.pdf>
 ```
 
-### qpdf
-```bash
-# Merge PDFs
-qpdf --empty --pages file1.pdf file2.pdf -- merged.pdf
+- **Fillable fields detected** → Follow "Fillable Forms Workflow" below
+- **No fillable fields** → See references/nonfillable-forms.md
 
-# Split pages
-qpdf input.pdf --pages . 1-5 -- pages1-5.pdf
-qpdf input.pdf --pages . 6-10 -- pages6-10.pdf
+Both workflows use conversational data collection powered by the Chatfield library.
 
-# Rotate pages
-qpdf input.pdf output.pdf --rotate=+90:1  # Rotate page 1 by 90 degrees
+---
 
-# Remove password
-qpdf --password=mypassword --decrypt encrypted.pdf decrypted.pdf
-```
+## Fillable Forms Workflow
 
-### pdftk (if available)
-```bash
-# Merge
-pdftk file1.pdf file2.pdf cat output merged.pdf
+### Step 1: Extract PDF Content and Field Metadata
 
-# Split
-pdftk input.pdf burst
-
-# Rotate
-pdftk input.pdf rotate 1east output rotated.pdf
-```
-
-## Common Tasks
-
-### Extract Text from Scanned PDFs
+**a) Convert PDF to markdown:**
 ```python
-# Requires: pip install pytesseract pdf2image
-import pytesseract
-from pdf2image import convert_from_path
-
-# Convert PDF to images
-images = convert_from_path('scanned.pdf')
-
-# OCR each page
-text = ""
-for i, image in enumerate(images):
-    text += f"Page {i+1}:\n"
-    text += pytesseract.image_to_string(image)
-    text += "\n\n"
-
-print(text)
+mcp__markitdown__convert_to_markdown(uri="file:///absolute/path/to/input.pdf")
 ```
+Returns markdown content. Analyze directly, do not write to file.
 
-### Add Watermark
-```python
-from pypdf import PdfReader, PdfWriter
-
-# Create watermark (or load existing)
-watermark = PdfReader("watermark.pdf").pages[0]
-
-# Apply to all pages
-reader = PdfReader("document.pdf")
-writer = PdfWriter()
-
-for page in reader.pages:
-    page.merge_page(watermark)
-    writer.add_page(page)
-
-with open("watermarked.pdf", "wb") as output:
-    writer.write(output)
-```
-
-### Extract Images
+**b) Extract form fields:**
 ```bash
-# Using pdfimages (poppler-utils)
-pdfimages -j input.pdf output_prefix
-
-# This extracts all images as output_prefix-000.jpg, output_prefix-001.jpg, etc.
+python scripts/extract_form_field_info.py input.pdf input.form.json
 ```
 
-### Password Protection
+Creates JSON with field_id, type (text/checkbox/radio_group/choice), page, rect, tooltip, and type-specific properties.
+
+---
+
+### Step 2: Edit Interview Definition
+
+**Target:** `Python/chatfield/server/interview.py` (EDITABLE ZONE only)
+
+**a) Extract form knowledge from markdown:**
+
+Extract actionable knowledge ONLY:
+- Form purpose (1-2 sentences)
+- Key term definitions (e.g., "U.S. person", "disregarded entity")
+- Field completion instructions
+- Valid options/codes
+- Decision logic ("If X then Y")
+
+Place in interview:
+- **Form-level** → Alice traits: `.trait("Background: Form W-9 collects taxpayer IDs...")`
+- **Field-level** → Field hints: `.hint("Background: Individuals use SSN, entities use EIN")`
+
+**b) Write interview using builder API:**
+
 ```python
-from pypdf import PdfReader, PdfWriter
+interview = (chatfield()
+    .type("FormType")
+    .desc("Brief form description")
 
-reader = PdfReader("input.pdf")
-writer = PdfWriter()
+    .alice()
+        .type("Form Assistant")
+        .trait("Uses plain language, converts to valid form data")
+        .trait("Accepts format variations (SSN with/without hyphens)")
+        .trait("Background: [extracted form knowledge]")
+    .bob()
+        .type("Person completing form")
+        .trait("Speaks naturally, needs format help")
 
-for page in reader.pages:
-    writer.add_page(page)
+    # Default: map directly (one PDF field_id → one question)
+    .field("topmostSubform[0].Page1[0].f1_01[0]")
+        .desc("What is your full legal name?")
+        .must("match tax return exactly")
+        .hint("Background: [field-specific instructions]")
 
-# Add password
-writer.encrypt("userpassword", "ownerpassword")
+    # Use conclude ONLY for splitting/deriving
+    .field("ssn")
+        .desc("What is your SSN?")
+        .must("be exactly 9 digits")
+    .field("topmostSubform[0].Page1[0].ssn_1[0]")
+        .desc("First 3 digits of ssn")
+        .conclude()
+    .field("topmostSubform[0].Page1[0].ssn_2[0]")
+        .desc("Middle 2 digits of ssn")
+        .conclude()
+    .field("topmostSubform[0].Page1[0].ssn_3[0]")
+        .desc("Last 4 digits of ssn")
+        .conclude()
 
-with open("encrypted.pdf", "wb") as output:
-    writer.write(output)
+    .build())
 ```
 
-## Quick Reference
+**When to use conclude:**
+- ✅ Split 1 value → N fields (SSN → 3 parts)
+- ✅ Map 1 choice → N checkboxes (classification → 7 boxes)
+- ✅ Derive values (full_name → first/middle/last)
 
-| Task | Best Tool | Command/Code |
-|------|-----------|--------------|
-| Merge PDFs | pypdf | `writer.add_page(page)` |
-| Split PDFs | pypdf | One page per file |
-| Extract text | pdfplumber | `page.extract_text()` |
-| Extract tables | pdfplumber | `page.extract_tables()` |
-| Create PDFs | reportlab | Canvas or Platypus |
-| Command line merge | qpdf | `qpdf --empty --pages ...` |
-| OCR scanned PDFs | pytesseract | Convert to image first |
-| Fill PDF forms | pdf-lib or pypdf (see forms.md) | See forms.md |
+**Default to direct mapping:** PDF field_ids are internal - users only see `.desc()`.
 
-## Next Steps
+**Field types:**
+- Text → `.field("id").desc("question")`
+- Checkbox → add `.as_bool()`
+- Radio/choice → `.as_one("opt1", "opt2", ...)`
 
-- For advanced pypdfium2 usage, see reference.md
-- For JavaScript libraries (pdf-lib), see reference.md
-- If you need to fill out a PDF form, follow the instructions in forms.md
-- For troubleshooting guides, see reference.md
+**See references/api-reference.md for:**
+- All builder methods (`.must()`, `.reject()`, `.hint()`, `.confidential()`)
+- All transformations (`.as_int()`, `.as_float()`, `.as_bool()`, `.as_list()`, `.as_json()`, `.as_percent()`, `.as_lang()`)
+- Cardinality (`.as_one()`, `.as_maybe()`, `.as_multi()`, `.as_any()`)
+- Optional fields handling
+
+---
+
+### Step 3: Run Conversational Server
+
+```bash
+python -m chatfield.server.cli
+```
+
+Wait for server to exit. Captures stdout with format:
+```python
+{
+    'field_id': {
+        'value': 'collected value',
+        'context': 'conversation context',
+        'as_quote': 'original quote'
+    },
+    ...
+}
+```
+
+---
+
+### Step 4: Parse Results and Fill PDF
+
+**a) Parse server output** → extract field_id and value.
+
+**b) Create `input.values.json`** (Write tool):
+```json
+[
+  {
+    "field_id": "topmostSubform[0].Page1[0].f1_01[0]",
+    "page": 1,
+    "value": "Jason Smith"
+  },
+  {
+    "field_id": "topmostSubform[0].Page1[0].checkbox[0]",
+    "page": 1,
+    "value": "/1"
+  }
+]
+```
+
+Convert booleans: Read `.form.json` for `checked_value`/`unchecked_value` (typically "/1" or "/On" for True, "/Off" for False).
+
+**c) Fill PDF:**
+```bash
+python scripts/fill_fillable_fields.py input.pdf input.values.json input.done.pdf
+```
+
+---
+
+## Key Rules
+
+1. **ONE file:** Edit `Python/chatfield/server/interview.py` only (EDITABLE ZONE)
+2. **Direct mapping default:** Use PDF field_ids directly unless splitting/deriving
+3. **Exact field_ids:** Keep from `.form.json` unchanged
+4. **Extract knowledge:** ALL form instructions go into traits/hints
+5. **Format flexibility:** Never specify format in `.desc()` - Alice accepts variations
+
+---
+
+## Example: Complete W-9 Form
+
+### 1. Check fillability
+```bash
+python scripts/check_fillable_fields.py fw9.pdf
+```
+
+### 2. Extract content and fields
+```python
+mcp__markitdown__convert_to_markdown(uri="file:///absolute/path/to/fw9.pdf")
+```
+```bash
+python scripts/extract_form_field_info.py fw9.pdf fw9.form.json
+```
+
+### 3. Extract knowledge and edit interview.py
+- Extract actionable knowledge from markdown
+- Add form-level knowledge as Alice traits
+- Add field-level knowledge as field hints
+- Define fields with exact IDs from fw9.form.json
+
+### 4. Run server
+```bash
+python -m chatfield.server.cli
+```
+
+### 5. Parse results and fill
+```bash
+python scripts/fill_fillable_fields.py fw9.pdf fw9.values.json fw9.done.pdf
+```
+
+---
+
+## Additional Resources
+
+- **API Reference:** references/api-reference.md (builder methods, transformations, validation)
+- **Non-fillable PDFs:** references/nonfillable-forms.md (visual field extraction workflow)
+
+---
+
+## Implementation Note
+
+This skill uses the Chatfield library (`/home/dev/src/Chatfield/Python`) to transform rigid form fields into conversational dialogues. The library orchestrates natural language data collection, validates responses, computes transformations, and populates structured form data.

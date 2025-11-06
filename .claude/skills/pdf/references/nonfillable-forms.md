@@ -5,10 +5,9 @@
 For non-fillable PDFs, the extraction process differs (visual bounding box analysis instead of programmatic field extraction), but the Chatfield interview model is identical.
 
 **Documentation**:
-- **./forms.md**: Fillable PDF workflow
-- **This file (nonfillable.md)**: Non-fillable PDF workflow orchestration and steps
-- **./chatfield.md**: Complete Chatfield API reference (builder methods, transformations, validation, roles)
-- **./reference.md**: Advanced PDF processing techniques
+- **../SKILL.md**: Fillable PDF workflow
+- **This file (nonfillable-forms.md)**: Non-fillable PDF workflow orchestration and steps
+- **api-reference.md**: Complete API reference (builder methods, transformations, validation, roles)
 
 ## Workflow Overview
 
@@ -18,7 +17,7 @@ For non-fillable PDFs, the extraction process differs (visual bounding box analy
 **Stage 4: Data Collection** → User completes interview in browser, when done the server prints all results and exits
 **Stage 5: PDF Population** → Parse server output and annotate PDF at bounding box locations
 
-Follow the below steps *exactly*. You MUST perform all of these steps to ensure accurate form completion.
+Follow the below steps *exactly* to ensure accurate form completion.
 
 ## Step 1: Visual Analysis (REQUIRED)
 
