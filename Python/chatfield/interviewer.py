@@ -625,7 +625,6 @@ class Interviewer:
             return {'has_digested_concludes': True}
 
         # Prepare context for template
-        fields_prompt = '\n\n'.join(fields)
         context = {
             'interview_name': interview._name,
             'fields_prompt': fields_prompt
