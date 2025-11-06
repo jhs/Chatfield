@@ -1107,6 +1107,14 @@ export class Interviewer {
     const interview = this.getStateInterview(state)
     console.log(`Route from digest_data: ${interview._name}`)
 
+    // Check if we need to digest concludes after confidentials
+    if (interview._enough) {
+      if (!state.hasDigestedConcludes) {
+        console.log(`Route: digest_data -> digest_concludes`)
+        return 'digest_concludes'
+      }
+    }
+
     // Use toolsCondition to check for tool calls
     const result = toolsCondition(state as any)
     if (result === 'tools') {

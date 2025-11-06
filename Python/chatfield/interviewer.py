@@ -894,6 +894,12 @@ class Interviewer:
         interview = self._get_state_interview(state)
         logger.debug(f'Route from digest_data: {interview._name}')
 
+        # Check if we need to digest concludes after confidentials
+        if interview._enough:
+            if not state['has_digested_concludes']:
+                logger.debug(f'Route: digest_data -> digest_concludes')
+                return 'digest_concludes'
+
         result = tools_condition(dict(state))
         if result == 'tools':
             logger.debug(f'Route: digest_data -> tools')
