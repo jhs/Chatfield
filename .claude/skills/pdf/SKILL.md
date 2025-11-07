@@ -81,13 +81,13 @@ interview = (chatfield()
     # Default: map directly (one PDF field_id → one question)
     .field("topmostSubform[0].Page1[0].f1_01[0]")
         .desc("What is your full legal name?")
-        .must("match tax return exactly")
-        .hint("Background: [field-specific instructions]")
+        .hint("Background: Should match tax return exactly per IRS instructions")
 
-    # Use conclude ONLY for splitting/deriving
+    # Split pattern: collect once, split for PDF fields
     .field("ssn")
-        .desc("What is your SSN?")
-        .must("be exactly 9 digits")
+        .desc("What is your Social Security Number?")
+        .as_str("formatted", "9 digits formatted as ###-##-####")
+        .hint("Background: Accepts with or without hyphens")
     .field("topmostSubform[0].Page1[0].ssn_1[0]")
         .desc("First 3 digits of ssn")
         .conclude()
@@ -102,8 +102,55 @@ interview = (chatfield()
 ```
 
 **Use conclude for one-to-many UX improvements:**
-- Split 1 value → N fields (SSN → 3 parts)
-- Map 1 choice → N checkboxes (classification → 7 boxes)
+- **Split pattern:** 1 value → N fields (SSN "123456789" → 3 parts: "123", "45", "6789")
+- **Expand pattern:** 1 choice → N checkboxes (tax classification → 7 checkboxes)
+- **Roll-up pattern:** N mutually-exclusive fields → 1 master + N concludes
+
+**CRITICAL: `.must()` vs `.as_*` Usage**
+
+`.must()` defines **CONTENT** constraints (mandatory semantic requirements):
+- Use SPARINGLY - only when field MUST contain specific information
+- Creates a hard blocking constraint: field cannot be empty/skipped unless explicitly stated
+- Example: `.must("match tax return exactly")` OR `.must("be exactly 9 digits, or leave blank for N/A")`
+
+`.as_*()` defines **TYPE/FORMAT** transformations (computed by LLM):
+- Use LIBERALLY - for any type casting, formatting, or derived values
+- Alice accepts format variations, then computes the transformation
+- Example: `.as_int()`, `.as_bool()`, `.as_str("name", "description")`
+
+**Rule of thumb:** Expect MORE `.as_*` calls than `.must()` in your interview definition.
+
+**Roll-up pattern for mutually-exclusive fields:**
+
+When PDF requires exactly ONE of several mutually-exclusive fields (e.g., SSN xor EIN), use a master field with `.as_one()` for discrimination and `.as_str()` for value extraction, then conclude fields to populate specific PDF field_ids:
+
+```python
+# Master field: collect the data with type discrimination
+.field("tin")
+    .desc("What is your taxpayer identification number?")
+    .as_one("number_type", "SSN", "EIN")
+    .as_str("number_value", "The 9 digits only, formatted #########")
+    .hint("Background: Individuals use SSN, entities use EIN")
+
+# Conclude fields: populate specific PDF fields based on master data
+.field("topmostSubform[0].Page1[0].f1_11[0]")
+    .desc("First 3 digits of SSN (or empty if EIN)")
+    .conclude()
+.field("topmostSubform[0].Page1[0].f1_12[0]")
+    .desc("Middle 2 digits of SSN (or empty if EIN)")
+    .conclude()
+.field("topmostSubform[0].Page1[0].f1_13[0]")
+    .desc("Last 4 digits of SSN (or empty if EIN)")
+    .conclude()
+.field("topmostSubform[0].Page1[0].f1_14[0]")
+    .desc("First 2 digits of EIN (or empty if SSN)")
+    .conclude()
+.field("topmostSubform[0].Page1[0].f1_15[0]")
+    .desc("Last 7 digits of EIN (or empty if SSN)")
+    .conclude()
+```
+
+This ensures the system reaches "_enough" after collecting the master field, then uses conclude to derive all specific fields.
 
 **Default to direct mapping:** PDF field_ids are internal - users only see `.desc()`.
 
@@ -111,7 +158,7 @@ interview = (chatfield()
 - Text → `.field("id").desc("question")`
 - Checkbox → `.field("id").desc("question").as_bool()`
 - Radio/choice (mandatory) → `.field("id").desc("question").as_one("opt1", "opt2", ...)`
-- Radio/choice (optional) → `.field("id").desc("question").as_maybe("opt1", "opt2", ...)`
+- Radio/choice (optional) → `.field("id").desc("question").as_nullable_one("opt1", "opt2", ...)`
 
 **Optional fields** (from PDF tooltip, content context clues, stated in instructions, etc.):
 ```python
@@ -124,12 +171,14 @@ interview = (chatfield()
 - `.as_int()`, `.as_float()`, `.as_bool()` - Type casts
 - `.as_list()`, `.as_json()` - Structure parsing
 - `.as_percent()`, `.as_lang()` - Derived values
+- `.as_str("name", "description")` - Custom string extractions
 
 **Cardinality** (choose from set):
 ```
-           One choice     Multiple choices
-Required   .as_one()      .as_multi()
-Optional   .as_maybe()    .as_any()
+.as_one()             Exactly one choice required
+.as_nullable_one()    Zero or one choice
+.as_multi()           One or more choices required
+.as_nullable_multi()  Zero or more choices
 ```
 
 ---

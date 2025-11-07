@@ -126,24 +126,18 @@ LLM computes during collection. Access via `interview.field.as_*`
 
 Select from predefined options:
 
-```
-           One choice     Multiple choices
-Required   .as_one()      .as_multi()
-Optional   .as_maybe()    .as_any()
-```
-
 ```python
 .field("tax_class")
-    .as_one("Individual", "C Corp", "S Corp")       # Exactly one
+    .as_one("Individual", "C Corp", "S Corp")       # Exactly one choice required
 
 .field("dietary")
-    .as_maybe("Vegetarian", "Vegan")                # Zero or one (null if none)
+    .as_nullable_one("Vegetarian", "Vegan")         # Zero or one
 
 .field("languages")
-    .as_multi("Python", "JavaScript", "Go")         # One or more
+    .as_multi("Python", "JavaScript", "Go")         # One or more choices required
 
 .field("interests")
-    .as_any("ML", "Web Dev", "DevOps")              # Zero or more (null if none)
+    .as_nullable_multi("ML", "Web Dev", "DevOps")   # Zero or more
 ```
 
 ### Build
@@ -210,7 +204,7 @@ Fields known to be optional (from PDF tooltip, nearby context, or instructions):
     .hint("Background: Leave blank if none")
 ```
 
-For optional **choices**, use `.as_maybe()` or `.as_any()` (see Cardinality table above).
+For optional **choices**, use `.as_nullable_one()` or `.as_nullable_multi()` (see examples above).
 
 ---
 
