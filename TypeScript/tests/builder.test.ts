@@ -278,6 +278,34 @@ describe('Builder', () => {
       expect(reviewerCast?.null).toBe(true)
       expect(reviewerCast?.multi).toBe(true)
     })
+
+    it('handles choice cardinality with clearer nullable naming', () => {
+      const instance = chatfield()
+        .type('NullableChoiceInterview')
+        .field('optional_color')
+          .desc('Optional favorite color')
+          .as_nullable_one('selection', 'red', 'green', 'blue')
+        .field('optional_languages')
+          .desc('Optional programming languages')
+          .as_nullable_multi('selection', 'python', 'javascript', 'rust')
+        .build()
+
+      // Verify as_nullable_one cast (same as as_maybe)
+      const optionalColorCast = instance._chatfield.fields.optional_color?.casts?.as_nullable_one_selection
+      expect(optionalColorCast).toBeDefined()
+      expect(optionalColorCast?.type).toBe('choice')
+      expect(optionalColorCast?.choices).toEqual(['red', 'green', 'blue'])
+      expect(optionalColorCast?.null).toBe(true)
+      expect(optionalColorCast?.multi).toBe(false)
+
+      // Verify as_nullable_multi cast (same as as_any)
+      const optionalLangCast = instance._chatfield.fields.optional_languages?.casts?.as_nullable_multi_selection
+      expect(optionalLangCast).toBeDefined()
+      expect(optionalLangCast?.type).toBe('choice')
+      expect(optionalLangCast?.choices).toEqual(['python', 'javascript', 'rust'])
+      expect(optionalLangCast?.null).toBe(true)
+      expect(optionalLangCast?.multi).toBe(true)
+    })
   })
 
   describe('special fields', () => {

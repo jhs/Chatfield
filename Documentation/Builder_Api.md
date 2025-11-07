@@ -138,13 +138,13 @@ Select from predefined options:
     .as_one("Individual", "C Corp", "S Corp")       # Exactly one choice required
 
 .field("dietary")
-    .as_one_nullable("Vegetarian", "Vegan")         # Zero or one (choosing none is ok)
+    .as_nullable_one("Vegetarian", "Vegan")         # Zero or one (choosing none is ok)
 
 .field("languages")
     .as_multi("Python", "JavaScript", "Go")         # One or more choices required
 
 .field("interests")
-    .as_multi_nullable("ML", "Web Dev", "DevOps")   # Zero or more (choosing none is ok)
+    .as_nullable_multi("ML", "Web Dev", "DevOps")   # Zero or more (choosing none is ok)
 ```
 
 ### Field Lifecycle Control

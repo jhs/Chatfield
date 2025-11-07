@@ -2203,9 +2203,11 @@ async function profileInterview() {
 | Percent | `.as_percent()` | `.as_percent()` | `float` / `number` (0-1) |
 | Language | `.as_lang('code')` | `.as_lang('code')` | `str` / `string` |
 | One | `.as_one('name', ...)` | `.as_one('name', ...)` | Single choice |
-| Maybe | `.as_maybe('name', ...)` | `.as_maybe('name', ...)` | 0 or 1 choice |
+| Nullable One | `.as_nullable_one('name', ...)` | `.as_nullable_one('name', ...)` | 0 or 1 choice |
 | Multi | `.as_multi('name', ...)` | `.as_multi('name', ...)` | 1+ choices |
-| Any | `.as_any('name', ...)` | `.as_any('name', ...)` | 0+ choices |
+| Nullable Multi | `.as_nullable_multi('name', ...)` | `.as_nullable_multi('name', ...)` | 0+ choices |
+| Maybe | `.as_maybe('name', ...)` | `.as_maybe('name', ...)` | 0 or 1 (alias) |
+| Any | `.as_any('name', ...)` | `.as_any('name', ...)` | 0+ (alias) |
 
 ### Field Access
 

@@ -283,6 +283,34 @@ def describe_builder():
             assert reviewer_cast['null'] is True
             assert reviewer_cast['multi'] is True
 
+        def it_handles_choice_cardinality_with_nullable_naming():
+            """Handles choice cardinality with clearer nullable naming."""
+            instance = (chatfield()
+                .type("NullableChoiceInterview")
+                .field("optional_color")
+                    .desc("Optional favorite color")
+                    .as_nullable_one('selection', "red", "green", "blue")
+                .field("optional_languages")
+                    .desc("Optional programming languages")
+                    .as_nullable_multi('selection', "python", "javascript", "rust")
+                .build())
+
+            # Verify as_nullable_one cast (same as as_maybe)
+            optional_color_cast = instance._chatfield['fields']['optional_color']['casts'].get('as_nullable_one_selection')
+            assert optional_color_cast is not None
+            assert optional_color_cast['type'] == 'choice'
+            assert optional_color_cast['choices'] == ['red', 'green', 'blue']
+            assert optional_color_cast['null'] is True
+            assert optional_color_cast['multi'] is False
+
+            # Verify as_nullable_multi cast (same as as_any)
+            optional_lang_cast = instance._chatfield['fields']['optional_languages']['casts'].get('as_nullable_multi_selection')
+            assert optional_lang_cast is not None
+            assert optional_lang_cast['type'] == 'choice'
+            assert optional_lang_cast['choices'] == ['python', 'javascript', 'rust']
+            assert optional_lang_cast['null'] is True
+            assert optional_lang_cast['multi'] is True
+
     def describe_special_fields():
         """Tests for special field features."""
         

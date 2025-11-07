@@ -194,8 +194,10 @@ class FieldBuilder:
         # Choice builders
         self.as_one = ChoiceBuilder(self, 'as_one', null=False, multi=False)
         self.as_maybe = ChoiceBuilder(self, 'as_maybe', null=True, multi=False)
+        self.as_nullable_one = ChoiceBuilder(self, 'as_nullable_one', null=True, multi=False)
         self.as_multi = ChoiceBuilder(self, 'as_multi', null=False, multi=True)
         self.as_any = ChoiceBuilder(self, 'as_any', null=True, multi=True)
+        self.as_nullable_multi = ChoiceBuilder(self, 'as_nullable_multi', null=True, multi=True)
     
     def desc(self, description: str):
         """Set field description."""
