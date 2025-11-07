@@ -619,12 +619,13 @@ class Interviewer:
         conclude_tool = self.llm_conclude_tool(state)
         llm = self.llm.bind_tools([conclude_tool])
         
-        fields_prompt = self.mk_fields_prompt(interview, mode='conclude')
-        if not fields_prompt:
+        fields = self.mk_fields_prompt(interview, mode='conclude')
+        if not fields:
             # No fields to digest.
             return {'has_digested_concludes': True}
 
         # Prepare context for template
+        fields_prompt = '\n\n'.join(fields)
         context = {
             'interview_name': interview._name,
             'fields_prompt': fields_prompt
@@ -802,7 +803,7 @@ class Interviewer:
 
         return fields
 
-    def mk_fields_prompt(self, interview: Interview, mode='normal', field_names=None, counters=None) -> str:
+    def mk_fields_prompt(self, interview: Interview, mode='normal', field_names=None, counters=None) -> list[str]:
         if mode not in ('normal', 'conclude'):
             raise ValueError(f'Bad mode: {mode!r}; must be "normal" or "conclude"')
 
