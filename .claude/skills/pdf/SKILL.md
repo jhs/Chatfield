@@ -140,7 +140,9 @@ Optional   .as_maybe()    .as_any()
 python -m chatfield.server.cli
 ```
 
-Wait for server to exit. Captures stdout with format:
+**IMPORTANT: Track the server PID** from the server logs when it starts. The server will log its process ID at startup.
+
+Wait for server to exit normally. The server captures stdout with format:
 ```python
 {
     'field_id': {
@@ -151,6 +153,13 @@ Wait for server to exit. Captures stdout with format:
     ...
 }
 ```
+
+**If server fails to exit properly:** Send SIGTERM to the server PID (NOT to the parent shell):
+```bash
+kill -TERM <server_pid>
+```
+
+DO NOT use `kill` on the parent shell process or any shell job control commands that would terminate the shell session.
 
 ---
 
