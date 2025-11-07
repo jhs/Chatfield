@@ -253,8 +253,10 @@ export class FieldBuilder<
   as_quote: CastBuilder<this>
   as_one: ChoiceBuilder<this>
   as_maybe: ChoiceBuilder<this>
+  as_nullable_one: ChoiceBuilder<this>
   as_multi: ChoiceBuilder<this>
   as_any: ChoiceBuilder<this>
+  as_nullable_multi: ChoiceBuilder<this>
 
   constructor(parent: ChatfieldBuilder<Fields>, fieldName: CurrentField) {
     this.parent = parent
@@ -301,8 +303,10 @@ export class FieldBuilder<
     // Initialize choice builders
     this.as_one = createChoiceBuilder(this, 'as_one', false, false)
     this.as_maybe = createChoiceBuilder(this, 'as_maybe', true, false)
+    this.as_nullable_one = createChoiceBuilder(this, 'as_nullable_one', true, false)
     this.as_multi = createChoiceBuilder(this, 'as_multi', false, true)
     this.as_any = createChoiceBuilder(this, 'as_any', true, true)
+    this.as_nullable_multi = createChoiceBuilder(this, 'as_nullable_multi', true, true)
   }
 
   desc(description: string): this {
@@ -467,8 +471,10 @@ export type TypedInterview<Fields extends string> = Interview & {
     [key: `as_set_${string}`]: Set<any>
     [key: `as_one_${string}`]: string
     [key: `as_maybe_${string}`]: string | null
+    [key: `as_nullable_one_${string}`]: string | null
     [key: `as_multi_${string}`]: Set<string>
     [key: `as_any_${string}`]: Set<string>
+    [key: `as_nullable_multi_${string}`]: Set<string>
   }>
 }
 

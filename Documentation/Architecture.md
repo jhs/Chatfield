@@ -133,10 +133,12 @@ ChatfieldBuilder (root)
     ├── as_int() → CastBuilder
     ├── as_float(), as_bool()
     ├── as_lang(code) → CastBuilder
-    ├── as_one(choices) → ChoiceBuilder   # Exactly one
-    ├── as_maybe(choices)                 # Zero or one
-    ├── as_multi(choices)                 # One or more
-    └── as_any(choices)                   # Zero or more
+    ├── as_one(choices) → ChoiceBuilder      # Exactly one
+    ├── as_nullable_one(choices)             # Zero or one
+    ├── as_multi(choices)                    # One or more
+    ├── as_nullable_multi(choices)           # Zero or more
+    ├── as_maybe(choices)                    # (alias for as_nullable_one)
+    └── as_any(choices)                      # (alias for as_nullable_multi)
 ```
 
 #### Usage Example
