@@ -131,10 +131,21 @@ interview.age        # TypeScript
 
 ### Choice Cardinality
 
-- `.as_one(choices)`: Choose exactly one option from choices
-- `.as_maybe(choices)`: Choose zero or one option from choices
-- `.as_multi(choices)`: Choose one or more options from choices
-- `.as_any(choices)`: Choose zero or more options from choices
+Select from predefined options:
+
+```python
+.field("tax_class")
+    .as_one("Individual", "C Corp", "S Corp")       # Exactly one choice required
+
+.field("dietary")
+    .as_one_nullable("Vegetarian", "Vegan")         # Zero or one (choosing none is ok)
+
+.field("languages")
+    .as_multi("Python", "JavaScript", "Go")         # One or more choices required
+
+.field("interests")
+    .as_multi_nullable("ML", "Web Dev", "DevOps")   # Zero or more (choosing none is ok)
+```
 
 ### Field Lifecycle Control
 

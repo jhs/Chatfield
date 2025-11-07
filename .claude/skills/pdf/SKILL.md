@@ -101,23 +101,36 @@ interview = (chatfield()
     .build())
 ```
 
-**When to use conclude:**
-- ✅ Split 1 value → N fields (SSN → 3 parts)
-- ✅ Map 1 choice → N checkboxes (classification → 7 boxes)
-- ✅ Derive values (full_name → first/middle/last)
+**Use conclude for one-to-many UX improvements:**
+- Split 1 value → N fields (SSN → 3 parts)
+- Map 1 choice → N checkboxes (classification → 7 boxes)
 
 **Default to direct mapping:** PDF field_ids are internal - users only see `.desc()`.
 
 **Field types:**
 - Text → `.field("id").desc("question")`
-- Checkbox → add `.as_bool()`
-- Radio/choice → `.as_one("opt1", "opt2", ...)`
+- Checkbox → `.field("id").desc("question").as_bool()`
+- Radio/choice (mandatory) → `.field("id").desc("question").as_one("opt1", "opt2", ...)`
+- Radio/choice (optional) → `.field("id").desc("question").as_maybe("opt1", "opt2", ...)`
 
-**See references/api-reference.md for:**
-- All builder methods (`.must()`, `.reject()`, `.hint()`, `.confidential()`)
-- All transformations (`.as_int()`, `.as_float()`, `.as_bool()`, `.as_list()`, `.as_json()`, `.as_percent()`, `.as_lang()`)
-- Cardinality (`.as_one()`, `.as_maybe()`, `.as_multi()`, `.as_any()`)
-- Optional fields handling
+**Optional fields** (from PDF tooltip, content context clues, stated in instructions, etc.):
+```python
+.field("middle_name")
+    .desc("Middle name")
+    .hint("Background: Optional per form instructions")
+```
+
+**Transformations** (`.as_*` methods compute derived values as "cast" operations):
+- `.as_int()`, `.as_float()`, `.as_bool()` - Type casts
+- `.as_list()`, `.as_json()` - Structure parsing
+- `.as_percent()`, `.as_lang()` - Derived values
+
+**Cardinality** (choose from set):
+```
+           One choice     Multiple choices
+Required   .as_one()      .as_multi()
+Optional   .as_maybe()    .as_any()
+```
 
 ---
 

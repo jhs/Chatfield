@@ -124,18 +124,26 @@ LLM computes during collection. Access via `interview.field.as_*`
 
 ### Choice Cardinality
 
+Select from predefined options:
+
+```
+           One choice     Multiple choices
+Required   .as_one()      .as_multi()
+Optional   .as_maybe()    .as_any()
+```
+
 ```python
 .field("tax_class")
-    .as_one("Individual", "C Corp", "S Corp")       # Exactly one (required)
+    .as_one("Individual", "C Corp", "S Corp")       # Exactly one
 
 .field("dietary")
-    .as_maybe("Vegetarian", "Vegan", "None")        # Zero or one (optional)
+    .as_maybe("Vegetarian", "Vegan")                # Zero or one (null if none)
 
 .field("languages")
-    .as_multi("Python", "JavaScript", "Go")         # One or more (required)
+    .as_multi("Python", "JavaScript", "Go")         # One or more
 
 .field("interests")
-    .as_any("ML", "Web Dev", "DevOps")              # Zero or more (optional)
+    .as_any("ML", "Web Dev", "DevOps")              # Zero or more (null if none)
 ```
 
 ### Build
@@ -187,29 +195,22 @@ interview["class"]                                   # Reserved words
 
 ## Optional Fields
 
-All fields mandatory to **discuss**, but content can be optional:
-- Not discussed: `None`
-- Explicitly blank: `""`
+Fields known to be optional (from PDF tooltip, nearby context, or instructions):
 
-**Exceptions** (require non-empty):
-- `.as_one()` - Must select one
-- `.as_multi()` - Must select at least one
-- Strict validation - e.g., `.must("be valid email")`
-
-**Handling optional fields:**
 ```python
 .alice()
-    .trait("Records optional fields as empty string when user indicates blank")
+    .trait("Records optional fields as empty string when user says blank/none/skip")
 
 .field("middle_name")
-    .desc("Middle name (optional)")     # No strict validation
+    .desc("Middle name")
+    .hint("Background: Optional per form instructions")
 
 .field("extension")
-    .desc("Phone extension (leave blank if none)")
-
-.field("contact_method")
-    .as_maybe("email", "phone", "mail") # Optional selection
+    .desc("Phone extension")
+    .hint("Background: Leave blank if none")
 ```
+
+For optional **choices**, use `.as_maybe()` or `.as_any()` (see Cardinality table above).
 
 ---
 
