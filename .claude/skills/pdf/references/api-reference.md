@@ -1,6 +1,6 @@
 # Conversational Form API Reference
 
-**Library location:** `/home/dev/src/Chatfield/Python`
+**Library:** `chatfield` Python package
 
 API reference for building conversational form interviews. Powered by the Chatfield library.
 
@@ -230,5 +230,3 @@ interviewer = Interviewer(
 ## Next Steps
 
 - **PDF forms:** ../SKILL.md for PDF workflow
-- **Architecture:** /home/dev/src/Chatfield/Documentation/Architecture.md
-- **Examples:** /home/dev/src/Chatfield/Python/examples/
