@@ -35,13 +35,84 @@ npm run test:watch      # Watch mode testing
 npm test -- interview.test.ts  # Run specific file
 
 # Code Quality
+npm run format          # Auto-format with Prettier
+npm run format:check    # Check formatting without changes
 npm run lint            # ESLint checks
+npm run lint:fix        # Auto-fix ESLint issues
+npm run typecheck       # TypeScript type checking
+npm run check-all       # Run all checks + tests
 
 # Examples
 npx tsx examples/basic-usage.ts
 ```
 
 **See**: [../Documentation/Commands.md](../Documentation/Commands.md) for complete command reference.
+
+## Code Style & Formatting
+
+### Automatic Formatting
+
+This project uses industry-standard TypeScript formatting tools with **automatic fixing** on save:
+
+- **Prettier**: Auto-formats code (like Python's Black)
+- **ESLint**: Linting and code quality (like Python's flake8)
+- **Auto-import sorting**: Organizes imports automatically (like Python's isort)
+- **EditorConfig**: Cross-IDE configuration support
+
+### Style Standards (TypeScript Standard/Airbnb)
+
+```typescript
+// ✅ Formatting is automatic - write code naturally, save, and it formats
+const interview = chatfield()
+  .type('Contact Form')
+  .field('age')
+    .desc('Your age')
+    .must('be specific')
+    .as_int()
+  .build();
+
+// Import sorting is automatic
+import type { FieldMeta, FieldSpecs } from './builder-types';
+import { Interview } from './interview';
+```
+
+**Key conventions:**
+- **Semicolons**: Always (TypeScript standard)
+- **Quotes**: Single quotes for strings
+- **Line length**: 100 characters (matches Python's Black)
+- **Indentation**: 2 spaces
+- **Trailing commas**: Always (better git diffs)
+- **Arrow functions**: Always use parentheses around parameters
+
+### IDE Integration
+
+**VS Code** (auto-formatting on save):
+- Settings configured in `.vscode/settings.json`
+- Install recommended extensions: Prettier, ESLint, EditorConfig
+
+**Other IDEs**:
+- EditorConfig support (`.editorconfig`) works across all IDEs
+- Prettier plugins available for WebStorm, Sublime, etc.
+
+### Running Formatters
+
+```bash
+npm run format          # Auto-fix all formatting issues
+npm run format:check    # Check without modifying files
+npm run lint:fix        # Auto-fix ESLint issues
+npm run check-all       # Verify all code quality checks
+```
+
+**Workflow**: Write code → Save file → Auto-formatted ✨
+
+### Configuration Files
+
+- `.prettierrc` - Prettier configuration
+- `eslint.config.mjs` - ESLint 9.x flat config
+- `.editorconfig` - Cross-IDE settings
+- `.vscode/settings.json` - VS Code auto-format on save
+
+**See**: Python equivalent uses Black (line-length=100), isort, flake8, mypy in `pyproject.toml`.
 
 ## Project Structure
 

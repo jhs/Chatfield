@@ -63,7 +63,12 @@ npm test -- interview.test.ts                       # Run specific test file
 
 ### Code Quality
 ```bash
-npm run lint                                        # ESLint checks
+npm run format                                       # Format with Prettier (auto-fix)
+npm run format:check                                 # Check formatting without changes
+npm run lint                                         # ESLint checks
+npm run lint:fix                                     # ESLint auto-fix issues
+npm run typecheck                                    # TypeScript type checking
+npm run check-all                                    # Run all checks + tests
 ```
 
 ### Running Examples
