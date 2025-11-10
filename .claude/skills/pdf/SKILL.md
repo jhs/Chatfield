@@ -288,9 +288,3 @@ python scripts/fill_fillable_fields.py fw9.pdf fw9.values.json fw9.done.pdf
 
 - **API Reference:** references/api-reference.md (builder methods, transformations, validation)
 - **Non-fillable PDFs:** references/nonfillable-forms.md (visual field extraction workflow)
-
----
-
-## Implementation Note
-
-This skill uses the Python implementation in `Python/chatfield/` to collect form data through an interactive question-and-answer process, validate responses, compute transformations, and populate structured form fields.
