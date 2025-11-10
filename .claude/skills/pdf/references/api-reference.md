@@ -1,8 +1,8 @@
-# Conversational Form API Reference
+# Form Builder API Reference
 
 **Library location:** `/home/dev/src/Chatfield/Python`
 
-API reference for building conversational form interviews. Powered by the Chatfield library.
+API reference for building structured form data collection interviews.
 
 ---
 

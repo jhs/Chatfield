@@ -1,12 +1,12 @@
 ---
 name: pdf-form-filler
-description: Fill PDF forms conversationally through natural dialogue. This skill should be used when filling out PDF forms (fillable or non-fillable) through natural conversation instead of rigid form interfaces. Transforms form completion into LLM-powered dialogues that collect, validate, and populate structured data.
+description: Fill PDF forms (fillable or non-fillable) by collecting data and populating form fields. This skill helps complete PDF forms by gathering required information and generating completed documents.
 license: Apache 2.0
 ---
 
 # PDF Form Filler
 
-Fill PDF forms through natural conversation instead of rigid form interfaces.
+Fill PDF forms by collecting required data and populating form fields.
 
 ## When to Use This Skill
 
@@ -22,7 +22,7 @@ python scripts/check_fillable_fields.py <file.pdf>
 - **Fillable fields detected** → Follow "Fillable Forms Workflow" below
 - **No fillable fields** → See references/nonfillable-forms.md
 
-Both workflows use conversational data collection powered by the Chatfield library.
+Both workflows collect data through structured questions and then populate the PDF form.
 
 ---
 
@@ -293,4 +293,4 @@ python scripts/fill_fillable_fields.py fw9.pdf fw9.values.json fw9.done.pdf
 
 ## Implementation Note
 
-This skill uses the Chatfield library (`/home/dev/src/Chatfield/Python`) to transform rigid form fields into conversational dialogues. The library orchestrates natural language data collection, validates responses, computes transformations, and populates structured form data.
+This skill uses the Python implementation in `Python/chatfield/` to collect form data through an interactive question-and-answer process, validate responses, compute transformations, and populate structured form fields.

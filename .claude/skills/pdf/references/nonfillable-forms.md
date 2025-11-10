@@ -1,8 +1,8 @@
-# Non-fillable PDF Forms with Chatfield
+# Non-fillable PDF Forms
 
-**MANDATORY: All non-fillable PDF forms MUST use the Chatfield conversational workflow.**
+**MANDATORY: All non-fillable PDF forms MUST use the structured data collection workflow.**
 
-For non-fillable PDFs, the extraction process differs (visual bounding box analysis instead of programmatic field extraction), but the Chatfield interview model is identical.
+For non-fillable PDFs, the extraction process differs (visual bounding box analysis instead of programmatic field extraction), but the interview model is identical.
 
 **Documentation**:
 - **../SKILL.md**: Fillable PDF workflow
@@ -12,8 +12,8 @@ For non-fillable PDFs, the extraction process differs (visual bounding box analy
 ## Workflow Overview
 
 **Stage 1: Visual Analysis** → Determine field locations and bounding boxes
-**Stage 2: Interview Definition** → Edit `Python/chatfield/server/interview.py` with Chatfield builder code
-**Stage 3: Server Execution** → Start Chatfield server subprocess for browser-based data collection
+**Stage 2: Interview Definition** → Edit `Python/chatfield/server/interview.py` with form builder code
+**Stage 3: Server Execution** → Start data collection server subprocess for browser-based data collection
 **Stage 4: Data Collection** → User completes interview in browser, when done the server prints all results and exits
 **Stage 5: PDF Population** → Parse server output and annotate PDF at bounding box locations
 
@@ -106,11 +106,11 @@ Create `*.fields.json` (i.e. the PDF filename with field metadata and bounding b
 ```
 
 **Key points**:
-- `field_id`: Unique identifier for Chatfield interview
-- `field_type`: "text", "checkbox", or other types (maps to Chatfield transformations)
-- `description`: Used for Chatfield interview questions
+- `field_id`: Unique identifier for form interview
+- `field_type`: "text", "checkbox", or other types (maps to data transformations)
+- `description`: Used for interview questions
 - Bounding boxes are `[left, top, right, bottom]` in pixels
-- **Do NOT include `entry_text.text` values** - these come from Chatfield conversation
+- **Do NOT include `entry_text.text` values** - these come from data collection interview
 
 Create validation images by running this script from this file's directory for each page:
 `python scripts/create_validation_image.py <page_number> <path_to_fields.json> <input_image_path> <output_image_path>
@@ -138,13 +138,13 @@ If there are errors, reanalyze the relevant fields, adjust the bounding boxes, a
 
 ## Step 4: Define Interview in Server File (REQUIRED)
 
-Edit `Python/chatfield/server/interview.py` with Chatfield builder code based on your field definitions:
+Edit `Python/chatfield/server/interview.py` with form builder code based on your field definitions:
 
 **File to edit**: `Python/chatfield/server/interview.py`
 
 **Create builder code from fields.json**:
 - Read `field_id`, `field_type`, and `description` from fields.json
-- Build Chatfield interview with appropriate transformations:
+- Build interview with appropriate transformations:
   - `field_type: "text"` → `.field("field_id").desc(...)`
   - `field_type: "checkbox"` → `.field("field_id").as_bool().desc(...)`
   - Other types map similarly to fillable form workflow (see ./forms.md)
@@ -182,9 +182,9 @@ Enhance the interview definition in `Python/chatfield/server/interview.py` to im
   - Other fields: `.desc("SSN middle digits").hint("Populate from the SSN asked earlier")`
 - Add context-specific traits (e.g., "records optional fields as empty string when user indicates or implies no answer")
 
-## Step 6: Run Chatfield Server and Capture Results
+## Step 6: Run Data Collection Server and Capture Results
 
-Start the Chatfield server subprocess to collect data via browser-based interview (same as fillable workflow):
+Start the data collection server subprocess to collect data via browser-based interview (same as fillable workflow):
 
 ```python
 import subprocess
@@ -272,7 +272,7 @@ python scripts/check_bounding_boxes.py application_fields.json
 #    - Add clear descriptions and validation rules
 #    - Configure roles and traits
 
-# 6. Start Chatfield server subprocess
+# 6. Start data collection server subprocess
 #    - Server prints SERVER_READY to stderr
 #    - Browser opens automatically
 #    - User completes interview in browser
@@ -295,10 +295,10 @@ python scripts/fill_pdf_form_with_annotations.py application.pdf application_com
 | **Field Extraction** | Programmatic (`extract_form_field_info.py`) | Visual analysis + manual fields.json |
 | **Field Metadata** | Automatic (IDs, types, options) | Manual (bounding boxes, types) |
 | **Interview Generation** | `generate_chatfield_interview.py` | `generate_chatfield_interview_nonfillable.py` |
-| **Chatfield Interview** | **Identical** | **Identical** |
+| **Data Collection Interview** | **Identical** | **Identical** |
 | **Data Population** | `fill_fillable_fields.py` | `fill_pdf_form_with_annotations.py` |
 
-**The Chatfield interview model is identical in both cases** - only the extraction and population mechanisms differ.
+**The data collection interview model is identical in both cases** - only the extraction and population mechanisms differ.
 
 ## Troubleshooting
 
@@ -307,4 +307,4 @@ python scripts/fill_pdf_form_with_annotations.py application.pdf application_com
 - **Text doesn't fit**: Make entry boxes taller and wider. Check validation images.
 - **Checkbox misalignment**: Entry box should cover only the checkbox square, not the label text.
 
-**Chatfield issues**: See ./chatfield.md troubleshooting section for API key configuration, validation tuning, and field access patterns.
+**Interview issues**: See ./api-reference.md for API key configuration, validation tuning, and field access patterns.
