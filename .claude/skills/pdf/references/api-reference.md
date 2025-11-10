@@ -230,5 +230,3 @@ interviewer = Interviewer(
 ## Next Steps
 
 - **PDF forms:** ../SKILL.md for PDF workflow
-- **Architecture:** See Chatfield Documentation/Architecture.md
-- **Examples:** See Chatfield Python/examples/
