@@ -31,10 +31,10 @@ Both workflows collect data through structured questions and then populate the P
 ### Step 1: Extract PDF Content and Field Metadata
 
 **a) Convert PDF to markdown:**
-```python
-mcp__markitdown__convert_to_markdown(uri="file:///absolute/path/to/input.pdf")
+```bash
+python scripts/markitdown.py input.pdf
 ```
-Returns markdown content. Analyze directly, do not write to file.
+Returns markdown content to stdout. Analyze directly, do not write to file.
 
 **b) Extract form fields:**
 ```bash
@@ -259,8 +259,8 @@ python scripts/check_fillable_fields.py fw9.pdf
 ```
 
 ### 2. Extract content and fields
-```python
-mcp__markitdown__convert_to_markdown(uri="file:///absolute/path/to/fw9.pdf")
+```bash
+python scripts/markitdown.py fw9.pdf
 ```
 ```bash
 python scripts/extract_form_field_info.py fw9.pdf fw9.form.json
