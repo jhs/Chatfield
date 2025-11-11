@@ -5,7 +5,8 @@
 For non-fillable PDFs, the extraction process differs (visual bounding box analysis instead of programmatic field extraction), but the Chatfield interview model is identical.
 
 **Documentation**:
-- **../SKILL.md**: Fillable PDF workflow
+- **../SKILL.md**: Workflow selection and shared Interview Validation Checklist
+- **fillable-forms.md**: Fillable PDF workflow (alternative to this file)
 - **This file (nonfillable-forms.md)**: Non-fillable PDF workflow orchestration and steps
 - **api-reference.md**: Complete API reference (builder methods, transformations, validation, roles)
 
@@ -32,7 +33,7 @@ Non-fillable PDF Form Progress:
 - [ ] Step 2: Create fields.json with bounding boxes
 - [ ] Step 3: Validate bounding boxes (automated + manual inspection)
 - [ ] Step 4: Define interview in interview.py
-- [ ] Step 5: Customize interview (validate with checklist in SKILL.md)
+- [ ] Step 5: Customize interview (validate with Interview Validation Checklist in ../SKILL.md)
 - [ ] Step 6: Run Chatfield server and capture results
 - [ ] Step 7: Map results to fields.json and annotate PDF
 ```
@@ -173,7 +174,7 @@ Edit `Python/chatfield/server/interview.py` with Chatfield builder code based on
 - Build Chatfield interview with appropriate transformations:
   - `field_type: "text"` → `.field("field_id").desc(...)`
   - `field_type: "checkbox"` → `.field("field_id").as_bool().desc(...)`
-  - Other types map similarly to fillable form workflow (see ./forms.md)
+  - Other types map similarly to fillable form workflow (see fillable-forms.md)
 
 **Example**:
 ```python
@@ -191,7 +192,7 @@ interview = (chatfield()
 
 ## Step 5: Customize Interview (RECOMMENDED)
 
-Enhance the interview definition in `Python/chatfield/server/interview.py` to improve user experience. **See ./chatfield.md for complete API reference.**
+Enhance the interview definition in `Python/chatfield/server/interview.py` to improve user experience. **See api-reference.md for complete API reference.**
 
 **Required configuration**:
 - **Alice and Bob roles**: Always configure with `.alice().type()` and `.bob().type()` plus these traits:
@@ -207,6 +208,16 @@ Enhance the interview definition in `Python/chatfield/server/interview.py` to im
   - First field: `.desc("What is your identification number?").hint("Ask for the full identifier, then populate this field with the first segment")`
   - Other fields: `.desc("Identifier middle segment").hint("Populate from the identifier asked earlier")`
 - Add context-specific traits (e.g., "records optional fields as empty string when user indicates or implies no answer")
+
+**Validate interview quality:**
+
+Before proceeding to Step 6, use the **Interview Validation Checklist** in ../SKILL.md to verify the interview meets quality standards.
+
+If any items fail validation:
+1. Review the specific issue in the checklist
+2. Fix the interview.py definition
+3. Re-run validation checklist
+4. Proceed only when all items pass
 
 ## Step 6: Run Chatfield Server and Capture Results
 
