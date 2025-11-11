@@ -59,7 +59,7 @@ Interview Validation Checklist:
 
 **If any items fail validation:**
 1. Review the specific issue in the checklist
-2. Fix the `Python/chatfield/server/interview.py` definition
+2. Fix the `scripts/chatfield_interview.py` definition
 3. Re-run validation checklist
 4. Proceed only when all items pass
 

@@ -44,7 +44,7 @@ Creates JSON with field_id, type (text/checkbox/radio_group/choice), page, rect,
 
 ## Step 2: Edit Interview Definition
 
-**Target:** `Python/chatfield/server/interview.py` (EDITABLE ZONE only)
+**Target:** `scripts/chatfield_interview.py` (EDITABLE ZONE only)
 
 **a) Extract form knowledge from markdown:**
 
@@ -159,7 +159,7 @@ Before proceeding, use the **Interview Validation Checklist** in ../SKILL.md to 
 
 If any items fail validation:
 1. Review the specific issue in the checklist
-2. Fix the interview.py definition
+2. Fix the chatfield_interview.py definition
 3. Re-run validation checklist
 4. Proceed only when all items pass
 
@@ -168,7 +168,7 @@ If any items fail validation:
 ## Step 3: Run Conversational Server
 
 ```bash
-python -m chatfield.server.cli
+python scripts/run_server.py
 ```
 
 **IMPORTANT: Track the server PID** from the server logs when it starts. The server will log its process ID at startup.
@@ -219,7 +219,7 @@ python scripts/fill_fillable_fields.py input.pdf input.values.json input.done.pd
 
 ## Key Rules
 
-1. **ONE file:** Edit `Python/chatfield/server/interview.py` only (EDITABLE ZONE)
+1. **ONE file:** Edit `scripts/chatfield_interview.py` only (EDITABLE ZONE)
 2. **Direct mapping default:** Use PDF field_ids directly unless using fan-out patterns
 3. **Fan-out patterns:** Use `.as_*()` casts to populate multiple PDF fields from single collected value
 4. **Exact field_ids:** Keep from `.form.json` unchanged (use as cast names or direct field names)
@@ -243,7 +243,7 @@ python scripts/as_markdown.py input.pdf
 python scripts/extract_form_field_info.py input.pdf input.form.json
 ```
 
-### 3. Extract knowledge and edit interview.py
+### 3. Extract knowledge and edit chatfield_interview.py
 - Extract actionable knowledge from markdown
 - Add form-level knowledge as Alice traits
 - Add field-level knowledge as field hints
@@ -252,7 +252,7 @@ python scripts/extract_form_field_info.py input.pdf input.form.json
 
 ### 4. Run server
 ```bash
-python -m chatfield.server.cli
+python scripts/run_server.py
 ```
 
 ### 5. Parse results and fill

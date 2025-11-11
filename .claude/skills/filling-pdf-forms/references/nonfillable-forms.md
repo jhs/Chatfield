@@ -32,14 +32,14 @@ Non-fillable PDF Form Progress:
 - [ ] Step 1: Visual Analysis - Convert PDF to images and identify fields
 - [ ] Step 2: Create fields.json with bounding boxes
 - [ ] Step 3: Validate bounding boxes (automated + manual inspection)
-- [ ] Step 4: Define interview in interview.py
+- [ ] Step 4: Define interview in chatfield_interview.py
 - [ ] Step 5: Customize interview (validate with Interview Validation Checklist in ../SKILL.md)
 - [ ] Step 6: Run Chatfield server and capture results
 - [ ] Step 7: Map results to fields.json and annotate PDF
 ```
 
 **Stage 1: Visual Analysis** → Determine field locations and bounding boxes
-**Stage 2: Interview Definition** → Edit `Python/chatfield/server/interview.py` with Chatfield builder code
+**Stage 2: Interview Definition** → Edit `scripts/chatfield_interview.py` with Chatfield builder code
 **Stage 3: Server Execution** → Start Chatfield server subprocess for browser-based data collection
 **Stage 4: Data Collection** → User completes interview in browser, when done the server prints all results and exits
 **Stage 5: PDF Population** → Parse server output and annotate PDF at bounding box locations
@@ -165,9 +165,9 @@ If there are errors, reanalyze the relevant fields, adjust the bounding boxes, a
 
 ## Step 4: Define Interview in Server File (REQUIRED)
 
-Edit `Python/chatfield/server/interview.py` with Chatfield builder code based on your field definitions:
+Edit `scripts/chatfield_interview.py` with Chatfield builder code based on your field definitions:
 
-**File to edit**: `Python/chatfield/server/interview.py`
+**File to edit**: `scripts/chatfield_interview.py`
 
 **Create builder code from fields.json**:
 - Read `field_id`, `field_type`, and `description` from fields.json
@@ -192,7 +192,7 @@ interview = (chatfield()
 
 ## Step 5: Customize Interview (RECOMMENDED)
 
-Enhance the interview definition in `Python/chatfield/server/interview.py` to improve user experience. **See api-reference.md for complete API reference.**
+Enhance the interview definition in `scripts/chatfield_interview.py` to improve user experience. **See api-reference.md for complete API reference.**
 
 **Required configuration**:
 - **Alice and Bob roles**: Always configure with `.alice().type()` and `.bob().type()` plus these traits:
@@ -220,7 +220,7 @@ Before proceeding to Step 6, use the **Interview Validation Checklist** in ../SK
 
 If any items fail validation:
 1. Review the specific issue in the checklist
-2. Fix the interview.py definition
+2. Fix the chatfield_interview.py definition
 3. Re-run validation checklist
 4. Proceed only when all items pass
 
@@ -234,8 +234,7 @@ import json
 
 # Start server subprocess
 proc = subprocess.Popen(
-    ["python", "-m", "chatfield.server.cli", "--port", "0"],
-    cwd="Python",
+    ["python", "scripts/run_server.py", "--port", "0"],
     stdout=subprocess.PIPE,
     stderr=subprocess.PIPE,
     text=True
@@ -309,7 +308,7 @@ python scripts/create_validation_image.py 1 application.fields.json images/page_
 python scripts/check_bounding_boxes.py application_fields.json
 # Manually inspect validation images, fix any issues
 
-# 5. Edit Python/chatfield/server/interview.py
+# 5. Edit scripts/chatfield_interview.py
 #    - Build interview from application_fields.json field definitions
 #    - Add clear descriptions and validation rules
 #    - Configure roles and traits
