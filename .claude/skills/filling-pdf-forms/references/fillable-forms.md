@@ -29,7 +29,7 @@ Fillable PDF Form Progress:
 
 **a) Convert PDF to markdown:**
 ```bash
-python scripts/markitdown.py input.pdf
+python scripts/as_markdown.py input.pdf
 ```
 Returns markdown content to stdout. Analyze directly, do not write to file.
 
@@ -237,7 +237,7 @@ python scripts/check_fillable_fields.py input.pdf
 
 ### 2. Extract content and fields
 ```bash
-python scripts/markitdown.py input.pdf
+python scripts/as_markdown.py input.pdf
 ```
 ```bash
 python scripts/extract_form_field_info.py input.pdf input.form.json
