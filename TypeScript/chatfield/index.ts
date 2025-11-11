@@ -5,17 +5,17 @@
  */
 
 // Core classes - mirroring Python
-export { Interview } from './interview'
-export { Interviewer } from './interviewer'
-export { 
-  createFieldProxy,  // Required for TypeScript Proxy creation
+export { Interview } from './interview';
+export { Interviewer } from './interviewer';
+export {
+  createFieldProxy, // Required for TypeScript Proxy creation
   type FieldProxy,
   type FieldTransformations,
-  type FieldMetadata
-} from './field-proxy'
+  type FieldMetadata,
+} from './field-proxy';
 
-// Builder API - mirroring Python  
-export { 
+// Builder API - mirroring Python
+export {
   chatfield,
   chatfieldDynamic,
   // Builder classes (for type annotations if needed)
@@ -23,8 +23,8 @@ export {
   FieldBuilder,
   RoleBuilder,
   // Type exports
-  type TypedInterview
-} from './builder'
+  type TypedInterview,
+} from './builder';
 
 // Builder type interfaces
 export type {
@@ -34,12 +34,11 @@ export type {
   InterviewMeta,
   FieldSpecs,
   FieldMeta as FieldMetaType,
-  RoleMeta
-} from './builder-types'
+  RoleMeta,
+} from './builder-types';
 
-
-// Metadata classes  
-export { FieldMeta } from './interview'
+// Metadata classes
+export { FieldMeta } from './interview';
 
 // Types
 export type {
@@ -48,5 +47,5 @@ export type {
   ConversationMessage,
   ValidationResult,
   CollectedData,
-  InterviewOptions
-} from './types'
+  InterviewOptions,
+} from './types';

@@ -1,8 +1,8 @@
 /**
  * Handlebars template engine for prompt generation.
  */
-
 import * as Handlebars from 'handlebars';
+
 import { getTemplate, getTemplatePartial, listTemplatePartials } from './templates';
 
 export class TemplateEngine {
@@ -166,30 +166,32 @@ export class TemplateEngine {
     // ===== Conditional Logic Helpers =====
 
     // Return true if any argument is truthy
-    Handlebars.registerHelper('any', function(this: any, ...args: any[]) {
+    Handlebars.registerHelper('any', function (this: any, ...args: any[]) {
       // Remove the Handlebars options object (last argument)
       const values = args.slice(0, -1);
       return values.some((v: any) => !!v);
     });
 
     // Return true if all arguments are truthy
-    Handlebars.registerHelper('all', function(this: any, ...args: any[]) {
+    Handlebars.registerHelper('all', function (this: any, ...args: any[]) {
       // Remove the Handlebars options object (last argument)
       const values = args.slice(0, -1);
       return values.every((v: any) => !!v);
     });
 
     // Tidy helper - trim, dedent, unwrap, and re-indent block content
-    Handlebars.registerHelper('tidy', function(this: any, options: any) {
+    Handlebars.registerHelper('tidy', function (this: any, options: any) {
       // Get optional parameters with defaults
       const hash = options.hash || {};
-      const at = hash.at || 0;  // indentation level
-      const pre = hash.pre || 0;  // preceding spaces
-      const suf = hash.suf || 0;  // suffix spaces
+      const at = hash.at || 0; // indentation level
+      const pre = hash.pre || 0; // preceding spaces
+      const suf = hash.suf || 0; // suffix spaces
 
       // Get the block content
       let content = options.fn(this);
-      if (!content) return '';
+      if (!content) {
+        return '';
+      }
 
       // Convert to string and dedent
       content = String(content);
@@ -198,15 +200,17 @@ export class TemplateEngine {
       const lines = content.split('\n');
       const nonEmptyLines = lines.filter((line: string) => line.trim().length > 0);
       if (nonEmptyLines.length > 0) {
-        const minIndent = Math.min(...nonEmptyLines.map((line: string) => {
-          const match = line.match(/^(\s*)/);
-          return match && match[1] ? match[1].length : 0;
-        }));
+        const minIndent = Math.min(
+          ...nonEmptyLines.map((line: string) => {
+            const match = line.match(/^(\s*)/);
+            return match && match[1] ? match[1].length : 0;
+          }),
+        );
 
         if (minIndent > 0) {
-          content = lines.map((line: string) =>
-            line.length >= minIndent ? line.slice(minIndent) : line
-          ).join('\n');
+          content = lines
+            .map((line: string) => (line.length >= minIndent ? line.slice(minIndent) : line))
+            .join('\n');
         }
       }
 
@@ -217,16 +221,20 @@ export class TemplateEngine {
       const paragraphs = content.split('\n\n');
       const unwrappedParagraphs = paragraphs.map((paragraph: string) => {
         // Join all lines in a paragraph into a single line
-        return paragraph.split('\n').map((line: string) => line.trim()).filter((line: string) => line).join(' ');
+        return paragraph
+          .split('\n')
+          .map((line: string) => line.trim())
+          .filter((line: string) => line)
+          .join(' ');
       });
       content = unwrappedParagraphs.join('\n\n');
 
       // Re-indent if requested
       if (at > 0) {
-        const indent = '    '.repeat(at);  // 4 spaces per indent level
-        const indentedLines = content.split('\n').map((line: string) =>
-          line ? indent + line : line
-        );
+        const indent = '    '.repeat(at); // 4 spaces per indent level
+        const indentedLines = content
+          .split('\n')
+          .map((line: string) => (line ? indent + line : line));
         content = indentedLines.join('\n');
       }
 
@@ -247,7 +255,7 @@ export class TemplateEngine {
 
     // ===== Debug Helper (for development) =====
 
-    Handlebars.registerHelper('debug', function(this: any, value: any, label?: string) {
+    Handlebars.registerHelper('debug', function (this: any, value: any, label?: string) {
       const prefix = label ? `Debug [${label}]:` : 'Debug:';
       console.log(prefix, JSON.stringify(value, null, 2));
       return '';
@@ -314,7 +322,7 @@ export class TemplateEngine {
       _bob_role_name: true,
       _alice_role_name: true,
     };
-    return template(context, {allowedProtoProperties: getters});
+    return template(context, { allowedProtoProperties: getters });
   }
 
   /**

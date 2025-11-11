@@ -1,4 +1,5 @@
 #!/usr/bin/env -S npx tsx
+
 /**
  * Demo script that generates the CC-guidance prompt (Claude Code Form Completion Assistant)
  * and prints it to stdout with colored debug visualization.
@@ -9,10 +10,10 @@
  * 3. Collect data through conversation
  * 4. Populate and submit forms safely with phase-based approval
  */
-
-import { TemplateEngine } from '../chatfield/template-engine';
-import { Interviewer } from '../chatfield/interviewer';
 import * as path from 'path';
+
+import { Interviewer } from '../chatfield/interviewer';
+import { TemplateEngine } from '../chatfield/template-engine';
 
 // Create template engine instance pointing to project Prompts directory
 const promptsDir = path.join(__dirname, '../../Prompts');

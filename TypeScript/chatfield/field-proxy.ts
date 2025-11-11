@@ -1,25 +1,25 @@
 /**
  * FieldProxy - A string-like object with transformation properties
- * 
+ *
  * This provides similar ergonomics to Python's FieldProxy by using JavaScript's
  * Proxy to wrap a String object, allowing natural string operations while also
  * providing transformation access via properties.
  */
 
 export interface FieldTransformations {
-  [key: string]: any
-  value: string
-  context?: string
-  as_quote?: string
-  as_context?: string
-  as_int?: number
-  as_float?: number
-  as_bool?: boolean
-  as_percent?: number
-  as_list?: any[]
-  as_set?: Set<any>
-  as_dict?: Record<string, any>
-  as_obj?: Record<string, any>
+  [key: string]: any;
+  value: string;
+  context?: string;
+  as_quote?: string;
+  as_context?: string;
+  as_int?: number;
+  as_float?: number;
+  as_bool?: boolean;
+  as_percent?: number;
+  as_list?: any[];
+  as_set?: Set<any>;
+  as_dict?: Record<string, any>;
+  as_obj?: Record<string, any>;
   // Dynamic language transformations: as_lang_fr, as_lang_es, etc.
   // Dynamic choice transformations: as_one_priority, as_multi_skills, etc.
   // Dynamic string transformations: as_str_uppercase, as_str_longhand, etc.
@@ -28,24 +28,24 @@ export interface FieldTransformations {
 }
 
 export interface FieldMetadata {
-  desc: string
+  desc: string;
   specs: {
-    must?: string[]
-    reject?: string[]
-    hint?: string[]
-    confidential?: boolean
-    conclude?: boolean
-  }
+    must?: string[];
+    reject?: string[];
+    hint?: string[];
+    confidential?: boolean;
+    conclude?: boolean;
+  };
   casts: {
     [key: string]: {
-      type: string
-      prompt: string
-      choices?: string[]
-      null?: boolean
-      multi?: boolean
-    }
-  }
-  value: FieldTransformations | null
+      type: string;
+      prompt: string;
+      choices?: string[];
+      null?: boolean;
+      multi?: boolean;
+    };
+  };
+  value: FieldTransformations | null;
 }
 
 /**
@@ -53,11 +53,11 @@ export interface FieldMetadata {
  */
 export function createFieldProxy(value: string, metadata: FieldMetadata): any {
   // Create a String object (not primitive) to use as base
-  const stringObj = new String(value)
-  
+  const stringObj = new String(value);
+
   // Store metadata on the String object
-  ;(stringObj as any)._chatfield = metadata
-  
+  (stringObj as any)._chatfield = metadata;
+
   // Create and return the Proxy
   return new Proxy(stringObj, {
     get(target: any, prop: string | symbol, receiver: any) {
@@ -66,172 +66,172 @@ export function createFieldProxy(value: string, metadata: FieldMetadata): any {
         if (prop === Symbol.toPrimitive) {
           return (hint: string) => {
             if (hint === 'string' || hint === 'default') {
-              return value
+              return value;
             }
             if (hint === 'number') {
-              return Number(value)
+              return Number(value);
             }
-            return value
-          }
+            return value;
+          };
         }
         if (prop === Symbol.toStringTag) {
-          return 'FieldProxy'
+          return 'FieldProxy';
         }
-        return Reflect.get(target, prop, receiver)
+        return Reflect.get(target, prop, receiver);
       }
-      
+
       // Handle valueOf and toString explicitly
       if (prop === 'valueOf' || prop === 'toString') {
-        return () => value
+        return () => value;
       }
-      
+
       // Handle length property
       if (prop === 'length') {
-        return value.length
+        return value.length;
       }
-      
+
       // Handle numeric indices for character access
       if (!isNaN(Number(prop))) {
-        return value[Number(prop)]
+        return value[Number(prop)];
       }
-      
+
       // Check for transformation properties from metadata
-      const transformations = metadata.value
+      const transformations = metadata.value;
       if (transformations && prop in transformations && prop !== 'value') {
-        const value = transformations[prop]
-        
+        const value = transformations[prop];
+
         // Special handling for numeric types to distinguish int vs float
         if (prop === 'as_int' && typeof value === 'number') {
           // Ensure integer by rounding (Python's int() behavior)
-          return Math.floor(value)
+          return Math.floor(value);
         }
-        
-        return value
+
+        return value;
       }
-      
+
       // Handle _chatfield metadata access
       if (prop === '_chatfield') {
-        return metadata
+        return metadata;
       }
-      
+
       // Handle _pretty method like Python
       if (prop === '_pretty') {
         return () => {
-          const lines: string[] = []
+          const lines: string[] = [];
           if (transformations) {
             for (const [key, val] of Object.entries(transformations)) {
               if (key !== 'value') {
-                lines.push(`    ${key.padEnd(25)}: ${JSON.stringify(val)}`)
+                lines.push(`    ${key.padEnd(25)}: ${JSON.stringify(val)}`);
               }
             }
           }
-          return lines.join('\n')
-        }
+          return lines.join('\n');
+        };
       }
-      
+
       // Check if it's a String prototype method
       if (prop in String.prototype) {
-        const method = (String.prototype as any)[prop]
+        const method = (String.prototype as any)[prop];
         if (typeof method === 'function') {
-          return function(...args: any[]) {
+          return function (...args: any[]) {
             // Call the method on the primitive string value
-            const result = method.apply(value, args)
+            const result = method.apply(value, args);
             // If the result is a string, wrap it in a new FieldProxy
             if (typeof result === 'string' && result !== value) {
               // For methods that return a new string, return plain string
               // (not a FieldProxy, as transformations wouldn't apply)
-              return result
+              return result;
             }
-            return result
-          }
+            return result;
+          };
         }
       }
-      
+
       // Default: try to get from the String object
-      const val = Reflect.get(target, prop, receiver)
+      const val = Reflect.get(target, prop, receiver);
       if (val !== undefined) {
-        return val
+        return val;
       }
-      
+
       // Property doesn't exist
-      return undefined
+      return undefined;
     },
-    
+
     // Handle setting properties (shouldn't normally happen)
     set(target: any, prop: string | symbol, value: any, receiver: any) {
       if (prop === '_chatfield') {
-        target._chatfield = value
-        return true
+        target._chatfield = value;
+        return true;
       }
-      return Reflect.set(target, prop, value, receiver)
+      return Reflect.set(target, prop, value, receiver);
     },
-    
+
     // Make typeof return 'string'
     has(target: any, prop: string | symbol) {
       if (typeof prop === 'string') {
         // Check transformations first
-        const transformations = metadata.value
+        const transformations = metadata.value;
         if (transformations && prop in transformations) {
-          return true
+          return true;
         }
         // Then check String prototype
         if (prop in String.prototype) {
-          return true
+          return true;
         }
       }
-      return Reflect.has(target, prop)
+      return Reflect.has(target, prop);
     },
-    
+
     // Support for...in loops
     ownKeys(target: any) {
-      const keys = new Set<string | symbol>()
-      
+      const keys = new Set<string | symbol>();
+
       // Add string indices
       for (let i = 0; i < value.length; i++) {
-        keys.add(String(i))
+        keys.add(String(i));
       }
-      
+
       // Add transformation keys
-      const transformations = metadata.value
+      const transformations = metadata.value;
       if (transformations) {
         for (const key of Object.keys(transformations)) {
           if (key !== 'value') {
-            keys.add(key)
+            keys.add(key);
           }
         }
       }
-      
+
       // Add String methods
       for (const key of Object.getOwnPropertyNames(String.prototype)) {
-        keys.add(key)
+        keys.add(key);
       }
-      
-      return Array.from(keys)
+
+      return Array.from(keys);
     },
-    
+
     // Support property descriptor queries
     getOwnPropertyDescriptor(target: any, prop: string | symbol) {
       if (typeof prop === 'string') {
         // Check transformations first
-        const transformations = metadata.value
+        const transformations = metadata.value;
         if (transformations && prop in transformations && prop !== 'value') {
           return {
             value: transformations[prop],
             writable: false,
             enumerable: true,
-            configurable: true
-          }
+            configurable: true,
+          };
         }
-        
+
         // For numeric indices, let the default behavior handle it
         if (!isNaN(Number(prop))) {
-          return Reflect.getOwnPropertyDescriptor(target, prop)
+          return Reflect.getOwnPropertyDescriptor(target, prop);
         }
       }
-      
-      return Reflect.getOwnPropertyDescriptor(target, prop)
-    }
-  })
+
+      return Reflect.getOwnPropertyDescriptor(target, prop);
+    },
+  });
 }
 
 /**
@@ -239,28 +239,30 @@ export function createFieldProxy(value: string, metadata: FieldMetadata): any {
  */
 export interface FieldProxy extends String {
   // Metadata access
-  readonly _chatfield: FieldMetadata
-  _pretty(): string
-  
+  readonly _chatfield: FieldMetadata;
+  _pretty(): string;
+
   // Common transformations (may or may not exist)
-  readonly as_int?: number
-  readonly as_float?: number
-  readonly as_bool?: boolean
-  readonly as_percent?: number
-  
+  readonly as_int?: number;
+  readonly as_float?: number;
+  readonly as_bool?: boolean;
+  readonly as_percent?: number;
+
   // Dynamic transformations
-  [key: string]: any
+  [key: string]: any;
 }
 
 /**
  * Type guard to check if a value is a FieldProxy
  */
 export function isFieldProxy(value: any): value is FieldProxy {
-  return value && 
-         typeof value === 'object' && 
-         '_chatfield' in value &&
-         typeof value.valueOf === 'function' &&
-         typeof value.valueOf() === 'string'
+  return (
+    value &&
+    typeof value === 'object' &&
+    '_chatfield' in value &&
+    typeof value.valueOf === 'function' &&
+    typeof value.valueOf() === 'string'
+  );
 }
 
 /**
@@ -268,5 +270,5 @@ export function isFieldProxy(value: any): value is FieldProxy {
  */
 export function createNullFieldProxy(metadata: FieldMetadata): null {
   // When field has no value yet, return null (like Python version)
-  return null
+  return null;
 }

@@ -6,9 +6,8 @@
  * passes the value to the underlying interrupt, since the Node version doesn't
  * need the config parameter.
  */
-
-import { interrupt as langgraphInterrupt } from '@langchain/langgraph';
 import { RunnableConfig } from '@langchain/core/runnables';
+import { interrupt as langgraphInterrupt } from '@langchain/langgraph';
 
 /**
  * Node.js interrupt function - wraps LangGraph's built-in interrupt

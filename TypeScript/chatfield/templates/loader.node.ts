@@ -11,7 +11,6 @@
  *    a dev dependency only, not needed or referenced in the rollup builds nor at runtime. I think handlebars compiles templates
  *    to JS functions, so those need to serialize out somehow. (Could this make things harder to debug though?)
  */
-
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -57,9 +56,10 @@ export function listTemplates(): string[] {
     return [];
   }
 
-  return fs.readdirSync(PROMPTS_DIR)
-    .filter(file => file.endsWith('.hbs.txt'))
-    .map(file => file.replace('.hbs.txt', ''));
+  return fs
+    .readdirSync(PROMPTS_DIR)
+    .filter((file) => file.endsWith('.hbs.txt'))
+    .map((file) => file.replace('.hbs.txt', ''));
 }
 
 /**
@@ -73,7 +73,8 @@ export function listTemplatePartials(): string[] {
     return [];
   }
 
-  return fs.readdirSync(partialsDir)
-    .filter(file => file.endsWith('.hbs.txt'))
-    .map(file => file.replace('.hbs.txt', ''));
+  return fs
+    .readdirSync(partialsDir)
+    .filter((file) => file.endsWith('.hbs.txt'))
+    .map((file) => file.replace('.hbs.txt', ''));
 }

@@ -2,9 +2,8 @@
  * Core Interview class for Chatfield
  * Mirrors Python's interview.py
  */
-
-import { createFieldProxy } from './field-proxy'
-import type { FieldSpecs } from './builder-types'
+import type { FieldSpecs } from './builder-types';
+import { createFieldProxy } from './field-proxy';
 
 /**
  * Main Interview class that holds collected data
@@ -13,24 +12,27 @@ import type { FieldSpecs } from './builder-types'
 export class Interview {
   // The core data structure mirroring Python's _chatfield
   _chatfield: {
-    type: string
-    desc: string
+    type: string;
+    desc: string;
     roles: {
-      alice: { type: string; traits: string[] }
-      bob: { type: string; traits: string[] }
-    }
-    fields: Record<string, {
-      desc: string
-      specs: FieldSpecs
-      casts: Record<string, any>
-      value: null | {
-        value: string
-        context?: string
-        as_quote?: string
-        [key: string]: any  // For transformations like as_int, as_bool, etc.
+      alice: { type: string; traits: string[] };
+      bob: { type: string; traits: string[] };
+    };
+    fields: Record<
+      string,
+      {
+        desc: string;
+        specs: FieldSpecs;
+        casts: Record<string, any>;
+        value: null | {
+          value: string;
+          context?: string;
+          as_quote?: string;
+          [key: string]: any; // For transformations like as_int, as_bool, etc.
+        };
       }
-    }>
-  }
+    >;
+  };
 
   constructor(type?: string, desc?: string, roles?: any, fields?: any) {
     // Initialize with default structure matching Python
@@ -40,22 +42,22 @@ export class Interview {
       roles: roles || {
         alice: {
           type: 'Agent',
-          traits: []
+          traits: [],
         },
         bob: {
           type: 'User',
-          traits: []
-        }
+          traits: [],
+        },
       },
-      fields: fields || {}
-    }
+      fields: fields || {},
+    };
   }
 
   /**
    * Get the name/type of this Interview
    */
   get _name(): string {
-    return this._chatfield.type
+    return this._chatfield.type;
   }
 
   /**
@@ -65,82 +67,86 @@ export class Interview {
   _id(): string {
     // Convert type name to lowercase and replace spaces/special chars with underscores
     // TODO: CamelCase
-    return this._chatfield.type.toLowerCase().replace(/[^a-z0-9]+/g, '_')
+    return this._chatfield.type.toLowerCase().replace(/[^a-z0-9]+/g, '_');
   }
 
   /**
    * Get list of field names
    */
   _fields(): string[] {
-    return Object.keys(this._chatfield.fields)
+    return Object.keys(this._chatfield.fields);
   }
 
   /**
    * Get alice role name
    */
   get _alice_role_name(): string {
-    return this._chatfield.roles.alice.type || 'Agent'
+    return this._chatfield.roles.alice.type || 'Agent';
   }
 
   /**
    * Get bob role name
    */
   get _bob_role_name(): string {
-    return this._chatfield.roles.bob.type || 'User'
+    return this._chatfield.roles.bob.type || 'User';
   }
 
   /**
    * Get alice role details (method version for Python compatibility)
    */
   get _alice_role(): { type?: string; traits: string[] } {
-    return this._chatfield.roles.alice
+    return this._chatfield.roles.alice;
   }
 
   /**
    * Get bob role details (method version for Python compatibility)
    */
   get _bob_role(): { type?: string; traits: string[] } {
-    return this._chatfield.roles.bob
+    return this._chatfield.roles.bob;
   }
 
   /**
    * Get alice role details
    */
   get _alice(): { type: string; traits: string[] } {
-    return this._chatfield.roles.alice
+    return this._chatfield.roles.alice;
   }
 
   /**
    * Get bob role details
    */
   get _bob(): { type: string; traits: string[] } {
-    return this._chatfield.roles.bob
+    return this._chatfield.roles.bob;
   }
 
   /**
    * Get role by name
    */
   _get_role(role_name: string): any {
-    if (role_name === 'alice') return this._chatfield.roles.alice
-    if (role_name === 'bob') return this._chatfield.roles.bob
-    return null
+    if (role_name === 'alice') {
+      return this._chatfield.roles.alice;
+    }
+    if (role_name === 'bob') {
+      return this._chatfield.roles.bob;
+    }
+    return null;
   }
 
   /**
    * Get field metadata and value
    */
   _get_chat_field(field_name: string): any {
-    return this._chatfield.fields[field_name]
+    return this._chatfield.fields[field_name];
   }
 
   /**
    * Check if all required fields have values
    */
   get _done(): boolean {
-    const fields = Object.values(this._chatfield.fields)
-    const is_populated = fields.map(field => field.value !== null)
-    const is_done = is_populated.every(v => v)
-    return is_done
+    const fields = Object.values(this._chatfield.fields);
+    const is_populated = fields.map((field) => field.value !== null);
+    const is_done = is_populated.every((v) => v);
+    return is_done;
     // return Object.values(this._chatfield.fields).every(field => field.value !== null)
   }
 
@@ -151,54 +157,54 @@ export class Interview {
   get _enough(): boolean {
     // Check if all non-confidential, non-conclude fields have been collected
     for (const [fieldName, chatfield] of Object.entries(this._chatfield.fields)) {
-      const specs = chatfield.specs
+      const specs = chatfield.specs;
       if (!specs.confidential && !specs.conclude) {
         // This is a "normal" field
         if (chatfield.value === null) {
-          return false
+          return false;
         }
       }
     }
-    return true
+    return true;
   }
 
   /**
    * Serialize to plain object (mirrors Python's model_dump)
    */
   model_dump(): any {
-    return JSON.parse(JSON.stringify(this._chatfield))
+    return JSON.parse(JSON.stringify(this._chatfield));
   }
 
   /**
    * Copy data from another Interview
    */
   _copy_from(source: Interview): void {
-    this._chatfield = JSON.parse(JSON.stringify(source._chatfield))
+    this._chatfield = JSON.parse(JSON.stringify(source._chatfield));
   }
 
   /**
    * Pretty print the interview state (Python compatibility)
    */
   _pretty(): string {
-    const lines: string[] = []
-    lines.push(`${this._chatfield.type}`)
+    const lines: string[] = [];
+    lines.push(`${this._chatfield.type}`);
 
     // Iterate over fields and get them as proxies
     for (const [fieldName, chatfield] of Object.entries(this._chatfield.fields)) {
-      const proxy = this.__getattr__(fieldName)
+      const proxy = this.__getattr__(fieldName);
       if (proxy === null) {
-        lines.push(`  ${fieldName}: None`)
+        lines.push(`  ${fieldName}: None`);
       } else {
         // Field is a proxy - print the value and its transformations
-        lines.push(`  ${fieldName}: ${JSON.stringify(String(proxy))}`)
-        const pretty = proxy._pretty()
+        lines.push(`  ${fieldName}: ${JSON.stringify(String(proxy))}`);
+        const pretty = proxy._pretty();
         if (pretty) {
-          lines.push(pretty)
+          lines.push(pretty);
         }
       }
     }
 
-    return lines.join('\n')
+    return lines.join('\n');
   }
 
   /**
@@ -208,8 +214,8 @@ export class Interview {
     if (!func._chatfield) {
       func._chatfield = {
         specs: {},
-        casts: {}
-      }
+        casts: {},
+      };
     }
   }
 
@@ -217,87 +223,86 @@ export class Interview {
    * Get field value with proxy support (for transformations)
    * This allows interview.fieldName to return a FieldProxy
    */
-  [key: string]: any
+  [key: string]: any;
 
   /**
    * Override property access to return FieldProxy for field values
    */
   __getattr__(name: string): any {
     if (name in this._chatfield.fields) {
-      const field = this._chatfield.fields[name]
+      const field = this._chatfield.fields[name];
       if (field && field.value && field.value.value) {
-        return createFieldProxy(field.value.value, field)
+        return createFieldProxy(field.value.value, field);
       }
-      return null
+      return null;
     }
     // Return actual property if it exists
-    return (this as any)[name]
+    return (this as any)[name];
   }
 }
 
 // Helper type
-export type CollectedData = Record<string, string>
+export type CollectedData = Record<string, string>;
 export type InterviewOptions = {
-  maxRetryAttempts?: number
-  [key: string]: any
-}
+  maxRetryAttempts?: number;
+  [key: string]: any;
+};
 
 // Metadata classes for compatibility
 export class InterviewMeta {
-  userContext: string[] = []
-  agentContext: string[] = []  
-  docstring: string = ''
-  fields: Map<string, FieldMeta> = new Map()
+  userContext: string[] = [];
+  agentContext: string[] = [];
+  docstring: string = '';
+  fields: Map<string, FieldMeta> = new Map();
 
   addUserContext(context: string): void {
-    this.userContext.push(context)
+    this.userContext.push(context);
   }
 
   addAgentContext(context: string): void {
-    this.agentContext.push(context)
+    this.agentContext.push(context);
   }
 
   setDocstring(doc: string): void {
-    this.docstring = doc
+    this.docstring = doc;
   }
 
   addField(name: string, description: string): FieldMeta {
-    const field = new FieldMeta(name, description)
-    this.fields.set(name, field)
-    return field
+    const field = new FieldMeta(name, description);
+    this.fields.set(name, field);
+    return field;
   }
 
   getFields(): FieldMeta[] {
-    return Array.from(this.fields.values())
+    return Array.from(this.fields.values());
   }
 }
 
 export class FieldMeta {
-  name: string
-  description: string
-  mustRules: string[] = []
-  rejectRules: string[] = []
-  hint?: string
+  name: string;
+  description: string;
+  mustRules: string[] = [];
+  rejectRules: string[] = [];
+  hint?: string;
 
   constructor(name: string, description: string) {
-    this.name = name
-    this.description = description
+    this.name = name;
+    this.description = description;
   }
 
   addMustRule(rule: string): void {
-    this.mustRules.push(rule)
+    this.mustRules.push(rule);
   }
 
   addRejectRule(rule: string): void {
-    this.rejectRules.push(rule)
+    this.rejectRules.push(rule);
   }
 
   setHint(hint: string): void {
-    this.hint = hint
+    this.hint = hint;
   }
 
-
   hasValidationRules(): boolean {
-    return this.mustRules.length > 0 || this.rejectRules.length > 0
+    return this.mustRules.length > 0 || this.rejectRules.length > 0;
   }
 }

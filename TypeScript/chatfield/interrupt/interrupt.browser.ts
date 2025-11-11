@@ -6,19 +6,19 @@
  *
  * LangGraph web entry ponit:
  * https://langchain-ai.github.io/langgraphjs/how-tos/use-in-web-environments/
- * 
+ *
  * From https://github.com/langchain-ai/langgraphjs/pull/211#issuecomment-2694835005
  * "It's currently unsupported in web as it requires AsyncLocalStorage features"
- * 
+ *
  * This implementation uses the same "scratchpad" object that the server
  * implementation uses to track interrupts and resume values, but without storing
  * data or checkpointing. It throws a GraphInterrupt to pause execution, just as
  * the server implementation does.
  */
-
-import { RunnableConfig } from "@langchain/core/runnables";
-import type { PendingWrite } from "@langchain/langgraph-checkpoint";
+import { RunnableConfig } from '@langchain/core/runnables';
+import type { PendingWrite } from '@langchain/langgraph-checkpoint';
 import { GraphInterrupt, GraphValueError } from '@langchain/langgraph/web';
+
 // import { sha256 } from 'js-sha256';
 
 /**
@@ -36,16 +36,16 @@ import { GraphInterrupt, GraphValueError } from '@langchain/langgraph/web';
  */
 export function interrupt<I = unknown, R = any>(value: I, config: RunnableConfig): R {
   // Internal config keys (not exported from web.ts)
-  const CONFIG_KEY_CHECKPOINTER = "__pregel_checkpointer";
-  const CONFIG_KEY_SCRATCHPAD = "__pregel_scratchpad";
-  const CONFIG_KEY_SEND = "__pregel_send";
-  const RESUME = "__resume__";
+  const CONFIG_KEY_CHECKPOINTER = '__pregel_checkpointer';
+  const CONFIG_KEY_SCRATCHPAD = '__pregel_scratchpad';
+  const CONFIG_KEY_SEND = '__pregel_send';
+  const RESUME = '__resume__';
 
   if (!config?.configurable) {
     throw new Error(
-      "Called browserInterrupt() without config. " +
-      "Make sure your node function accepts config as the second parameter: " +
-      "(state: State, config?: RunnableConfig) => {...}"
+      'Called browserInterrupt() without config. ' +
+        'Make sure your node function accepts config as the second parameter: ' +
+        '(state: State, config?: RunnableConfig) => {...}',
     );
   }
 
@@ -55,15 +55,15 @@ export function interrupt<I = unknown, R = any>(value: I, config: RunnableConfig
   const checkpointer = conf[CONFIG_KEY_CHECKPOINTER];
   if (!checkpointer) {
     throw new GraphValueError(
-      "No checkpointer set. Use MemorySaver: " +
-      "graph.compile({ checkpointer: new MemorySaver() })"
+      'No checkpointer set. Use MemorySaver: ' +
+        'graph.compile({ checkpointer: new MemorySaver() })',
     );
   }
 
   // Get scratchpad
   const scratchpad = conf[CONFIG_KEY_SCRATCHPAD];
   if (!scratchpad) {
-    throw new Error("No scratchpad found in config");
+    throw new Error('No scratchpad found in config');
   }
 
   // Track interrupt index
@@ -73,7 +73,7 @@ export function interrupt<I = unknown, R = any>(value: I, config: RunnableConfig
   // Find previous resume values (from earlier runs)
   if (scratchpad.resume.length > 0 && idx < scratchpad.resume.length) {
     // Write resume array back to channel.
-    const pendingWrites = [ [RESUME, scratchpad.resume] as PendingWrite ];
+    const pendingWrites = [[RESUME, scratchpad.resume] as PendingWrite];
     conf[CONFIG_KEY_SEND]?.(pendingWrites);
     return scratchpad.resume[idx] as R;
   }
@@ -93,7 +93,7 @@ export function interrupt<I = unknown, R = any>(value: I, config: RunnableConfig
   const val = scratchpad.consumeNullResume();
   scratchpad.resume.push(val);
 
-  const pendingWrites = [ [RESUME, scratchpad.resume] as PendingWrite ];
+  const pendingWrites = [[RESUME, scratchpad.resume] as PendingWrite];
   conf[CONFIG_KEY_SEND]?.(pendingWrites);
 
   return val as R;

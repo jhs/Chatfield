@@ -9,5 +9,5 @@ export {
   getTemplate,
   getTemplatePartial,
   listTemplates,
-  listTemplatePartials
+  listTemplatePartials,
 } from './loader.node';
