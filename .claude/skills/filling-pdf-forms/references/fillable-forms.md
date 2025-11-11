@@ -80,28 +80,17 @@ interview = (chatfield()
         .desc("What is your full legal name?")
         .hint("Background: Should match official records per form instructions")
 
-    # Split pattern: collect once, split for PDF fields
-    .field("identifier")
-        .desc("What is your identification number?")
-        .as_str("formatted", "Digits formatted with separators as needed")
-        .hint("Background: Accepts with or without formatting characters")
-    .field("topmostSubform[0].Page1[0].id_1[0]")
-        .desc("First segment of identifier")
-        .conclude()
-    .field("topmostSubform[0].Page1[0].id_2[0]")
-        .desc("Middle segment of identifier")
-        .conclude()
-    .field("topmostSubform[0].Page1[0].id_3[0]")
-        .desc("Last segment of identifier")
-        .conclude()
+    # Fan-out pattern: collect once, use .as_*() to populate multiple PDF fields
+    .field("age")
+        .desc("What is your age in years?")
+        .as_int("age_years", "Age as integer")
+        .as_bool("over_18", "True if 18 or older")
+        .as_str("age_display", "Age formatted for display")
 
     .build())
 ```
 
-Use conclude for one-to-many UX improvements:
-- **Split pattern:** 1 value → N fields (identifier "123456789" → 3 parts: "123", "45", "6789")
-- **Expand pattern:** 1 choice → N checkboxes (classification → 7 checkboxes)
-- **Roll-up pattern:** N mutually-exclusive fields → 1 master + N concludes
+**Fan-out patterns:** Collect once with lenient formatting, use `.as_*()` casts to populate multiple PDF fields from single value.
 
 **CRITICAL: `.must()` vs `.as_*` Usage**
 
@@ -117,37 +106,23 @@ Use conclude for one-to-many UX improvements:
 
 **Rule of thumb:** Expect MORE `.as_*` calls than `.must()` in your interview definition.
 
-**Roll-up pattern for mutually-exclusive fields:**
-
-When PDF requires exactly ONE of several mutually-exclusive fields, use a master field with `.as_one()` for discrimination and `.as_str()` for value extraction, then conclude fields to populate specific PDF field_ids:
+**Discriminate + split:** For mutually-exclusive field sets, use `.as_*()` casts with conditional logic:
 
 ```python
-# Master field: collect the data with type discrimination
-.field("identifier")
-    .desc("What is your identification number?")
-    .as_one("id_type", "Type A", "Type B")
-    .as_str("id_value", "The digits only, formatted appropriately")
-    .hint("Background: Individuals use Type A, entities use Type B")
-
-# Conclude fields: populate specific PDF fields based on master data
-.field("topmostSubform[0].Page1[0].f1_11[0]")
-    .desc("First 3 digits of Type A (or empty if Type B)")
-    .conclude()
-.field("topmostSubform[0].Page1[0].f1_12[0]")
-    .desc("Middle 2 digits of Type A (or empty if Type B)")
-    .conclude()
-.field("topmostSubform[0].Page1[0].f1_13[0]")
-    .desc("Last 4 digits of Type A (or empty if Type B)")
-    .conclude()
-.field("topmostSubform[0].Page1[0].f1_14[0]")
-    .desc("First 2 digits of Type B (or empty if Type A)")
-    .conclude()
-.field("topmostSubform[0].Page1[0].f1_15[0]")
-    .desc("Last 7 digits of Type B (or empty if Type A)")
-    .conclude()
+.field("tin")
+    .desc("Is your taxpayer identification number EIN or SSN and what is that number?")
+    .must("be exactly 9 digits")
+    .must("indicate SSN or EIN type")
+    .as_str("ssn_part1", "First 3 of SSN, or empty if N/A")
+    .as_str("ssn_part2", "Middle 2 of SSN, or empty if N/A")
+    .as_str("ssn_part3", "Last 4 of SSN, or empty if N/A")
+    .as_str("ein_full", "Full 9-digit EIN, or empty if N/A")
+    .as_bool("is_ssn", "True if SSN, False if EIN")
 ```
 
-This ensures the system reaches "_enough" after collecting the master field, then uses conclude to derive all specific fields.
+**When to use `.conclude()`:**
+
+Use `.conclude()` when derived field depends on multiple previous fields or requires complex logic that can't be expressed in single field's casts.
 
 **Default to direct mapping:** PDF field_ids are internal - users only see `.desc()`.
 
@@ -226,20 +201,14 @@ DO NOT use `kill` on the parent shell process or any shell job control commands 
 **b) Create `input.values.json`** (Write tool):
 ```json
 [
-  {
-    "field_id": "topmostSubform[0].Page1[0].f1_01[0]",
-    "page": 1,
-    "value": "Jason Smith"
-  },
-  {
-    "field_id": "topmostSubform[0].Page1[0].checkbox[0]",
-    "page": 1,
-    "value": "/1"
-  }
+  {"field_id": "field_name", "page": 1, "value": "Jason Smith"},
+  {"field_id": "age_years", "page": 1, "value": 25},
+  {"field_id": "age_display", "page": 1, "value": "25"},
+  {"field_id": "checkbox_over_18", "page": 1, "value": "/1"}
 ]
 ```
 
-Convert booleans: Read `.form.json` for `checked_value`/`unchecked_value` (typically "/1" or "/On" for True, "/Off" for False).
+Convert booleans: Read `.form.json` for `checked_value`/`unchecked_value` (typically "/1" or "/On" for checked, "/Off" for unchecked).
 
 **c) Fill PDF:**
 ```bash
@@ -251,10 +220,11 @@ python scripts/fill_fillable_fields.py input.pdf input.values.json input.done.pd
 ## Key Rules
 
 1. **ONE file:** Edit `Python/chatfield/server/interview.py` only (EDITABLE ZONE)
-2. **Direct mapping default:** Use PDF field_ids directly unless splitting/deriving
-3. **Exact field_ids:** Keep from `.form.json` unchanged
-4. **Extract knowledge:** ALL form instructions go into traits/hints
-5. **Format flexibility:** Never specify format in `.desc()` - Alice accepts variations
+2. **Direct mapping default:** Use PDF field_ids directly unless using fan-out patterns
+3. **Fan-out patterns:** Use `.as_*()` casts to populate multiple PDF fields from single collected value
+4. **Exact field_ids:** Keep from `.form.json` unchanged (use as cast names or direct field names)
+5. **Extract knowledge:** ALL form instructions go into traits/hints
+6. **Format flexibility:** Never specify format in `.desc()` - Alice accepts variations
 
 ---
 

@@ -124,8 +124,8 @@ LLM computes during collection. Access via `interview.field.as_*`
 .field("has_partners")
     .as_bool("true if you have partners; false if not or N/A")
 
-.field("zip")
-    .as_int("parse 5-digit ZIP, ignore +4 extension")
+.field("quantity")
+    .as_int("parse as integer, ignore units")
 
 # Named string casts for formatting
 .field("ssn")

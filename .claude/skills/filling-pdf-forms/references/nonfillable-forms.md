@@ -204,9 +204,14 @@ Enhance the interview definition in `Python/chatfield/server/interview.py` to im
 - Replace generic descriptions with clear questions using `.desc()`
 - Add validation rules with `.must()` and `.reject()`
 - Add helpful hints with `.hint()`
-- **Roll-up related fields**: When a form splits one logical value into multiple fields (e.g., identifier parts or date components), use `.hint()` to ask once and populate all:
-  - First field: `.desc("What is your identification number?").hint("Ask for the full identifier, then populate this field with the first segment")`
-  - Other fields: `.desc("Identifier middle segment").hint("Populate from the identifier asked earlier")`
+- **Fan-out for related fields**: Use `.as_*()` casts to populate multiple fields from single value:
+  ```python
+  .field("age")
+      .desc("What is your age in years?")
+      .as_int("age_years", "Age as integer")
+      .as_bool("over_18", "True if 18 or older")
+      .as_str("age_display", "Age formatted for display")
+  ```
 - Add context-specific traits (e.g., "records optional fields as empty string when user indicates or implies no answer")
 
 **Validate interview quality:**

@@ -42,12 +42,13 @@ Both fillable and non-fillable workflows require building a high-quality Chatfie
 
 ```
 Interview Validation Checklist:
-- [ ] All field_ids from .form.json or .fields.json are present in interview definition
+- [ ] All field_ids from .form.json or .fields.json are mapped (either directly or via .as_*() casts)
 - [ ] No field_ids are duplicated or missing
-- [ ] Human-friendly data model uses roll-up pattern for mutually-exclusive fields
-- [ ] Split pattern applied where PDF splits single values (e.g., multi-part identifiers)
-- [ ] Expand pattern applied where one choice maps to multiple checkboxes
-- [ ] Conclude fields properly reference master fields
+- [ ] Fan-out patterns use .as_*() casts on single field to populate multiple PDF fields
+- [ ] Split pattern: multi-part values use .as_*() casts (e.g., identifier → 3 casts for 3 parts)
+- [ ] Discriminate + split: mutually-exclusive fields use .as_*() casts with "or empty/0 if N/A" descriptions
+- [ ] Expand pattern: multiple checkboxes use .as_*() casts on single field
+- [ ] .conclude() used only when necessary (multi-field dependencies or complex logic)
 - [ ] Alice traits include extracted form knowledge
 - [ ] Field hints provide context from PDF instructions
 - [ ] Optional fields explicitly marked with hint("Background: Optional...")
