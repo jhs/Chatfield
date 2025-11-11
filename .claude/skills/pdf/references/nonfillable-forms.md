@@ -9,7 +9,33 @@ For non-fillable PDFs, the extraction process differs (visual bounding box analy
 - **This file (nonfillable-forms.md)**: Non-fillable PDF workflow orchestration and steps
 - **api-reference.md**: Complete API reference (builder methods, transformations, validation, roles)
 
+## Contents
+- Workflow Overview
+- Step 1: Visual Analysis (REQUIRED)
+- Step 2: Create *_fields.json with field definitions (REQUIRED)
+- Step 3: Validate Bounding Boxes (REQUIRED)
+- Step 4: Define Interview in Server File (REQUIRED)
+- Step 5: Customize Interview (RECOMMENDED)
+- Step 6: Run Chatfield Server and Capture Results
+- Step 7: Map Results to fields.json and Annotate PDF
+- Complete Example: Non-fillable Application Form
+- Key Differences: Fillable vs. Non-fillable
+- Troubleshooting
+
 ## Workflow Overview
+
+Copy this checklist and track progress:
+
+```
+Non-fillable PDF Form Progress:
+- [ ] Step 1: Visual Analysis - Convert PDF to images and identify fields
+- [ ] Step 2: Create fields.json with bounding boxes
+- [ ] Step 3: Validate bounding boxes (automated + manual inspection)
+- [ ] Step 4: Define interview in interview.py
+- [ ] Step 5: Customize interview (validate with checklist in SKILL.md)
+- [ ] Step 6: Run Chatfield server and capture results
+- [ ] Step 7: Map results to fields.json and annotate PDF
+```
 
 **Stage 1: Visual Analysis** → Determine field locations and bounding boxes
 **Stage 2: Interview Definition** → Edit `Python/chatfield/server/interview.py` with Chatfield builder code
@@ -177,9 +203,9 @@ Enhance the interview definition in `Python/chatfield/server/interview.py` to im
 - Replace generic descriptions with clear questions using `.desc()`
 - Add validation rules with `.must()` and `.reject()`
 - Add helpful hints with `.hint()`
-- **Roll-up related fields**: When a form splits one logical value into multiple fields (e.g., SSN parts or DOB components), use `.hint()` to ask once and populate all:
-  - First field: `.desc("What is your Social Security Number?").hint("Ask for the full SSN, then populate this field with the first 3 digits")`
-  - Other fields: `.desc("SSN middle digits").hint("Populate from the SSN asked earlier")`
+- **Roll-up related fields**: When a form splits one logical value into multiple fields (e.g., identifier parts or date components), use `.hint()` to ask once and populate all:
+  - First field: `.desc("What is your identification number?").hint("Ask for the full identifier, then populate this field with the first segment")`
+  - Other fields: `.desc("Identifier middle segment").hint("Populate from the identifier asked earlier")`
 - Add context-specific traits (e.g., "records optional fields as empty string when user indicates or implies no answer")
 
 ## Step 6: Run Chatfield Server and Capture Results

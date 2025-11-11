@@ -1,20 +1,29 @@
 ---
-name: pdf-form-filler
-description: Fill PDF forms (fillable or non-fillable) by collecting data and populating form fields. This skill helps complete PDF forms by gathering required information and generating completed documents.
+name: filling-pdf-forms
+description: Complete PDF forms by collecting data through conversational interviews and populating form fields. Use when filling forms, completing documents, or when the user mentions PDFs, forms, form completion, or document population.
 license: Apache 2.0
 ---
 
-# PDF Form Filler
+# Filling PDF Forms
 
-Fill PDF forms by collecting required data and populating form fields.
+Complete PDF forms by collecting required data through conversational interviews and populating form fields.
+
+## Dependencies
+
+Install required Python packages before using this skill:
+
+```bash
+pip install pypdf pdfplumber markitdown[pdf]
+```
 
 ## When to Use This Skill
 
-Use this skill when filling out PDF forms with user-provided information, whether the PDF has fillable form fields or not.
+Use when completing PDF forms with user-provided data.
 
 ## Determine Form Type
 
-**Check fillability first:**
+PDFs may have programmatic form fields (fillable) or require visual annotation (non-fillable). Check which type:
+
 ```bash
 python scripts/check_fillable_fields.py <file.pdf>
 ```
@@ -22,11 +31,21 @@ python scripts/check_fillable_fields.py <file.pdf>
 - **Fillable fields detected** → Follow "Fillable Forms Workflow" below
 - **No fillable fields** → See references/nonfillable-forms.md
 
-Both workflows collect data through structured questions and then populate the PDF form.
+Both workflows collect data through conversational interviews, then populate the PDF.
 
 ---
 
 ## Fillable Forms Workflow
+
+Copy this checklist and track progress:
+
+```
+Fillable PDF Form Progress:
+- [ ] Step 1: Extract PDF content and field metadata
+- [ ] Step 2: Edit interview definition (validate with checklist below)
+- [ ] Step 3: Run conversational server
+- [ ] Step 4: Parse results and fill PDF
+```
 
 ### Step 1: Extract PDF Content and Field Metadata
 
@@ -53,14 +72,14 @@ Creates JSON with field_id, type (text/checkbox/radio_group/choice), page, rect,
 
 Extract actionable knowledge ONLY:
 - Form purpose (1-2 sentences)
-- Key term definitions (e.g., "U.S. person", "disregarded entity")
+- Key term definitions
 - Field completion instructions
 - Valid options/codes
 - Decision logic ("If X then Y")
 
 Place in interview:
-- **Form-level** → Alice traits: `.trait("Background: Form W-9 collects taxpayer IDs...")`
-- **Field-level** → Field hints: `.hint("Background: Individuals use SSN, entities use EIN")`
+- **Form-level** → Alice traits: `.trait("Background: [form purpose and context]...")`
+- **Field-level** → Field hints: `.hint("Background: [field-specific guidance]")`
 
 **b) Write interview using builder API:**
 
@@ -81,29 +100,29 @@ interview = (chatfield()
     # Default: map directly (one PDF field_id → one question)
     .field("topmostSubform[0].Page1[0].f1_01[0]")
         .desc("What is your full legal name?")
-        .hint("Background: Should match tax return exactly per IRS instructions")
+        .hint("Background: Should match official records per form instructions")
 
     # Split pattern: collect once, split for PDF fields
-    .field("ssn")
-        .desc("What is your Social Security Number?")
-        .as_str("formatted", "9 digits formatted as ###-##-####")
-        .hint("Background: Accepts with or without hyphens")
-    .field("topmostSubform[0].Page1[0].ssn_1[0]")
-        .desc("First 3 digits of ssn")
+    .field("identifier")
+        .desc("What is your identification number?")
+        .as_str("formatted", "Digits formatted with separators as needed")
+        .hint("Background: Accepts with or without formatting characters")
+    .field("topmostSubform[0].Page1[0].id_1[0]")
+        .desc("First segment of identifier")
         .conclude()
-    .field("topmostSubform[0].Page1[0].ssn_2[0]")
-        .desc("Middle 2 digits of ssn")
+    .field("topmostSubform[0].Page1[0].id_2[0]")
+        .desc("Middle segment of identifier")
         .conclude()
-    .field("topmostSubform[0].Page1[0].ssn_3[0]")
-        .desc("Last 4 digits of ssn")
+    .field("topmostSubform[0].Page1[0].id_3[0]")
+        .desc("Last segment of identifier")
         .conclude()
 
     .build())
 ```
 
-**Use conclude for one-to-many UX improvements:**
-- **Split pattern:** 1 value → N fields (SSN "123456789" → 3 parts: "123", "45", "6789")
-- **Expand pattern:** 1 choice → N checkboxes (tax classification → 7 checkboxes)
+Use conclude for one-to-many UX improvements:
+- **Split pattern:** 1 value → N fields (identifier "123456789" → 3 parts: "123", "45", "6789")
+- **Expand pattern:** 1 choice → N checkboxes (classification → 7 checkboxes)
 - **Roll-up pattern:** N mutually-exclusive fields → 1 master + N concludes
 
 **CRITICAL: `.must()` vs `.as_*` Usage**
@@ -122,31 +141,31 @@ interview = (chatfield()
 
 **Roll-up pattern for mutually-exclusive fields:**
 
-When PDF requires exactly ONE of several mutually-exclusive fields (e.g., SSN xor EIN), use a master field with `.as_one()` for discrimination and `.as_str()` for value extraction, then conclude fields to populate specific PDF field_ids:
+When PDF requires exactly ONE of several mutually-exclusive fields, use a master field with `.as_one()` for discrimination and `.as_str()` for value extraction, then conclude fields to populate specific PDF field_ids:
 
 ```python
 # Master field: collect the data with type discrimination
-.field("tin")
-    .desc("What is your taxpayer identification number?")
-    .as_one("number_type", "SSN", "EIN")
-    .as_str("number_value", "The 9 digits only, formatted #########")
-    .hint("Background: Individuals use SSN, entities use EIN")
+.field("identifier")
+    .desc("What is your identification number?")
+    .as_one("id_type", "Type A", "Type B")
+    .as_str("id_value", "The digits only, formatted appropriately")
+    .hint("Background: Individuals use Type A, entities use Type B")
 
 # Conclude fields: populate specific PDF fields based on master data
 .field("topmostSubform[0].Page1[0].f1_11[0]")
-    .desc("First 3 digits of SSN (or empty if EIN)")
+    .desc("First 3 digits of Type A (or empty if Type B)")
     .conclude()
 .field("topmostSubform[0].Page1[0].f1_12[0]")
-    .desc("Middle 2 digits of SSN (or empty if EIN)")
+    .desc("Middle 2 digits of Type A (or empty if Type B)")
     .conclude()
 .field("topmostSubform[0].Page1[0].f1_13[0]")
-    .desc("Last 4 digits of SSN (or empty if EIN)")
+    .desc("Last 4 digits of Type A (or empty if Type B)")
     .conclude()
 .field("topmostSubform[0].Page1[0].f1_14[0]")
-    .desc("First 2 digits of EIN (or empty if SSN)")
+    .desc("First 2 digits of Type B (or empty if Type A)")
     .conclude()
 .field("topmostSubform[0].Page1[0].f1_15[0]")
-    .desc("Last 7 digits of EIN (or empty if SSN)")
+    .desc("Last 7 digits of Type B (or empty if Type A)")
     .conclude()
 ```
 
@@ -180,6 +199,32 @@ This ensures the system reaches "_enough" after collecting the master field, the
 .as_multi()           One or more choices required
 .as_nullable_multi()  Zero or more choices
 ```
+
+**c) Validate interview definition:**
+
+Before proceeding, verify the interview meets quality standards:
+
+```
+Interview Validation Checklist:
+- [ ] All field_ids from .form.json are present in interview definition
+- [ ] No field_ids are duplicated or missing
+- [ ] Human-friendly data model uses roll-up pattern for mutually-exclusive fields
+- [ ] Split pattern applied where PDF splits single values (e.g., multi-part identifiers)
+- [ ] Expand pattern applied where one choice maps to multiple checkboxes
+- [ ] Conclude fields properly reference master fields
+- [ ] Alice traits include extracted form knowledge
+- [ ] Field hints provide context from PDF instructions
+- [ ] Optional fields explicitly marked with hint("Background: Optional...")
+- [ ] .must() used sparingly (only for true content requirements)
+- [ ] .as_*() transformations used liberally for all type casts and formatting
+- [ ] Field .desc() questions are natural and user-friendly (no technical field_ids)
+```
+
+If any items fail validation:
+1. Review the specific issue in the checklist
+2. Fix the interview.py definition
+3. Re-run validation checklist
+4. Proceed only when all items pass
 
 ---
 
@@ -251,26 +296,27 @@ python scripts/fill_fillable_fields.py input.pdf input.values.json input.done.pd
 
 ---
 
-## Example: Complete W-9 Form
+## Example: Complete Fillable Form
 
 ### 1. Check fillability
 ```bash
-python scripts/check_fillable_fields.py fw9.pdf
+python scripts/check_fillable_fields.py input.pdf
 ```
 
 ### 2. Extract content and fields
 ```bash
-python scripts/markitdown.py fw9.pdf
+python scripts/markitdown.py input.pdf
 ```
 ```bash
-python scripts/extract_form_field_info.py fw9.pdf fw9.form.json
+python scripts/extract_form_field_info.py input.pdf input.form.json
 ```
 
 ### 3. Extract knowledge and edit interview.py
 - Extract actionable knowledge from markdown
 - Add form-level knowledge as Alice traits
 - Add field-level knowledge as field hints
-- Define fields with exact IDs from fw9.form.json
+- Define fields with exact IDs from input.form.json
+- Validate with Interview Validation Checklist
 
 ### 4. Run server
 ```bash
@@ -279,7 +325,7 @@ python -m chatfield.server.cli
 
 ### 5. Parse results and fill
 ```bash
-python scripts/fill_fillable_fields.py fw9.pdf fw9.values.json fw9.done.pdf
+python scripts/fill_fillable_fields.py input.pdf input.values.json output.pdf
 ```
 
 ---
