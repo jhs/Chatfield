@@ -191,6 +191,7 @@ Use tools that detect UI elements (not just text):
 
 ## See Also
 
-- [CLAUDE/PLAYWRIGHT_MCP_GUIDANCE.md](PLAYWRIGHT_MCP_GUIDANCE.md) - Live form inspection with Playwright
-- [CLAUDE/CORE_API_GUIDANCE.md](CORE_API_GUIDANCE.md) - Complete Chatfield API reference
-- [Documentation/Builder_Api.md](../Documentation/Builder_Api.md) - Builder API details
+- [Builder_Api.md](Builder_Api.md) - Builder API details
+- [Architecture.md](Architecture.md) - System architecture overview
+- [Getting_Started_Python.md](Getting_Started_Python.md) - Python quickstart guide
+- [Getting_Started_TypeScript.md](Getting_Started_TypeScript.md) - TypeScript quickstart guide

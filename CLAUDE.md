@@ -4,9 +4,23 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## About This File
 
-This is an **Agent Documentation** file - part of a structured system of UPPERCASE `.md` files designed specifically for AI coding agents. These files provide comprehensive context about the codebase, architecture, and development practices.
+This is an **Agent Documentation** file - part of a structured system designed specifically for AI coding agents. These files provide comprehensive context about the codebase, architecture, and development practices.
 
-**See**: [CLAUDE/AGENT_DOCUMENTATION.md](CLAUDE/AGENT_DOCUMENTATION.md) for complete information about the Agent Documentation system, naming conventions, and maintenance guidelines.
+### Documentation Naming Conventions
+
+This project uses a **two-tier documentation system**:
+
+1. **CLAUDE.md files** (like this one): High-level overview files at each directory level
+2. **Documentation/ directory**: Centralized location for all detailed documentation
+
+**Within the Documentation/ directory, naming indicates the audience:**
+
+- **UPPERCASE_WITH_UNDERSCORES** (e.g., `AGENT_DOCUMENTATION.md`, `JS_CONVERSION_PLAN.md`) = **Agent-focused** documentation designed specifically for AI coding agents
+- **Normal_Case** (e.g., `Architecture.md`, `Getting_Started_Python.md`) = **Human-focused** documentation designed for developers
+
+This distinction makes it clear which documentation is optimized for AI agents versus human readers, while keeping all detailed documentation in a single centralized location.
+
+**See**: [Documentation/AGENT_DOCUMENTATION.md](Documentation/AGENT_DOCUMENTATION.md) for complete information about the Agent Documentation system, naming conventions, and maintenance guidelines.
 
 ## Project Overview
 
@@ -152,7 +166,7 @@ Both implementations maintain **isomorphic test suites** with:
 
 ## Additional Resources
 
-- **Agent Documentation Guide**: [CLAUDE/AGENT_DOCUMENTATION.md](CLAUDE/AGENT_DOCUMENTATION.md) - How this project's agent documentation system works
+- **Agent Documentation Guide**: [Documentation/AGENT_DOCUMENTATION.md](Documentation/AGENT_DOCUMENTATION.md) - How this project's agent documentation system works
 - **Developer Guide**: [Developers.md](Developers.md) - Comprehensive guide for setting up development environment, running tests, and contributing
 - **Design Decisions**: [Documentation/Design_Decisions.md](Documentation/Design_Decisions.md)
 - **Cookbook**: [Documentation/Cookbook.md](Documentation/Cookbook.md) for common patterns

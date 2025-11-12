@@ -25,7 +25,7 @@ These examples are **reference implementations** showing how to use `@chatfield/
 
 2. **Set up LiteLLM proxy** (recommended for development):
    ```bash
-   # See TypeScript/CLAUDE/PROXY_SETUP.md
+   # See Documentation/PROXY_SETUP.md
    docker-compose up
    ```
 

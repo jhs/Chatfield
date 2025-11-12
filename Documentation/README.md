@@ -4,11 +4,11 @@ Welcome to the Chatfield documentation! This directory contains comprehensive gu
 
 ## 🤖 About Agent Documentation
 
-This project uses a structured **Agent Documentation** system - UPPERCASE `.md` files designed specifically for AI coding agents (like Claude Code). This Documentation/ directory is part of that system, containing project-wide technical reference material.
+This project uses a structured **Agent Documentation** system - UPPERCASE `.md` files designed specifically for AI coding agents (like Claude Code). This Documentation/ directory is the central location for all detailed documentation.
 
-- **[Agent Documentation Guide](../CLAUDE/AGENT_DOCUMENTATION.md)**: Complete guide to the agent documentation system, naming conventions, and maintenance
+- **[Agent Documentation Guide](AGENT_DOCUMENTATION.md)**: Complete guide to the agent documentation system, naming conventions, and maintenance
 - **Top-level CLAUDE.md files**: Entry points for AI agents at each directory level
-- **CLAUDE/ subdirectories**: Implementation-specific detailed documentation
+- **Documentation/ directory**: Centralized location for all detailed documentation (UPPERCASE for agent-focused, Normal_Case for human-focused)
 
 This README is a **user-facing** index to help human developers navigate the documentation.
 

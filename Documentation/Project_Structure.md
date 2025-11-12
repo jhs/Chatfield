@@ -125,23 +125,25 @@ This project uses a structured **Agent Documentation** system - UPPERCASE `.md` 
 - Provide high-level overviews with references to detailed documentation
 - Keep content concise (<200 lines)
 
-**Tier 2: Detailed Files (CLAUDE/ subdirectories and Documentation/)**
-- `CLAUDE/` subdirectories contain implementation-specific detailed docs
-- `Documentation/` directory contains project-wide detailed docs (exception to CLAUDE/ pattern)
+**Tier 2: Detailed Files (Documentation/ directory)**
+- `Documentation/` directory contains all detailed documentation (centralized)
+- Agent-focused files use UPPERCASE naming (e.g., `AGENT_DOCUMENTATION.md`)
+- Human-focused files use Normal_Case naming (e.g., `Architecture.md`)
 - Can be comprehensive and extensive
 
-**See**: [../CLAUDE/AGENT_DOCUMENTATION.md](../CLAUDE/AGENT_DOCUMENTATION.md) for complete details on the Agent Documentation system, naming conventions, and maintenance guidelines.
+**See**: [AGENT_DOCUMENTATION.md](AGENT_DOCUMENTATION.md) for complete details on the Agent Documentation system, naming conventions, and maintenance guidelines.
 
 ### Documentation/ Directory (Project-Wide Reference)
 
-The `Documentation/` directory contains **project-wide detailed documentation** for AI agents:
+The `Documentation/` directory contains **all detailed documentation** for both AI agents and humans:
+- **Agent-focused (UPPERCASE)**: `AGENT_DOCUMENTATION.md`, `JS_CONVERSION_PLAN.md`, `PROXY_SETUP.md`, `ROLLUP_BUILD_OPTIONS.md`, `CONVERTING_WITH_SCREENSHOTS.md`, `CLAUDE_SKILLS_BEST_PRACTICES.md`
 - **Core concepts**: `Isomorphic_Development.md`, `Architecture.md`
 - **Getting started**: `Getting_Started_Python.md`, `Getting_Started_TypeScript.md`
 - **Reference**: `Builder_Api.md`, `Api_Configuration.md`, `Commands.md`, `Project_Structure.md`
-- **Testing**: `Testing_Architecture.md`
+- **Testing**: `TESTING_Architecture.md`
 - **Advanced**: `Design_Decisions.md`, `Cookbook.md`, `Prompt_System.md`
 
-**Note**: `Documentation/` is an exception to the CLAUDE/ subdirectory pattern because it serves as the central repository for all project-wide agent documentation.
+**Note**: `Documentation/` serves as the central repository for all project documentation. Use UPPERCASE for agent-focused files and Normal_Case for human-focused files.
 
 ## File Correspondence
 
