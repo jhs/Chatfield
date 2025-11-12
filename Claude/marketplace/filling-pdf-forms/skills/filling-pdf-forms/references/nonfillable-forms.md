@@ -335,7 +335,6 @@ python scripts/fill_pdf_form_with_annotations.py application.pdf application_com
 |--------|----------|--------------|
 | **Field Extraction** | Programmatic (`extract_form_field_info.py`) | Visual analysis + manual fields.json |
 | **Field Metadata** | Automatic (IDs, types, options) | Manual (bounding boxes, types) |
-| **Interview Generation** | `generate_chatfield_interview.py` | `generate_chatfield_interview_nonfillable.py` |
 | **Chatfield Interview** | **Identical** | **Identical** |
 | **Data Population** | `fill_fillable_fields.py` | `fill_pdf_form_with_annotations.py` |
 
