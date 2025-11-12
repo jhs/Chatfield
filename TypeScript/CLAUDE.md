@@ -4,7 +4,7 @@ This file provides guidance for working with the TypeScript/JavaScript implement
 
 ## Overview
 
-Chatfield TypeScript (v0.1.0) is the TypeScript/JavaScript implementation of conversational data collection powered by LLMs. Package name: `@chatfield/core`. This implementation maintains feature parity with the Python version (v0.2.0).
+Chatfield TypeScript (v1.0.0a2) is the TypeScript/JavaScript implementation of conversational data collection powered by LLMs. Package name: `@chatfield/core`. This implementation maintains feature parity with the Python version (v1.0.0a2).
 
 **IMPORTANT**: This is the TypeScript implementation of an **isomorphic library**. The Python and TypeScript implementations are equal first-class citizens, maintaining near-identical code structure, naming, logic, and test suites.
 

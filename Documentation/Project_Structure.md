@@ -19,7 +19,7 @@ Chatfield/
 │   ├── Getting_Started_TypeScript.md # TypeScript quickstart
 │   └── README.md                  # Documentation index
 │
-├── Python/                      # Python implementation (v0.2.0)
+├── Python/                      # Python implementation (v1.0.0a2)
 │   ├── chatfield/               # Core Python package
 │   │   ├── __init__.py          # Main exports and public API
 │   │   ├── interview.py         # Base Interview class with field discovery
@@ -47,7 +47,7 @@ Chatfield/
 │   ├── pyproject.toml           # Python package configuration
 │   └── CLAUDE.md                # Python-specific implementation guide
 │
-└── TypeScript/                  # TypeScript/JavaScript implementation (v0.1.0)
+└── TypeScript/                  # TypeScript/JavaScript implementation (v1.0.0a2)
     ├── chatfield/               # TypeScript source code
     │   ├── index.ts             # Main exports and public API
     │   ├── interview.ts         # Base Interview class (mirrors Python)

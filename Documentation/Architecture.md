@@ -17,7 +17,7 @@
 
 ## System Overview
 
-Chatfield is a conversational data collection framework that transforms rigid forms into natural, LLM-powered dialogues. It maintains dual implementations in Python (v0.2.0) and TypeScript/JavaScript (v0.1.0) with strict feature parity.
+Chatfield is a conversational data collection framework that transforms rigid forms into natural, LLM-powered dialogues. It maintains dual implementations in Python (v1.0.0a2) and TypeScript/JavaScript (v1.0.0a2) with strict feature parity.
 
 ### Design Philosophy
 
@@ -598,9 +598,10 @@ Follow these validation rules:
 
 ### Version Synchronization
 
-- Python: v0.2.0 (`pyproject.toml`)
-- TypeScript: v0.1.0 (`package.json`)
-- Update together when releasing features
+- Python: v1.0.0a2 (`Python/pyproject.toml`)
+- TypeScript: v1.0.0a2 (`TypeScript/package.json`)
+- Skills: v1.0.0a2 (`.claude/skills/filling-pdf-forms/SKILL.md`)
+- All versions must be updated together in a single commit
 
 ---
 

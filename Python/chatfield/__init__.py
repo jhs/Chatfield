@@ -3,7 +3,7 @@
 Transform rigid forms into thoughtful Socratic conversations that guide users to express their needs clearly.
 """
 
-__version__ = "0.2.0"
+__version__ = "1.0.0a2"
 
 from .builder import chatfield
 from .interview import Interview
