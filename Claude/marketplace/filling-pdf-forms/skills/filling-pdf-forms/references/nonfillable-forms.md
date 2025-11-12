@@ -39,10 +39,10 @@ Non-fillable PDF Form Progress:
 ```
 
 **Stage 1: Visual Analysis** → Determine field locations and bounding boxes
-**Stage 2: Interview Definition** → Edit `scripts/chatfield_interview.py` with Chatfield builder code
-**Stage 3: Server Execution** → Start Chatfield server subprocess for browser-based data collection
-**Stage 4: Data Collection** → User completes interview in browser, when done the server prints all results and exits
-**Stage 5: PDF Population** → Parse server output and annotate PDF at bounding box locations
+**Stage 2: Interview Definition** → Build Chatfield interview definition
+**Stage 3: Server Execution** → Create `<basename>.chatfield/` directory, copy scripts, edit interview, run server
+**Stage 4: Data Collection** → User completes interview in browser, server prints results and exits
+**Stage 5: PDF Population** → Parse server output, annotate PDF, cleanup `<basename>.chatfield/` directory
 
 Follow the below steps *exactly* to ensure accurate form completion.
 
@@ -163,11 +163,11 @@ If there are errors, reanalyze the relevant fields, adjust the bounding boxes, a
 
 - If any rectangles look wrong, fix fields.json, regenerate the validation images, and verify again. Repeat this process until the bounding boxes are fully accurate.
 
-## Step 4: Define Interview in Server File (REQUIRED)
+## Step 4: Define Interview (REQUIRED)
 
-Edit `scripts/chatfield_interview.py` with Chatfield builder code based on your field definitions:
+Build Chatfield interview definition based on your field definitions.
 
-**File to edit**: `scripts/chatfield_interview.py`
+**Source template**: `scripts/chatfield/chatfield_interview.py`
 
 **Create builder code from fields.json**:
 - Read `field_id`, `field_type`, and `description` from fields.json
@@ -192,7 +192,7 @@ interview = (chatfield()
 
 ## Step 5: Customize Interview (RECOMMENDED)
 
-Enhance the interview definition in `scripts/chatfield_interview.py` to improve user experience. **See api-reference.md for complete API reference.**
+Enhance the interview definition to improve user experience. **See api-reference.md for complete API reference.**
 
 **Required configuration**:
 - **Alice and Bob roles**: Always configure with `.alice().type()` and `.bob().type()` plus these traits:
@@ -220,43 +220,46 @@ Before proceeding to Step 6, use the **Interview Validation Checklist** in ../SK
 
 If any items fail validation:
 1. Review the specific issue in the checklist
-2. Fix the chatfield_interview.py definition
+2. Fix the interview definition
 3. Re-run validation checklist
 4. Proceed only when all items pass
 
 ## Step 6: Run Chatfield Server and Capture Results
 
-Start the Chatfield server subprocess to collect data via browser-based interview (same as fillable workflow):
-
-```python
-import subprocess
-import json
-
-# Start server subprocess
-proc = subprocess.Popen(
-    ["python", "scripts/run_server.py", "--port", "0"],
-    stdout=subprocess.PIPE,
-    stderr=subprocess.PIPE,
-    text=True
-)
-
-# Capture SERVER_READY signal from stderr
-for line in proc.stderr:
-    if line.startswith("SERVER_READY:"):
-        server_url = line.split("SERVER_READY:")[1].strip()
-        break
-
-# User completes interview in browser
-# Server auto-shuts down when done
-
-# Capture results from stdout
-stdout, stderr = proc.communicate()
-results = json.loads(stdout)  # Parse interview results
+**Create working directory:**
+```bash
+# For PDF named application.pdf, create application.chatfield/
+mkdir application.chatfield
+cp scripts/chatfield/run_server.py application.chatfield/
+cp scripts/chatfield/chatfield_interview.py application.chatfield/
 ```
+
+**Edit interview in working directory:**
+Edit `application.chatfield/chatfield_interview.py` with the interview definition from Steps 4-5.
+
+**Run server:**
+```bash
+cd application.chatfield
+python run_server.py
+```
+
+Server opens browser for user to complete interview, then auto-exits and prints results to stdout in format:
+```python
+{
+    'field_id': {
+        'value': 'collected value',
+        'context': 'conversation context',
+        'as_quote': 'original quote'
+    },
+    ...
+}
+```
+
+Capture the output for Step 7.
 
 ## Step 7: Map Results to fields.json and Annotate PDF
 
-Extract field values from server output, populate fields.json, and annotate the PDF:
+Extract field values from server output, populate fields.json, annotate the PDF, and cleanup:
 
 ```python
 # Load original fields.json
@@ -284,8 +287,14 @@ with open('fields_completed.json', 'w') as f:
 # Annotate PDF with collected data
 subprocess.run([
     "python", "scripts/fill_pdf_form_with_annotations.py",
-    "input.pdf", "fields_completed.json", "output.pdf"
+    "application.pdf", "fields_completed.json", "application_filled.pdf"
 ])
+```
+
+**Cleanup:**
+```bash
+cd ..
+rm -r application.chatfield
 ```
 
 ## Complete Example: Non-fillable Application Form
@@ -308,17 +317,20 @@ python scripts/create_validation_image.py 1 application.fields.json images/page_
 python scripts/check_bounding_boxes.py application_fields.json
 # Manually inspect validation images, fix any issues
 
-# 5. Edit scripts/chatfield_interview.py
+# 5. Build interview definition
 #    - Build interview from application_fields.json field definitions
 #    - Add clear descriptions and validation rules
 #    - Configure roles and traits
 
-# 6. Start Chatfield server subprocess
-#    - Server prints SERVER_READY to stderr
-#    - Browser opens automatically
-#    - User completes interview in browser
-#    - Server auto-shuts down when done
-#    - Capture results from stdout
+# 6. Setup working directory and run server
+mkdir application.chatfield
+cp scripts/chatfield/run_server.py application.chatfield/
+cp scripts/chatfield/chatfield_interview.py application.chatfield/
+# Edit application.chatfield/chatfield_interview.py with interview definition
+cd application.chatfield
+python run_server.py
+# Server opens browser, user completes interview, server exits with results
+cd ..
 
 # 7. Parse results and populate fields.json
 #    - Map interview results to application_fields.json
@@ -327,6 +339,9 @@ python scripts/check_bounding_boxes.py application_fields.json
 
 # 8. Annotate PDF
 python scripts/fill_pdf_form_with_annotations.py application.pdf application_completed.json application_filled.pdf
+
+# 9. Cleanup
+rm -r application.chatfield
 ```
 
 ## Key Differences: Fillable vs. Non-fillable

@@ -15,7 +15,7 @@ Complete PDF forms by collecting required data through conversational interviews
 Install required Python packages before using this skill:
 
 ```bash
-pip install pypdf pdfplumber markitdown[pdf]
+pip install pypdf markitdown[pdf]
 ```
 
 ## When to Use This Skill
@@ -61,7 +61,7 @@ Interview Validation Checklist:
 
 **If any items fail validation:**
 1. Review the specific issue in the checklist
-2. Fix the `scripts/chatfield_interview.py` definition
+2. Fix the interview definition
 3. Re-run validation checklist
 4. Proceed only when all items pass
 
