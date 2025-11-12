@@ -1,5 +1,5 @@
 {
-  "name": "chatfield",
+  "name": "Chatfield",
   "owner": {
     "name": "Jason Smith",
     "email": "jason.h.smith@gmail.com"
@@ -8,7 +8,7 @@
     {
       "name": "filling-pdf-forms",
       "source": "./filling-pdf-forms",
-      "description": "Complete PDF forms by providing information through conversation. Use when filling forms, completing documents, or when the user mentions PDFs, forms, form completion, or document population"
+      "description": "Complete PDF forms through conversation"
     }
   ]
 }
