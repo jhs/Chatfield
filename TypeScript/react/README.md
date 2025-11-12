@@ -190,7 +190,7 @@ const [state, actions] = useChatfield(interview, {
 })
 ```
 
-See [LiteLLM Proxy Setup](../../CLAUDE/PROXY_SETUP.md) for configuration.
+See [LiteLLM Proxy Setup](../../Documentation/PROXY_SETUP.md) for configuration.
 
 ❌ **Not Recommended:** Direct API key (development only)
 

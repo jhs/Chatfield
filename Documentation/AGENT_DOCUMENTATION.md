@@ -17,13 +17,12 @@ The primary purpose is to provide AI agents with comprehensive, contextual infor
 
 Agent Documentation uses specific naming conventions:
 
-- ✅ `CLAUDE.md` - Agent documentation (top-level overview, UPPERCASE)
-- ✅ `CLAUDE/` - Agent documentation subdirectories (UPPERCASE with underscores)
-- ✅ `Documentation/` files - Agent documentation (Normal_Case, e.g., `Architecture.md`)
-- ❌ `README.md` - User-facing documentation
+- ✅ `CLAUDE.md` - Agent documentation (top-level overview files at directory levels, UPPERCASE)
+- ✅ `Documentation/` files - All agent documentation (UPPERCASE for agent-focused, Normal_Case for human-focused)
+- ❌ `README.md` - User-facing documentation (exception to UPPERCASE convention)
 - ❌ `Developers.md` - User-facing documentation
 
-**Key Distinction**: Files in `CLAUDE/` subdirectories use ALL_CAPS_WITH_UNDERSCORES (e.g., `JS_CONVERSION_PLAN.md`), while files in the centralized `Documentation/` directory use Normal_Case (e.g., `Architecture.md`) to distinguish them as project-wide reference material rather than implementation-specific agent docs.
+**Key Distinction**: Files in the `Documentation/` directory use UPPERCASE_WITH_UNDERSCORES for agent-focused documentation (e.g., `AGENT_DOCUMENTATION.md`, `JS_CONVERSION_PLAN.md`) and Normal_Case for human-focused documentation (e.g., `Architecture.md`, `Getting_Started_Python.md`).
 
 ### Exceptions
 - `README.md` files are **user-facing** despite uppercase naming (standard convention)
@@ -56,52 +55,61 @@ Agent Documentation follows a two-tier hierarchy:
 ./TypeScript/chatfield/integrations/CLAUDE.md  # Integrations overview
 ```
 
-### Tier 2: Detailed Files (CLAUDE/ subdirectories)
+### Tier 2: Detailed Files (Documentation/ directory)
 
 **Purpose**: Provide comprehensive technical details on specific topics
 
 **Characteristics**:
-- Located in `CLAUDE/` subdirectories
-- Named with UPPERCASE and underscores: `JS_CONVERSION_PLAN.md`, `PROXY_SETUP.md`
+- Located in the centralized `Documentation/` directory
+- Agent-focused files use UPPERCASE and underscores: `JS_CONVERSION_PLAN.md`, `PROXY_SETUP.md`, `AGENT_DOCUMENTATION.md`
+- Human-focused files use Normal_Case: `Architecture.md`, `Getting_Started_Python.md`
 - Contains **detailed technical content** (hundreds of lines)
-- **Must be referenced** by a parent `CLAUDE.md` file
-- Organized by implementation or topic area
+- **Must be referenced** by a parent `CLAUDE.md` file or other documentation
+- Organized by topic area in a single centralized location
 
 **Example locations**:
 ```
-./TypeScript/CLAUDE/
+./Documentation/
+├── AGENT_DOCUMENTATION.md        # Agent documentation system guide
 ├── JS_CONVERSION_PLAN.md         # Detailed TypeScript reimplementation plan
 ├── PROXY_SETUP.md                # Detailed LiteLLM proxy configuration
-└── ROLLUP_BUILD_OPTIONS.md       # Detailed build configuration
+├── ROLLUP_BUILD_OPTIONS.md       # Detailed build configuration
+├── Architecture.md               # System architecture (human-focused)
+└── Getting_Started_Python.md     # Python quickstart (human-focused)
 ```
 
-## Documentation/ Directory Exception
+## Documentation/ Directory
 
-The `Documentation/` directory contains **detailed agent documentation** but does **not** use the `CLAUDE/` subdirectory structure. This is an exception because:
+The `Documentation/` directory is the **central location for all detailed documentation**, both agent-focused and human-focused:
 
-1. The entire `Documentation/` directory is dedicated to project-wide reference material
-2. Files in `Documentation/` use Normal_Case naming (e.g., `Architecture.md`) to distinguish from implementation-specific CLAUDE/ docs
-3. It serves as the central repository for detailed technical documentation
+1. The entire `Documentation/` directory serves as the centralized repository for all project-wide documentation
+2. UPPERCASE files (e.g., `AGENT_DOCUMENTATION.md`, `JS_CONVERSION_PLAN.md`) are agent-focused
+3. Normal_Case files (e.g., `Architecture.md`, `Getting_Started_Python.md`) are human-focused
 4. It's referenced from all CLAUDE.md files across the project
 
-**Documentation/ contents** (Normal_Case naming):
+**Documentation/ contents** (mixed naming conventions):
 ```
 Documentation/
 ├── README.md                      # Documentation index (user-facing exception)
-├── Isomorphic_Development.md      # Isomorphic development principles
-├── Architecture.md                # System architecture details
-├── Testing_Architecture.md        # Testing approach and structure
-├── Builder_Api.md                 # Builder pattern API reference
-├── Api_Configuration.md           # API and environment setup
-├── Commands.md                    # Development commands reference
-├── Project_Structure.md           # Project organization
-├── Design_Decisions.md            # Key design decisions
-├── Cookbook.md                    # Common patterns and recipes
-├── Prompt_System.md               # LLM prompt engineering
-└── Getting_Started_*.md           # Quickstart guides
+├── AGENT_DOCUMENTATION.md         # Agent documentation system guide (agent-focused)
+├── JS_CONVERSION_PLAN.md          # TypeScript reimplementation plan (agent-focused)
+├── PROXY_SETUP.md                 # LiteLLM proxy configuration (agent-focused)
+├── ROLLUP_BUILD_OPTIONS.md        # Build configuration (agent-focused)
+├── CONVERTING_WITH_SCREENSHOTS.md # Form conversion guide (agent-focused)
+├── CLAUDE_SKILLS_BEST_PRACTICES.md # Skills authoring guide (agent-focused)
+├── Isomorphic_Development.md      # Isomorphic development principles (human-focused)
+├── Architecture.md                # System architecture details (human-focused)
+├── TESTING_Architecture.md        # Testing approach and structure (human-focused)
+├── Builder_Api.md                 # Builder pattern API reference (human-focused)
+├── Api_Configuration.md           # API and environment setup (human-focused)
+├── Commands.md                    # Development commands reference (human-focused)
+├── Project_Structure.md           # Project organization (human-focused)
+├── Design_Decisions.md            # Key design decisions (human-focused)
+├── Cookbook.md                    # Common patterns and recipes (human-focused)
+├── Prompt_System.md               # LLM prompt engineering (human-focused)
+└── Getting_Started_*.md           # Quickstart guides (human-focused)
 
-Note: Documentation/ uses Normal_Case to distinguish from UPPERCASE CLAUDE/ subdirectories.
-AGENT_DOCUMENTATION.md is in CLAUDE/ at the root level, not in Documentation/.
+Note: UPPERCASE = agent-focused, Normal_Case = human-focused. All documentation is centralized in Documentation/.
 ```
 
 ## Maintenance Guidelines
@@ -116,27 +124,23 @@ When creating new detailed documentation:
 
 **Step 2**: Choose the appropriate tier
 - High-level overview? → Add to existing `CLAUDE.md` or create new one
-- Detailed technical content? → Create in `CLAUDE/` subdirectory
+- Detailed technical content? → Create in `Documentation/` directory with appropriate naming
 
 **Step 3**: Create the file
 ```bash
-# For detailed docs in implementation directories (Python/TypeScript)
-mkdir -p TypeScript/CLAUDE
-touch TypeScript/CLAUDE/NEW_TOPIC.md
+# For project-wide detailed documentation (both agent-focused and human-focused)
+# Agent-focused: Use UPPERCASE_WITH_UNDERSCORES
+touch Documentation/NEW_AGENT_TOPIC.md
 
-# For project-wide detailed reference docs
-touch Documentation/NEW_TOPIC.md
-
-# For root-level agent documentation about the project itself
-mkdir -p CLAUDE
-touch CLAUDE/NEW_TOPIC.md
+# Human-focused: Use Normal_Case
+touch Documentation/New_Human_Topic.md
 ```
 
 **Step 4**: Add reference in parent `CLAUDE.md`
 ```markdown
 ## Advanced Topics
 
-- **New Topic**: [CLAUDE/NEW_TOPIC.md](CLAUDE/NEW_TOPIC.md) - Brief description
+- **New Topic**: [Documentation/NEW_AGENT_TOPIC.md](Documentation/NEW_AGENT_TOPIC.md) - Brief description
 ```
 
 ### 2. Updating Existing Agent Documentation
@@ -158,19 +162,19 @@ touch CLAUDE/NEW_TOPIC.md
 If a `CLAUDE.md` file becomes too detailed (>200 lines with extensive technical content):
 
 ```bash
-# 1. Create CLAUDE/ subdirectory
-mkdir -p SomeDirectory/CLAUDE/
+# 1. Extract detailed sections to new files in Documentation/
+# Use UPPERCASE for agent-focused content
+touch Documentation/NEW_DETAILED_TOPIC.md
 
-# 2. Extract detailed sections to new files
-# Move content from CLAUDE.md to CLAUDE/TOPIC.md
+# 2. Move content from CLAUDE.md to Documentation/NEW_DETAILED_TOPIC.md
 
 # 3. Update CLAUDE.md to reference the new files
 # Add links in appropriate sections
 
 # 4. Commit with descriptive message
-git add SomeDirectory/CLAUDE/
+git add Documentation/NEW_DETAILED_TOPIC.md
 git add SomeDirectory/CLAUDE.md
-git commit -m "Refactor: Extract detailed content from CLAUDE.md to CLAUDE/ subdocs"
+git commit -m "Refactor: Extract detailed content from CLAUDE.md to Documentation/"
 ```
 
 ### 4. Validation Checklist
@@ -178,12 +182,12 @@ git commit -m "Refactor: Extract detailed content from CLAUDE.md to CLAUDE/ subd
 Before committing changes to Agent Documentation:
 
 - [ ] All `CLAUDE.md` files are concise overviews with references
-- [ ] All detailed docs in `CLAUDE/` subdirectories are referenced
-- [ ] No orphaned files (every CLAUDE/ file is referenced somewhere)
+- [ ] All detailed docs in `Documentation/` directory are referenced
+- [ ] No orphaned files (every Documentation/ file is referenced somewhere)
 - [ ] Cross-references are up to date (especially after moving files)
-- [ ] Naming conventions followed (UPPERCASE for agent docs)
-- [ ] User-facing docs (README.md, Developers.md) are not in CLAUDE/
-- [ ] Documentation/ directory structure is maintained
+- [ ] Naming conventions followed (UPPERCASE for agent-focused docs, Normal_Case for human-focused docs)
+- [ ] User-facing docs (README.md, Developers.md) follow appropriate conventions
+- [ ] Documentation/ directory structure is maintained with proper naming
 - [ ] Isomorphic pairs (Python/TypeScript) have parallel structure
 
 ## File Organization Examples
@@ -193,21 +197,20 @@ Before committing changes to Agent Documentation:
 ```
 Chatfield/                         # Project root
 ├── CLAUDE.md                      # Root overview
-├── CLAUDE/                        # Root-level detailed agent docs
-│   └── AGENT_DOCUMENTATION.md     # This file!
-├── Documentation/                 # Project-wide reference (exception)
-│   ├── Architecture.md
-│   ├── Builder_Api.md
+├── Documentation/                 # All detailed documentation (centralized)
+│   ├── AGENT_DOCUMENTATION.md     # Agent-focused (UPPERCASE)
+│   ├── JS_CONVERSION_PLAN.md      # Agent-focused (UPPERCASE)
+│   ├── PROXY_SETUP.md             # Agent-focused (UPPERCASE)
+│   ├── ROLLUP_BUILD_OPTIONS.md    # Agent-focused (UPPERCASE)
+│   ├── Architecture.md            # Human-focused (Normal_Case)
+│   ├── Builder_Api.md             # Human-focused (Normal_Case)
 │   └── ...
 ├── Python/
 │   ├── CLAUDE.md                  # Python overview
-│   └── CLAUDE/                    # Python-specific details (if needed)
+│   ├── README.md                  # User-facing (exception)
+│   └── chatfield/
 └── TypeScript/
     ├── CLAUDE.md                  # TypeScript overview
-    ├── CLAUDE/                    # TypeScript-specific details
-    │   ├── JS_CONVERSION_PLAN.md
-    │   ├── PROXY_SETUP.md
-    │   └── ROLLUP_BUILD_OPTIONS.md
     ├── README.md                  # User-facing (exception)
     └── chatfield/
         └── integrations/
@@ -219,13 +222,13 @@ Chatfield/                         # Project root
 ```
 TypeScript/
 ├── CLAUDE.md                      # Too detailed (500+ lines)
-├── JS_CONVERSION_PLAN.md          # Should be in CLAUDE/
-├── PROXY_SETUP.md                 # Should be in CLAUDE/
+├── JS_CONVERSION_PLAN.md          # Should be in Documentation/
+├── PROXY_SETUP.md                 # Should be in Documentation/
 ├── README.md
 └── chatfield/
     └── integrations/
-        └── CLAUDE/                # Has subdirectory but no overview CLAUDE.md
-            └── DETAILS.md
+        ├── DETAILS.md             # Should be in Documentation/ or referenced in CLAUDE.md
+        └── (no CLAUDE.md)         # Missing overview file
 ```
 
 ## Common Patterns
@@ -237,8 +240,6 @@ For Python and TypeScript implementations:
 ```
 Python/
 ├── CLAUDE.md                      # Python overview
-├── CLAUDE/                        # Python-specific details (if needed)
-│   └── IMPLEMENTATION_NOTES.md
 ├── tests/
 │   └── CLAUDE.md                  # Test suite overview
 └── examples/
@@ -246,14 +247,15 @@ Python/
 
 TypeScript/
 ├── CLAUDE.md                      # TypeScript overview
-├── CLAUDE/                        # TypeScript-specific details
-│   ├── JS_CONVERSION_PLAN.md
-│   ├── PROXY_SETUP.md
-│   └── ROLLUP_BUILD_OPTIONS.md
 ├── tests/
 │   └── CLAUDE.md                  # Test suite overview (mirrors Python)
 └── examples/
     └── CLAUDE.md                  # Examples overview (mirrors Python)
+
+Documentation/                     # Centralized detailed docs
+├── JS_CONVERSION_PLAN.md          # TypeScript-specific (agent-focused)
+├── PROXY_SETUP.md                 # TypeScript-specific (agent-focused)
+└── ROLLUP_BUILD_OPTIONS.md        # TypeScript-specific (agent-focused)
 ```
 
 ### Pattern 2: Subdirectory Documentation
@@ -263,12 +265,13 @@ For specialized subdirectories:
 ```
 TypeScript/chatfield/integrations/
 ├── CLAUDE.md                      # Overview of integrations
-├── CLAUDE/                        # Detailed integration docs (if needed)
-│   ├── REACT_PATTERNS.md
-│   └── COPILOTKIT_SETUP.md
 ├── react.ts
 ├── react-components.tsx
 └── copilotkit.tsx
+
+Documentation/                     # Detailed integration docs (if needed)
+├── REACT_PATTERNS.md              # Detailed React patterns (agent-focused)
+└── COPILOTKIT_SETUP.md            # Detailed CopilotKit setup (agent-focused)
 ```
 
 ### Pattern 3: Cross-Referencing
@@ -282,8 +285,9 @@ Within `CLAUDE.md` files, reference other documentation:
 
 ## Advanced Topics
 
-- **Proxy Setup**: [CLAUDE/PROXY_SETUP.md](CLAUDE/PROXY_SETUP.md) - LiteLLM proxy configuration
-- **Build Options**: [CLAUDE/ROLLUP_BUILD_OPTIONS.md](CLAUDE/ROLLUP_BUILD_OPTIONS.md) - Rollup configuration
+- **Proxy Setup**: [../Documentation/PROXY_SETUP.md](../Documentation/PROXY_SETUP.md) - LiteLLM proxy configuration
+- **Build Options**: [../Documentation/ROLLUP_BUILD_OPTIONS.md](../Documentation/ROLLUP_BUILD_OPTIONS.md) - Rollup configuration
+- **JS Conversion**: [../Documentation/JS_CONVERSION_PLAN.md](../Documentation/JS_CONVERSION_PLAN.md) - TypeScript reimplementation plan
 ```
 
 ## Benefits of This System
@@ -302,7 +306,7 @@ Within `CLAUDE.md` files, reference other documentation:
 
 When adding new features:
 1. Update relevant `CLAUDE.md` files with overview changes
-2. Create detailed docs in `CLAUDE/` if needed (>100 lines of technical detail)
+2. Create detailed docs in `Documentation/` if needed (>100 lines of technical detail, use UPPERCASE for agent-focused)
 3. Update cross-references in parent `CLAUDE.md`
 4. Ensure isomorphic pairs (Python/TypeScript) have matching structure
 
@@ -319,8 +323,8 @@ Reviewers should check:
 When working with this codebase:
 1. Start with root `CLAUDE.md` for project overview
 2. Navigate to implementation-specific `CLAUDE.md` (Python/ or TypeScript/)
-3. Follow references to `CLAUDE/` subdirectories for details
-4. Consult `Documentation/` for project-wide technical references
+3. Follow references to `Documentation/` directory for detailed documentation
+4. Consult `Documentation/` for both agent-focused (UPPERCASE) and human-focused (Normal_Case) documentation
 5. Check `tests/CLAUDE.md` for testing approach
 6. Review `examples/CLAUDE.md` for usage patterns
 
@@ -332,23 +336,27 @@ When working with this codebase:
 
 ## Questions and Clarifications
 
-**Q: When should I use CLAUDE/ vs Documentation/?**
-- Use `CLAUDE/` for **implementation-specific** detailed docs (Python-only, TypeScript-only)
-- Use `Documentation/` for **project-wide** detailed docs (applies to both implementations)
+**Q: When should I use UPPERCASE vs Normal_Case in Documentation/?**
+- Use `UPPERCASE_WITH_UNDERSCORES` for **agent-focused** documentation (e.g., `AGENT_DOCUMENTATION.md`, `JS_CONVERSION_PLAN.md`)
+- Use `Normal_Case` for **human-focused** documentation (e.g., `Architecture.md`, `Getting_Started_Python.md`)
 
 **Q: Can CLAUDE.md files contain code examples?**
 - Yes, but keep them brief and illustrative
-- For extensive code examples, create a file in `CLAUDE/` or reference `examples/`
+- For extensive code examples, create a file in `Documentation/` (using UPPERCASE) or reference `examples/`
 
 **Q: How long should a CLAUDE.md file be?**
 - Aim for <200 lines
-- If longer, consider extracting detailed sections to `CLAUDE/` subdirectory
+- If longer, consider extracting detailed sections to `Documentation/` directory with UPPERCASE naming
 
-**Q: Should test files have their own CLAUDE/ subdirectories?**
+**Q: Should test files have their own detailed documentation in Documentation/?**
 - Generally no - `tests/CLAUDE.md` should be comprehensive enough
-- Exception: If test infrastructure is very complex and needs detailed documentation
+- Exception: If test infrastructure is very complex, create `Documentation/TESTING_DETAILS.md` with UPPERCASE naming
 
 **Q: What about temporary documentation files?**
-- Temporary files (like `Tomorrow_Plan.md`) should **not** be in CLAUDE/
+- Temporary files (like `Tomorrow_Plan.md`) should **not** be in `Documentation/`
 - Keep them at root level and remove when no longer needed
 - Don't reference them from CLAUDE.md files
+
+**Q: Where do implementation-specific agent docs go?**
+- All detailed documentation goes in `Documentation/`, regardless of whether it's implementation-specific
+- Use descriptive UPPERCASE naming to indicate the scope (e.g., `JS_CONVERSION_PLAN.md` for TypeScript-specific content)

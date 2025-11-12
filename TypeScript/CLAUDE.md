@@ -380,9 +380,9 @@ const interviewer = new Interviewer(interview, { llm: mockLlm })
 
 For detailed technical documentation on TypeScript-specific implementation details:
 
-- **JS Conversion Plan**: [CLAUDE/JS_CONVERSION_PLAN.md](CLAUDE/JS_CONVERSION_PLAN.md) - Comprehensive plan for reimplementing TypeScript to match Python's chatfield architecture
-- **Proxy Setup**: [CLAUDE/PROXY_SETUP.md](CLAUDE/PROXY_SETUP.md) - LiteLLM proxy configuration for secure browser-based development
-- **Build Options**: [CLAUDE/ROLLUP_BUILD_OPTIONS.md](CLAUDE/ROLLUP_BUILD_OPTIONS.md) - Rollup build configuration and environment variable reference
+- **JS Conversion Plan**: [../Documentation/JS_CONVERSION_PLAN.md](../Documentation/JS_CONVERSION_PLAN.md) - Comprehensive plan for reimplementing TypeScript to match Python's chatfield architecture
+- **Proxy Setup**: [../Documentation/PROXY_SETUP.md](../Documentation/PROXY_SETUP.md) - LiteLLM proxy configuration for secure browser-based development
+- **Build Options**: [../Documentation/ROLLUP_BUILD_OPTIONS.md](../Documentation/ROLLUP_BUILD_OPTIONS.md) - Rollup build configuration and environment variable reference
 
 ## Additional Resources
 
