@@ -2,7 +2,7 @@
 name: filling-pdf-forms
 description: Complete PDF forms by collecting data through conversational interviews and populating form fields. Use when filling forms, completing documents, or when the user mentions PDFs, forms, form completion, or document population.
 allowed-tools: Read, Write, Edit, Glob, Bash
-version: 1.0.0a1
+version: 1.0.0a2
 license: Apache 2.0
 ---
 

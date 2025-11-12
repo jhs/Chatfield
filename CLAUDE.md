@@ -10,7 +10,7 @@ This is an **Agent Documentation** file - part of a structured system of UPPERCA
 
 ## Project Overview
 
-Chatfield is a dual-implementation library that transforms data collection from rigid forms into natural conversations powered by LLMs. It provides both Python (v0.2.0) and TypeScript/JavaScript (v0.1.0) implementations with feature parity as a goal.
+Chatfield is a dual-implementation library that transforms data collection from rigid forms into natural conversations powered by LLMs. It provides both Python (v1.0.0a2) and TypeScript/JavaScript (v1.0.0a2) implementations with feature parity as a goal.
 
 **Core Concept**: Replace traditional form fields with conversational dialogues that intelligently gather, validate, and transform structured data through natural language interactions.
 
@@ -62,11 +62,11 @@ npm test  # Run tests
 ```
 Chatfield/
 ├── Documentation/    # All project documentation
-├── Python/          # Python implementation (v0.2.0)
+├── Python/          # Python implementation (v1.0.0a2)
 │   ├── chatfield/   # Core package
 │   ├── tests/       # pytest test suite
 │   └── examples/    # Usage examples
-└── TypeScript/      # TypeScript implementation (v0.1.0)
+└── TypeScript/      # TypeScript implementation (v1.0.0a2)
     ├── chatfield/   # Core package
     ├── tests/       # Jest test suite
     └── examples/    # Usage examples
@@ -159,6 +159,18 @@ Both implementations maintain **isomorphic test suites** with:
 - **Prompt System**: [Documentation/Prompt_System.md](Documentation/Prompt_System.md) for LLM prompt engineering
 - **Documentation Index**: [Documentation/README.md](Documentation/README.md)
 
+## Version Management Policy
+
+**All version numbers must be kept in sync across the entire project:**
+
+- `Python/pyproject.toml` - Python package version
+- `TypeScript/package.json` - TypeScript/JavaScript package version
+- `.claude/skills/filling-pdf-forms/SKILL.md` - Skill metadata version
+
+**Current synchronized version: 1.0.0a2**
+
+When incrementing versions, update all three locations simultaneously in a single commit. This ensures consistency across the Python library, TypeScript library, and related skills/tooling.
+
 ## Contributing Guidelines
 
 1. **Isomorphic first**: Maintain both implementations as equal first-class citizens
@@ -167,7 +179,7 @@ Both implementations maintain **isomorphic test suites** with:
 4. **Test coverage**: Write identical tests with same descriptions in both languages
 5. **Zero skipped tests**: Use no-op tests instead of skipping
 6. **Parallel development**: Implement features in both languages simultaneously
-7. **Version sync**: Update version numbers in both pyproject.toml and package.json together
+7. **Version sync**: Always update version numbers in Python/pyproject.toml, TypeScript/package.json, and .claude/skills/filling-pdf-forms/SKILL.md together in a single commit
 
 **See**: [Documentation/Isomorphic_Development.md](Documentation/Isomorphic_Development.md) for complete contributing guidelines.
 

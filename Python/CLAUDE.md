@@ -4,7 +4,7 @@ This file provides guidance for working with the Python implementation of Chatfi
 
 ## Overview
 
-Chatfield Python (v0.2.0) transforms data gathering from rigid forms into conversational dialogues powered by LLMs. It uses a fluent builder API to define fields and validation rules, then leverages LangGraph to orchestrate natural conversations that collect structured data.
+Chatfield Python (v1.0.0a2) transforms data gathering from rigid forms into conversational dialogues powered by LLMs. It uses a fluent builder API to define fields and validation rules, then leverages LangGraph to orchestrate natural conversations that collect structured data.
 
 **IMPORTANT**: This is the Python implementation of an **isomorphic library**. The Python and TypeScript implementations are equal first-class citizens, maintaining near-identical code structure, naming, logic, and test suites.
 

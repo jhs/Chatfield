@@ -21,7 +21,7 @@ Welcome to the Chatfield project! This guide will help you get started with deve
 
 ## Project Overview
 
-Chatfield is a dual-implementation library that transforms data collection from rigid forms into natural conversations powered by LLMs. It provides both Python (v0.2.0) and TypeScript/JavaScript (v0.1.0) implementations with feature parity as the goal.
+Chatfield is a dual-implementation library that transforms data collection from rigid forms into natural conversations powered by LLMs. It provides both Python (v1.0.0a2) and TypeScript/JavaScript (v1.0.0a2) implementations with feature parity as the goal.
 
 **Core Features:**
 - LLM-powered conversational data collection
@@ -351,14 +351,14 @@ Configuration files:
 Chatfield/
 ├── Documentation/              # Project-wide documentation
 │   └── TEST_HARMONIZATION.md  # Test synchronization guide
-├── Python/                     # Python implementation (v0.2.0)
+├── Python/                     # Python implementation (v1.0.0a2)
 │   ├── chatfield/             # Core package
 │   ├── tests/                 # Test suite (pytest-describe)
 │   ├── examples/              # Usage examples
 │   ├── evals/                 # Security evaluation suite
 │   ├── Makefile              # Development shortcuts
 │   └── pyproject.toml        # Package configuration
-└── TypeScript/                # TypeScript implementation (v0.1.0)
+└── TypeScript/                # TypeScript implementation (v1.0.0a2)
     ├── src/                   # Source code
     ├── tests/                 # Test suite (Jest)
     ├── examples/              # Usage examples

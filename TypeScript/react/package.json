@@ -1,6 +1,6 @@
 {
   "name": "@chatfield/react",
-  "version": "0.1.0",
+  "version": "1.0.0a2",
   "description": "React hooks and utilities for Chatfield conversational data collection",
   "main": "dist/index.js",
   "module": "dist/index.js",
