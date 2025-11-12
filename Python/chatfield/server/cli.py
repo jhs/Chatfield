@@ -7,6 +7,8 @@ import socket
 import logging
 import uvicorn
 import argparse
+import threading
+import time
 
 from . import app
 
@@ -32,6 +34,20 @@ def print_interview_results():
             print(f"Error printing results: {e}", file=sys.stderr, flush=True)
     else:
         print(f"No active interview session", file=sys.stderr, flush=True)
+
+
+def monitor_interview_completion(server):
+    """Background thread that monitors interview completion and shuts down server."""
+    while True:
+        time.sleep(0.5)  # Check every 500ms
+
+        if app.current_session and app.current_session.interview._done:
+            print("\n\nInterview complete, shutting down server...", file=sys.stderr, flush=True)
+            print_interview_results()
+
+            # Gracefully shut down the uvicorn server
+            server.should_exit = True
+            break
 
 
 def main():
@@ -82,15 +98,26 @@ def main():
     signal.signal(signal.SIGINT, handle_shutdown_signal)
     signal.signal(signal.SIGTERM, handle_shutdown_signal)
 
-    # Run server with minimal logging
-    # All logs go to stderr, stdout is reserved for interview results
-    uvicorn.run(
+    # Create uvicorn server config
+    config = uvicorn.Config(
         app.app,
         host=args.host,
         port=port,
         log_level="warning",  # Minimal logging
         access_log=False       # Disable access logs
     )
+    server = uvicorn.Server(config)
+
+    # Start monitoring thread
+    monitor_thread = threading.Thread(
+        target=monitor_interview_completion,
+        args=(server,),
+        daemon=True
+    )
+    monitor_thread.start()
+
+    # Run server (blocks until should_exit is True)
+    server.run()
 
 
 if __name__ == '__main__':
