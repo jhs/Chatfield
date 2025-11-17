@@ -10,14 +10,6 @@ license: Apache 2.0
 
 Complete PDF forms by collecting required data through conversational interviews and populating form fields.
 
-## Dependencies
-
-Install required Python packages before using this skill:
-
-```bash
-pip install pypdf markitdown[pdf]
-```
-
 ## When to Use This Skill
 
 Use when completing PDF forms with user-provided data.
