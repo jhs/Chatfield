@@ -1,0 +1,126 @@
+From 1240513ff4aa9803b65da323eca8cbc495bb8fed Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Mon, 17 Nov 2025 14:35:36 +0000
+Subject: [PATCH] Fix AttributeError when AcroForm lacks /DR entry
+
+When filling form fields in PDFs without a /DR (Default Resources)
+entry in the AcroForm dictionary, pypdf would crash with:
+AttributeError: 'dict' object has no attribute 'get_object'
+
+The bug was in _appearance_stream.py line 435 where it used an
+empty dict {} as the default value instead of DictionaryObject().
+The cast() type hint doesn't convert the object, so when acro_form.get()
+returns the default {}, calling .get_object() fails.
+
+Fixed by using DictionaryObject() as default, matching the pattern
+already used correctly on lines 419-428 in the same function.
+
+Added unit test to prevent regression.
+---
+ pypdf/generic/_appearance_stream.py |  9 +++--
+ tests/test_forms.py                 | 58 +++++++++++++++++++++++++++++
+ 2 files changed, 64 insertions(+), 3 deletions(-)
+
+diff --git a/pypdf/generic/_appearance_stream.py b/pypdf/generic/_appearance_stream.py
+index 3a05a94d..3e6c3394 100644
+--- a/pypdf/generic/_appearance_stream.py
++++ b/pypdf/generic/_appearance_stream.py
+@@ -431,10 +431,13 @@ class TextStreamAppearance(DecodedStreamObject):
+         if font_name not in document_font_resources and font_name.removeprefix("/") not in CORE_FONT_METRICS:
+             # ...or AcroForm dictionary
+             document_resources = cast(
+-                dict[Any, Any],
+-                acro_form.get("/DR", {}),
++                DictionaryObject,
++                cast(
++                    DictionaryObject,
++                    acro_form.get("/DR", DictionaryObject()),
++                ).get_object(),
+             )
+-            document_font_resources = document_resources.get_object().get("/Font", DictionaryObject()).get_object()
++            document_font_resources = document_resources.get("/Font", DictionaryObject()).get_object()
+         font_resource = document_font_resources.get(font_name, None)
+         if not is_null_or_none(font_resource):
+             font_resource = cast(DictionaryObject, font_resource.get_object())
+diff --git a/tests/test_forms.py b/tests/test_forms.py
+index 19c85063..6dbde8ff 100644
+--- a/tests/test_forms.py
++++ b/tests/test_forms.py
+@@ -1,12 +1,17 @@
+ """Test form-related functionality. Separate file to keep overview."""
+ 
+ from io import BytesIO
++from pathlib import Path
+ 
+ import pytest
+ 
+ from pypdf import PdfReader, PdfWriter
+ from tests import get_data_from_url
+ 
++TESTS_ROOT = Path(__file__).parent.resolve()
++PROJECT_ROOT = TESTS_ROOT.parent
++RESOURCE_ROOT = PROJECT_ROOT / "resources"
++
+ 
+ @pytest.mark.enable_socket
+ def test_form_button__v_value_should_be_name_object():
+@@ -24,3 +29,56 @@ def test_form_button__v_value_should_be_name_object():
+ 
+     # Wrong: `/V (/On)`.
+     assert b"\n/V /On\n" in stream.getvalue()
++
++
++def test_update_form_field_without_acroform_dr():
++    """
++    Test that updating form fields works when AcroForm lacks /DR entry.
++
++    This tests the fix for a bug where pypdf would crash with:
++    AttributeError: 'dict' object has no attribute 'get_object'
++
++    when filling form fields in PDFs where the AcroForm dictionary
++    doesn't have a /DR (Default Resources) entry and the font used
++    is not in the standard font metrics (e.g., /Helv instead of /Helvetica).
++    """
++    # Use a PDF with forms
++    writer = PdfWriter(clone_from=RESOURCE_ROOT / "FormTestFromOo.pdf")
++
++    # Delete /DR from AcroForm and /DA from a field to trigger the bug scenario
++    # When /DA is missing, the default font is /Helv (not in CORE_FONT_METRICS)
++    # This causes the code to fall back to checking AcroForm /DR, triggering the bug
++    if "/DR" in writer.root_object["/AcroForm"]:
++        del writer.root_object["/AcroForm"]["/DR"]
++
++    # Delete /DA from the field to force the use of default /Helv font
++    # Also delete /DR from annotation to force fallback to AcroForm /DR
++    field_ref = writer.root_object["/AcroForm"]["/Fields"][0]
++    field = field_ref.get_object()
++    if "/DA" in field:
++        del field["/DA"]
++    if "/DR" in field:
++        del field["/DR"]
++
++    # Remove /DR from the annotation (which is also the field in this case)
++    if "/Annots" in writer.pages[0]:
++        for annot_ref in writer.pages[0]["/Annots"]:
++            annot = annot_ref.get_object()
++            if "/DR" in annot:
++                del annot["/DR"]
++            if "/DA" in annot:
++                del annot["/DA"]
++
++    # This should not raise AttributeError: 'dict' object has no attribute 'get_object'
++    writer.update_page_form_field_values(
++        writer.pages[0],
++        {"Text1": "test value"},
++        auto_regenerate=False,
++    )
++
++    # Verify the field was updated
++    output = BytesIO()
++    writer.write(output)
++    reader = PdfReader(output)
++    fields = reader.get_fields()
++    assert fields["Text1"]["/V"] == "test value"
+-- 
+2.43.0
+
