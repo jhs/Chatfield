@@ -140,10 +140,16 @@ export class Interviewer {
       }
 
       const llmConfig: any = {
-        apiKey: apiKey,
         modelName: llmId,
         temperature: temperature,
-        configuration: {
+      }
+      // Only include apiKey and baseURL if explicitly provided
+      // to avoid async callable issues with recent langchain-openai versions
+      if (apiKey !== null && apiKey !== undefined) {
+        llmConfig.apiKey = apiKey
+      }
+      if (baseUrl !== null && baseUrl !== undefined) {
+        llmConfig.configuration = {
           baseURL: baseUrl,
         }
       }

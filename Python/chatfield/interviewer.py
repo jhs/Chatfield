@@ -205,9 +205,13 @@ class Interviewer:
             llm_config = {
                 'model': llm_id,
                 'temperature': temperature,
-                'base_url': base_url,
-                'api_key': api_key,
             }
+            # Only include base_url and api_key if explicitly provided
+            # to avoid async callable issues with recent langchain-openai versions
+            if base_url is not None:
+                llm_config['base_url'] = base_url
+            if api_key is not None:
+                llm_config['api_key'] = api_key
             self.llm = ChatOpenAI(**llm_config)
 
         # Isomorphic:
