@@ -88,6 +88,10 @@ test = [
     "pytest-asyncio>=0.21.0",
     "pytest-describe>=2.2.0",
 ]
+claude = [
+    "pypdf>=6.3.0",
+    "PyMuPDF>=1.26.6"
+]
 lint = [
     "black>=23.0.0",
     "isort>=5.12.0",
