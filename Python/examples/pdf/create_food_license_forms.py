@@ -207,7 +207,7 @@ def create_form_pdf(output_path: str, lang: str):
     y = 50
 
     # Helper to insert text with correct font
-    def insert_text_with_font(pos, text, fontsize, fontname_default='helv', color=(0, 0, 0)):
+    def insert_text_with_font(pos, text, fontsize, fontname_default='Helvetica', color=(0, 0, 0)):
         """Insert text using custom font if available, otherwise default font."""
         if custom_font:
             tw = fitz.TextWriter(page.rect, color=color)
@@ -216,7 +216,7 @@ def create_form_pdf(output_path: str, lang: str):
         else:
             page.insert_text(pos, text, fontsize=fontsize, fontname=fontname_default, color=color)
 
-    def insert_textbox_with_font(rect, text, fontsize, fontname_default='helv', color=(0, 0, 0), align=fitz.TEXT_ALIGN_LEFT):
+    def insert_textbox_with_font(rect, text, fontsize, fontname_default='Helvetica', color=(0, 0, 0), align=fitz.TEXT_ALIGN_LEFT):
         """Insert textbox using custom font if available, otherwise default font."""
         if custom_font:
             # For custom fonts, calculate position based on alignment
@@ -301,7 +301,7 @@ def create_form_pdf(output_path: str, lang: str):
     widget.field_name = "business_name"
     widget.rect = fitz.Rect(50, y, page_width - 50, y + 20)
     widget.text_fontsize = 10
-    widget.text_font = "helv"
+    widget.text_font = "Helvetica"
     widget.fill_color = (1, 1, 1)
     widget.border_color = (0.7, 0.7, 0.7)
     widget.border_width = 0.5
@@ -316,7 +316,7 @@ def create_form_pdf(output_path: str, lang: str):
     widget.field_name = "business_address"
     widget.rect = fitz.Rect(50, y, page_width - 50, y + 20)
     widget.text_fontsize = 10
-    widget.text_font = "helv"
+    widget.text_font = "Helvetica"
     widget.fill_color = (1, 1, 1)
     widget.border_color = (0.7, 0.7, 0.7)
     widget.border_width = 0.5
@@ -376,7 +376,7 @@ def create_form_pdf(output_path: str, lang: str):
     widget.field_name = "num_employees"
     widget.rect = fitz.Rect(50, y, 180, y + 20)
     widget.text_fontsize = 10
-    widget.text_font = "helv"
+    widget.text_font = "Helvetica"
     widget.fill_color = (1, 1, 1)
     widget.border_color = (0.7, 0.7, 0.7)
     widget.border_width = 0.5
@@ -391,7 +391,7 @@ def create_form_pdf(output_path: str, lang: str):
     widget.field_name = "delivery_radius"
     widget.rect = fitz.Rect(50, y, 180, y + 20)
     widget.text_fontsize = 10
-    widget.text_font = "helv"
+    widget.text_font = "Helvetica"
     widget.fill_color = (1, 1, 1)
     widget.border_color = (0.7, 0.7, 0.7)
     widget.border_width = 0.5
@@ -434,7 +434,7 @@ def create_form_pdf(output_path: str, lang: str):
     widget.field_name = "certification_date"
     widget.rect = fitz.Rect(50, y, 220, y + 20)
     widget.text_fontsize = 10
-    widget.text_font = "helv"
+    widget.text_font = "Helvetica"
     widget.fill_color = (1, 1, 1)
     widget.border_color = (0.7, 0.7, 0.7)
     widget.border_width = 0.5
@@ -451,7 +451,7 @@ def create_form_pdf(output_path: str, lang: str):
     widget.field_name = "product_description"
     widget.rect = fitz.Rect(50, y, page_width - 50, y + 55)
     widget.text_fontsize = 9
-    widget.text_font = "helv"
+    widget.text_font = "Helvetica"
     widget.field_flags = fitz.PDF_TX_FIELD_IS_MULTILINE
     widget.fill_color = (1, 1, 1)
     widget.border_color = (0.7, 0.7, 0.7)
@@ -469,7 +469,7 @@ def create_form_pdf(output_path: str, lang: str):
     widget.field_name = "safety_procedures"
     widget.rect = fitz.Rect(50, y, page_width - 50, y + 55)
     widget.text_fontsize = 9
-    widget.text_font = "helv"
+    widget.text_font = "Helvetica"
     widget.field_flags = fitz.PDF_TX_FIELD_IS_MULTILINE
     widget.fill_color = (1, 1, 1)
     widget.border_color = (0.7, 0.7, 0.7)
@@ -504,6 +504,38 @@ def create_form_pdf(output_path: str, lang: str):
     # Save the PDF
     doc.save(output_path)
     doc.close()
+
+
+def fix_font_references(pdf_path: str):
+    """Fix /Helv references to /Helvetica in form field default appearances.
+
+    PyMuPDF creates fields with /Helv in the default appearance string, but pypdf
+    has a bug where it crashes when /Helv is not in the font resources. We change
+    /Helv to /Helvetica which is in CORE_FONT_METRICS and avoids the bug.
+    """
+    from pypdf import PdfReader, PdfWriter
+    from pypdf.generic import NameObject, TextStringObject
+
+    reader = PdfReader(pdf_path)
+    writer = PdfWriter(clone_from=reader)
+
+    # Fix all field default appearances
+    for page in writer.pages:
+        if "/Annots" in page:
+            annots = page["/Annots"]
+            for annot_ref in annots:
+                annot = annot_ref.get_object()
+                if "/DA" in annot:
+                    # Get the default appearance string
+                    da = str(annot["/DA"])
+                    # Replace /Helv with /Helvetica
+                    if "/Helv " in da:
+                        new_da = da.replace("/Helv ", "/Helvetica ")
+                        annot[NameObject("/DA")] = TextStringObject(new_da)
+
+    # Save the fixed PDF
+    with open(pdf_path, "wb") as f:
+        writer.write(f)
 
 
 def verify_fields(pdf_path: str):
@@ -573,6 +605,9 @@ def main():
 
         # Create the PDF form
         create_form_pdf(output_path, lang)
+
+        # Fix font references for pypdf compatibility
+        fix_font_references(output_path)
 
         # Verify fields
         if verify_fields(output_path):
