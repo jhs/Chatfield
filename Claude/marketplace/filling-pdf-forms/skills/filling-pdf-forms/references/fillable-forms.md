@@ -141,6 +141,10 @@ Use `.conclude()` when derived field depends on multiple previous fields or requ
     .hint("Background: Optional per form instructions")
 ```
 
+**Hint conventions (all hints must have a prefix):**
+- **Background hints** (start with "Background:"): Internal notes for Alice only. Alice uses these to handle formatting, conversions, and context without mentioning them to Bob. Example: `.hint("Background: Convert to Buddhist calendar by adding 543 years")`
+- **Tooltip hints** (start with "Tooltip:"): May be shared with Bob if helpful. Example: `.hint("Tooltip: Your employer should provide this number")`
+
 **Transformations** (`.as_*` methods compute derived values as "cast" operations):
 - `.as_int()`, `.as_float()`, `.as_bool()` - Type casts
 - `.as_list()`, `.as_json()` - Structure parsing

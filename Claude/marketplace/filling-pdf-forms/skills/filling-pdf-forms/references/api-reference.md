@@ -97,6 +97,23 @@ Exception: `.as_one()`, `.as_multi()`, and fields with strict validation require
     .hint("Background: Company email preferred")    # Advisory (not enforced)
 ```
 
+### Hints
+
+Hints provide context and guidance to Alice. **All hints must start with "Background:" or "Tooltip:"**
+
+```python
+# Background hints: Internal notes for Alice only (not mentioned to Bob)
+.hint("Background: Convert Gregorian to Buddhist calendar (+543 years)")
+.hint("Background: Optional per form instructions")
+
+# Tooltip hints: May be shared with Bob if helpful
+.hint("Tooltip: Your employer should provide this number")
+.hint("Tooltip: Ask your supervisor if unsure")
+```
+
+**Background hints** are for Alice's internal use - she handles formatting/conversions transparently without mentioning them to Bob.
+**Tooltip hints** may be shared with Bob to help clarify what information is needed.
+
 ### Special Field Types
 
 ```python
