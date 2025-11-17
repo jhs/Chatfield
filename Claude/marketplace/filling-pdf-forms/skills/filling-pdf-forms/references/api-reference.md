@@ -94,7 +94,7 @@ Exception: `.as_one()`, `.as_multi()`, and fields with strict validation require
     .must("be valid email format")      # Requirement (AND logic)
     .must("not be disposable")
     .reject("profanity")                # Block pattern
-    .hint("user@example.com format")    # Advisory (not enforced)
+    .hint("Background: Company email preferred")    # Advisory (not enforced)
 ```
 
 ### Special Field Types

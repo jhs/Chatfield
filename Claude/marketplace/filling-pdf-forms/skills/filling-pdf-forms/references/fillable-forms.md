@@ -75,7 +75,7 @@ interview = (chatfield()
         .trait("Background: [extracted form knowledge]")
     .bob()
         .type("Person completing form")
-        .trait("Speaks naturally, needs format help")
+        .trait("Speaks naturally and freely")
 
     # Default: map directly (one PDF field_id → one question)
     .field("topmostSubform[0].Page1[0].f1_01[0]")
@@ -276,7 +276,7 @@ rm -r input.chatfield
 
 ### 5. Parse results and fill
 ```bash
-python scripts/fill_fillable_fields.py input.pdf input.values.json output.pdf
+python scripts/fill_fillable_fields.py input.pdf input.values.json input.done.pdf
 ```
 
 ---

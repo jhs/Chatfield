@@ -199,7 +199,7 @@ Enhance the interview definition to improve user experience. **See api-reference
 **Required configuration**:
 - **Alice and Bob roles**: Always configure with `.alice().type()` and `.bob().type()` plus these traits:
   - **Alice traits**: "uses plain language when asking questions rather than strict field format rules" and "converts received plain language into the valid form data"
-  - **Bob trait**: "speaks colloquially and plainly, needs help converting to the form format"
+  - **Bob trait**: "speaks naturally and freely"
 - **Bob type**: Use "Person completing <form name>" (e.g., "Person completing application form")
 
 **Recommended improvements**:
@@ -289,7 +289,7 @@ with open('fields_completed.json', 'w') as f:
 # Annotate PDF with collected data
 subprocess.run([
     "python", "scripts/fill_pdf_form_with_annotations.py",
-    "application.pdf", "fields_completed.json", "application_filled.pdf"
+    "application.pdf", "fields_completed.json", "application.done.pdf"
 ])
 ```
 
@@ -340,7 +340,7 @@ cd ..
 #    - Save as application_completed.json
 
 # 8. Annotate PDF
-python scripts/fill_pdf_form_with_annotations.py application.pdf application_completed.json application_filled.pdf
+python scripts/fill_pdf_form_with_annotations.py application.pdf application_completed.json application.done.pdf
 
 # 9. Cleanup
 rm -r application.chatfield
