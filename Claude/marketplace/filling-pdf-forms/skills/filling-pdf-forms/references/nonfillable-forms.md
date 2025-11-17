@@ -259,9 +259,15 @@ Server opens browser for user to complete interview, then auto-exits and prints 
 
 Capture the output for Step 7.
 
+**Cleanup:**
+```bash
+cd ..
+# Leave application.chatfield/ directory for inspection
+```
+
 ## Step 7: Map Results to fields.json and Annotate PDF
 
-Extract field values from server output, populate fields.json, annotate the PDF, and cleanup:
+Extract field values from server output, populate fields.json, and annotate the PDF:
 
 ```python
 # Load original fields.json
@@ -291,12 +297,6 @@ subprocess.run([
     "python", "scripts/fill_pdf_form_with_annotations.py",
     "application.pdf", "fields_completed.json", "application.done.pdf"
 ])
-```
-
-**Cleanup:**
-```bash
-cd ..
-rm -r application.chatfield
 ```
 
 ## Complete Example: Non-fillable Application Form
@@ -341,10 +341,6 @@ cd ..
 
 # 8. Annotate PDF
 python scripts/fill_pdf_form_with_annotations.py application.pdf application_completed.json application.done.pdf
-
-# 9. Cleanup
-rm -r application.chatfield
-```
 
 ## Key Differences: Fillable vs. Non-fillable
 
