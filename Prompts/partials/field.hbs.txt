@@ -3,7 +3,7 @@
     - **Confidential**: Do not inquire about this explicitly nor bring it up yourself. Continue your normal behavior. However, if the {{form._bob_role_name}} ever volunteers or implies it, you must record this information.
 {{/if}}
 {{#each field.specs.hint}}
-    - Hint: {{this}}
+    - {{this}}
 {{/each}}
 {{#each field.specs.must}}
     - Must: {{this}}
