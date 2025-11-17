@@ -63,4 +63,5 @@ Interview Validation Checklist:
 
 - **Fillable Forms:** [references/fillable-forms.md](references/fillable-forms.md) - Complete workflow for PDFs with programmatic form fields
 - **Non-fillable Forms:** [references/nonfillable-forms.md](references/nonfillable-forms.md) - Complete workflow for PDFs requiring visual annotation
+- **Multilingual Forms:** [references/multilingual.md](references/multilingual.md) - Handling forms in languages the user doesn't speak
 - **API Reference:** [references/api-reference.md](references/api-reference.md) - Builder methods, transformations, and validation rules

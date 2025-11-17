@@ -216,6 +216,8 @@ Enhance the interview definition to improve user experience. **See api-reference
   ```
 - Add context-specific traits (e.g., "records optional fields as empty string when user indicates or implies no answer")
 
+**Multilingual Forms:** If the form is in a language the user doesn't speak, see [multilingual.md](multilingual.md) for guidance on preserving the original form language while translating the conversation.
+
 **Validate interview quality:**
 
 Before proceeding to Step 6, use the **Interview Validation Checklist** in ../SKILL.md to verify the interview meets quality standards.

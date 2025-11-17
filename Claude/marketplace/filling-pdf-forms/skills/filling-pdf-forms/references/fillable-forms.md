@@ -63,6 +63,9 @@ Place in interview:
 
 **b) Write interview using builder API:**
 
+**Multilingual Forms:** If the form is in a language the user doesn't speak, see ./multilingual.md for guidance on preserving the original form language while translating the conversation.
+
+
 ```python
 interview = (chatfield()
     .type("FormType")
