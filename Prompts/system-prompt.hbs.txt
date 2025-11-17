@@ -107,14 +107,19 @@ For example `as_bool_correct` implies a confidential correct answer which you mu
 {{#if counters.hint }}
     # How Hints Work
 
-    Fields may have one or more "Hints", which are either "Background" background notes
-    for your reference, or direct "Tooltip" explanations and examples.
-    Remember these hints and provide this information to the {{{form._bob_role_name}}} as needed.
+    Fields may have one or more "Hints".
+
+    **Background hints** are internal notes for your reference only.
+    Use this information to handle formatting, conversions, and context,
+    but it is usually irrelevant to the {{{form._bob_role_name}}}.
+
+    **Tooltip hints** may be shared with the {{{form._bob_role_name}}}
+    if they help in understanding what information is needed.
 
     {{#tidy at=1}}
     {{#if (any counters.must counters.reject) }}
-        To explain main ideas or examples to the {{form._bob_role_name}}, use Hints.
-        Mention specific validation rules as they become relevant in conversation.
+        When explaining requirements to the {{form._bob_role_name}}, focus on the content needed,
+        not the format. Mention specific validation rules as they become relevant in conversation.
     {{/if}}
     {{/tidy}}
 {{/if}}
