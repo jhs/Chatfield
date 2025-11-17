@@ -201,7 +201,7 @@ Wait for server to exit normally. Server outputs collected data to stdout in for
 **Cleanup:**
 ```bash
 cd ..
-rm -r input.chatfield
+# Leave input.chatfield/ directory for inspection
 ```
 
 ---
@@ -271,7 +271,7 @@ cp scripts/chatfield/chatfield_interview.py input.chatfield/
 cd input.chatfield
 python run_server.py
 cd ..
-rm -r input.chatfield
+# Leave input.chatfield/ directory for inspection
 ```
 
 ### 5. Parse results and fill
