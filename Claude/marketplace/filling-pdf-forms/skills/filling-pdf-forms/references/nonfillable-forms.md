@@ -38,6 +38,8 @@ Non-fillable PDF Form Progress:
 - [ ] Step 7: Map results to fields.json and annotate PDF
 ```
 
+**CRITICAL: If any script fails, HALT and report the error. Do NOT proceed or attempt workarounds.**
+
 **Stage 1: Visual Analysis** → Determine field locations and bounding boxes
 **Stage 2: Interview Definition** → Build Chatfield interview definition
 **Stage 3: Server Execution** → Create `<basename>.chatfield/` directory, copy scripts, edit interview, run server

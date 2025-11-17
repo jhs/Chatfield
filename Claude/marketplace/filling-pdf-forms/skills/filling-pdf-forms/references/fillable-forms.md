@@ -23,6 +23,8 @@ Fillable PDF Form Progress:
 - [ ] Step 4: Parse results and fill PDF
 ```
 
+**CRITICAL: If any script fails, HALT and report the error. Do NOT proceed or attempt workarounds.**
+
 ---
 
 ## Step 1: Extract PDF Content and Field Metadata
