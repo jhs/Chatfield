@@ -40,19 +40,29 @@ Non-fillable PDF Form Progress:
 
 **CRITICAL: If any script fails, HALT and report the error. Do NOT proceed or attempt workarounds.**
 
-**Stage 1: Visual Analysis** → Determine field locations and bounding boxes
+**Stage 1: Visual Analysis** → Create `<basename>.chatfield/` directory, convert PDF to images, determine field locations and bounding boxes
 **Stage 2: Interview Definition** → Build Chatfield interview definition
-**Stage 3: Server Execution** → Create `<basename>.chatfield/` directory, copy scripts, edit interview, run server
+**Stage 3: Server Execution** → Copy scripts to working directory, edit interview, run server
 **Stage 4: Data Collection** → User completes interview in browser, server prints results and exits
-**Stage 5: PDF Population** → Parse server output, annotate PDF, cleanup `<basename>.chatfield/` directory
+**Stage 5: PDF Population** → Parse server output, annotate PDF, leave `<basename>.chatfield/` directory for inspection
 
 Follow the below steps *exactly* to ensure accurate form completion.
 
 ## Step 1: Visual Analysis (REQUIRED)
 
-- Convert the PDF to PNG images. Run this script from this file's directory:
-`python scripts/convert_pdf_to_images.py <file.pdf> <output_directory>`
+**a) Create working directory:**
+```bash
+# For PDF named application.pdf, create application.chatfield/
+mkdir application.chatfield
+```
+
+**b) Convert the PDF to PNG images:**
+```bash
+python scripts/convert_pdf_to_images.py application.pdf application.chatfield/images/
+```
 The script will create a PNG image for each page in the PDF.
+
+**c) Analyze images:**
 - Carefully examine each PNG image and identify all form fields and areas where the user should enter data. For each form field where the user should enter text, determine bounding boxes for both the form field label, and the area where the user should enter text. The label and entry bounding boxes MUST NOT INTERSECT; the text entry box should only include the area where data should be entered. Usually this area will be immediately to the side, above, or below its label. Entry bounding boxes must be tall and wide enough to contain their text.
 
 These are some examples of form structures that you might see:
@@ -94,9 +104,9 @@ For checkboxes:
 - Distinguish between label text ("Yes", "No") and the clickable checkbox squares.
 - The entry bounding box should cover ONLY the small square, not the text label.
 
-## Step 2: Create *_fields.json with field definitions (REQUIRED)
+## Step 2: Create fields.json with field definitions (REQUIRED)
 
-Create `*.fields.json` (i.e. the PDF filename with field metadata and bounding boxes. **Do NOT populate entry_text.text values yet** - these will come from the Chatfield conversation.
+Create `application.chatfield/application.fields.json` with field metadata and bounding boxes. **Do NOT populate entry_text.text values yet** - these will come from the Chatfield conversation.
 
 ```json
 {
@@ -142,7 +152,9 @@ Create `*.fields.json` (i.e. the PDF filename with field metadata and bounding b
 - **Do NOT include `entry_text.text` values** - these come from Chatfield conversation
 
 Create validation images by running this script from this file's directory for each page:
-`python scripts/create_validation_image.py <page_number> <path_to_fields.json> <input_image_path> <output_image_path>
+```bash
+python scripts/create_validation_image.py 1 application.chatfield/application.fields.json application.chatfield/images/page_1.png application.chatfield/validation_1.png
+```
 
 The validation images will have red rectangles where text should be entered, and blue rectangles covering label text.
 
@@ -150,7 +162,9 @@ The validation images will have red rectangles where text should be entered, and
 
 ### Automated intersection check
 - Verify that none of bounding boxes intersect and that the entry bounding boxes are tall enough by checking the fields.json file with the `check_bounding_boxes.py` script (run from this file's directory):
-`python scripts/check_bounding_boxes.py <JSON file>`
+```bash
+python scripts/check_bounding_boxes.py application.chatfield/application.fields.json
+```
 
 If there are errors, reanalyze the relevant fields, adjust the bounding boxes, and iterate until there are no remaining errors. Remember: label (blue) bounding boxes should contain text labels, entry (red) boxes should not.
 
@@ -172,7 +186,7 @@ Build Chatfield interview definition based on your field definitions.
 **Source template**: `scripts/chatfield/chatfield_interview.py`
 
 **Create builder code from fields.json**:
-- Read `field_id`, `field_type`, and `description` from fields.json
+- Read `field_id`, `field_type`, and `description` from `application.chatfield/application.fields.json`
 - Build Chatfield interview with appropriate transformations:
   - `field_type: "text"` → `.field("field_id").desc(...)`
   - `field_type: "checkbox"` → `.field("field_id").as_bool().desc(...)`
@@ -230,10 +244,9 @@ If any items fail validation:
 
 ## Step 6: Run Chatfield Server and Capture Results
 
-**Create working directory:**
+**Copy server scripts to working directory:**
 ```bash
-# For PDF named application.pdf, create application.chatfield/
-mkdir application.chatfield
+# Copy scripts into application.chatfield/ (already created in Step 1)
 cp scripts/chatfield/run_server.py application.chatfield/
 cp scripts/chatfield/chatfield_interview.py application.chatfield/
 ```
@@ -273,7 +286,7 @@ Extract field values from server output, populate fields.json, and annotate the 
 
 ```python
 # Load original fields.json
-with open('fields.json', 'r') as f:
+with open('application.chatfield/application.fields.json', 'r') as f:
     fields_data = json.load(f)
 
 # Populate entry_text.text values from interview results
@@ -291,43 +304,43 @@ for field in fields_data['form_fields']:
             field['entry_text']['text'] = str(field_value)
 
 # Save completed fields.json
-with open('fields_completed.json', 'w') as f:
+with open('application.chatfield/application_completed.json', 'w') as f:
     json.dump(fields_data, f, indent=2)
 
 # Annotate PDF with collected data
 subprocess.run([
     "python", "scripts/fill_pdf_form_with_annotations.py",
-    "application.pdf", "fields_completed.json", "application.done.pdf"
+    "application.pdf", "application.chatfield/application_completed.json", "application.done.pdf"
 ])
 ```
 
 ## Complete Example: Non-fillable Application Form
 
 ```bash
-# 1. Convert to images for visual analysis
-python scripts/convert_pdf_to_images.py application.pdf images/
+# 1. Create working directory and convert to images for visual analysis
+mkdir application.chatfield
+python scripts/convert_pdf_to_images.py application.pdf application.chatfield/images/
 
 # 2. Analyze images and create fields.json with:
 #    - field_id, field_type, description for each field
 #    - Bounding boxes (label_bounding_box, entry_bounding_box)
 #    - DO NOT populate entry_text.text values yet
-# Save as: application.fields.json
+# Save as: application.chatfield/application.fields.json
 
 # 3. Create validation images
-python scripts/create_validation_image.py 1 application.fields.json images/page_1.png validation_1.png
+python scripts/create_validation_image.py 1 application.chatfield/application.fields.json application.chatfield/images/page_1.png application.chatfield/validation_1.png
 # Repeat for each page
 
 # 4. Validate bounding boxes
-python scripts/check_bounding_boxes.py application_fields.json
+python scripts/check_bounding_boxes.py application.chatfield/application.fields.json
 # Manually inspect validation images, fix any issues
 
 # 5. Build interview definition
-#    - Build interview from application_fields.json field definitions
+#    - Build interview from application.chatfield/application.fields.json field definitions
 #    - Add clear descriptions and validation rules
 #    - Configure roles and traits
 
-# 6. Setup working directory and run server
-mkdir application.chatfield
+# 6. Copy scripts and run server
 cp scripts/chatfield/run_server.py application.chatfield/
 cp scripts/chatfield/chatfield_interview.py application.chatfield/
 # Edit application.chatfield/chatfield_interview.py with interview definition
@@ -337,12 +350,12 @@ python run_server.py
 cd ..
 
 # 7. Parse results and populate fields.json
-#    - Map interview results to application_fields.json
+#    - Map interview results to application.chatfield/application.fields.json
 #    - Populate entry_text.text values
-#    - Save as application_completed.json
+#    - Save as application.chatfield/application_completed.json
 
 # 8. Annotate PDF
-python scripts/fill_pdf_form_with_annotations.py application.pdf application_completed.json application.done.pdf
+python scripts/fill_pdf_form_with_annotations.py application.pdf application.chatfield/application_completed.json application.done.pdf
 
 ## Key Differences: Fillable vs. Non-fillable
 
