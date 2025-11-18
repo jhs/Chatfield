@@ -5,7 +5,7 @@ Complete fillable PDF forms using conversational interviews to collect data, the
 ## Contents
 - Workflow Overview
 - Step 1: Extract PDF Content and Field Metadata
-- Step 2: Edit Interview Definition
+- Step 2: Create Interview Definition
 - Step 3: Run Conversational Server
 - Step 4: Parse Results and Fill PDF
 - Key Rules
@@ -18,7 +18,7 @@ Copy this checklist and track progress:
 ```
 Fillable PDF Form Progress:
 - [ ] Step 1: Extract PDF content and field metadata
-- [ ] Step 2: Edit interview definition (validate with checklist in ../SKILL.md)
+- [ ] Step 2: Build interview definition (validate with checklist in ../SKILL.md)
 - [ ] Step 3: Run conversational server
 - [ ] Step 4: Parse results and fill PDF
 ```
