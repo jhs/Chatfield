@@ -39,7 +39,6 @@ Returns PDF content as markdown, to stdout.
 
 1b. Extract form fields:
 
-**b) Extract form fields:**
 ```bash
 python scripts/extract_form_field_info.py input.pdf input.form.json
 ```
@@ -52,7 +51,7 @@ Creates JSON with field_id, type (text/checkbox/radio_group/choice), page, rect,
 
 **Source template:** `scripts/chatfield/chatfield_interview.py`
 
-**a) Extract form knowledge from markdown:**
+### Extract form knowledge from markdown:
 
 Extract actionable knowledge ONLY:
 - Form purpose (1-2 sentences)
@@ -61,14 +60,22 @@ Extract actionable knowledge ONLY:
 - Valid options/codes
 - Decision logic ("If X then Y")
 
+### Decide on one-language operation or multilingual operation
+
+Compare the language the user uses against the language of this PDF form.
+- If they are the **same language**, simply declare "This form is <language>".
+- If they are **different languages**, declare "This form is <form language> but we will use <user language>". **CRITICAL**, see ./multilingual.md for mandatory guidance on multilingual operation.
+
+Use the multilingual approach when:
+
+- **Explicit**: User explicitly states the language to use, but it is different from that of the form.
+- **Implicit**: The user request (to fill this form) is in a language which differs from that of the form. For example, "Help me complete form.es.pdf" but you ascertain `form.es.pdf` is Spanish.
+
+### Write interview using builder API
+
 Place in interview:
 - **Form-level** → Alice traits: `.trait("Background: [form purpose and context]...")`
 - **Field-level** → Field hints: `.hint("Background: [field-specific guidance]")`
-
-**b) Write interview using builder API:**
-
-**Multilingual Forms:** If the form is in a language the user doesn't speak, see ./multilingual.md for guidance on preserving the original form language while translating the conversation.
-
 
 ```python
 interview = (chatfield()
