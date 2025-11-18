@@ -1,12 +1,10 @@
-"""Interview definition for PDF form completion.
-
-This file defines the interview structure using the Chatfield builder API.
-Edit the interview structure in the EDITABLE ZONE below to define your PDF form fields.
+"""
+This file defines the interview data model using the Chatfield builder API.
+Edit the interview structure in the EDITABLE ZONE below to define the form.
 """
 
 from chatfield import chatfield
 
-# Define the interview structure
 interview = (chatfield()
 # ---- BEGIN EDITABLE ZONE ----
     .type("PDF Form")
