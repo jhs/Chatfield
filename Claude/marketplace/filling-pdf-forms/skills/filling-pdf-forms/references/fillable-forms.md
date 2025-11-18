@@ -29,11 +29,15 @@ Fillable PDF Form Progress:
 
 ## Step 1: Extract PDF Content and Field Metadata
 
-**a) Convert PDF to markdown:**
+1a. Examine the PDF content as markdown:
+
 ```bash
-python scripts/as_markdown.py input.pdf
+markitdown input.pdf
 ```
-Returns markdown content to stdout. Analyze directly, do not write to file.
+
+Returns PDF content as markdown, to stdout.
+
+1b. Extract form fields:
 
 **b) Extract form fields:**
 ```bash
