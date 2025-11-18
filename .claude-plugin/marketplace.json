@@ -7,7 +7,7 @@
   "plugins": [
     {
       "name": "filling-pdf-forms",
-      "source": "./filling-pdf-forms",
+      "source": "./Claude/filling-pdf-forms",
       "description": "Complete PDF forms through conversation"
     }
   ]
