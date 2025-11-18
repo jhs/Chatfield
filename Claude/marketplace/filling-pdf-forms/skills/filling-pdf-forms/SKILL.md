@@ -38,8 +38,9 @@ Both fillable and non-fillable workflows require building a high-quality Chatfie
 Interview Validation Checklist:
 - [ ] All field_ids from .form.json or .fields.json are mapped (either directly or via .as_*() casts)
 - [ ] No field_ids are duplicated or missing
-- [ ] Fan-out patterns use .as_*() casts on single field to populate multiple PDF fields
-- [ ] Split pattern: multi-part values use .as_*() casts (e.g., identifier → 3 casts for 3 parts)
+- [ ] CRITICAL: All cast names use exact PDF field_ids from .form.json
+- [ ] Fan-out patterns use .as_*() casts with PDF field_ids as cast names to populate multiple PDF fields
+- [ ] Split pattern: multi-part values use .as_*() casts with PDF field_ids as cast names
 - [ ] Discriminate + split: mutually-exclusive fields use .as_*() casts with "or empty/0 if N/A" descriptions
 - [ ] Expand pattern: multiple checkboxes use .as_*() casts on single field
 - [ ] .conclude() used only when necessary (multi-field dependencies or complex logic)

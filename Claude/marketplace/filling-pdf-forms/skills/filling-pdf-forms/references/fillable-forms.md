@@ -50,7 +50,7 @@ mkdir input.chatfield
 python scripts/extract_form_field_info.py input.pdf input.chatfield/input.form.json
 ```
 
-Creates JSON with field_id, type (text/checkbox/radio_group/choice), page, rect, tooltip, and type-specific properties in the `.chatfield/` directory.
+Creates JSON with field_id, type (text/checkbox/radio_group/choice), page, rect, tooltip, and type-specific properties
 
 ---
 
@@ -147,7 +147,7 @@ interview = (chatfield()
 
 Use `.conclude()` when derived field depends on multiple previous fields or requires complex logic that can't be expressed in single field's casts.
 
-**Default to direct mapping:** PDF field_ids are internal - users only see `.desc()`. Field IDs come from `input.chatfield/input.form.json`.
+**Default to direct mapping:** PDF field_ids are internal - users only see `.desc()`.
 
 **Field types:**
 - Text → `.field("id").desc("question")`
