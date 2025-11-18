@@ -37,13 +37,20 @@ markitdown input.pdf
 
 Returns PDF content as markdown, to stdout.
 
-1b. Extract form fields:
+1b. Create working directory:
 
 ```bash
-python scripts/extract_form_field_info.py input.pdf input.form.json
+# For PDF named input.pdf, create input.chatfield/
+mkdir input.chatfield
 ```
 
-Creates JSON with field_id, type (text/checkbox/radio_group/choice), page, rect, tooltip, and type-specific properties.
+1c. Extract form fields:
+
+```bash
+python scripts/extract_form_field_info.py input.pdf input.chatfield/input.form.json
+```
+
+Creates JSON with field_id, type (text/checkbox/radio_group/choice), page, rect, tooltip, and type-specific properties in the `.chatfield/` directory.
 
 ---
 
@@ -140,7 +147,7 @@ interview = (chatfield()
 
 Use `.conclude()` when derived field depends on multiple previous fields or requires complex logic that can't be expressed in single field's casts.
 
-**Default to direct mapping:** PDF field_ids are internal - users only see `.desc()`.
+**Default to direct mapping:** PDF field_ids are internal - users only see `.desc()`. Field IDs come from `input.chatfield/input.form.json`.
 
 **Field types:**
 - Text → `.field("id").desc("question")`
@@ -187,10 +194,9 @@ If any items fail validation:
 
 ## Step 3: Run Conversational Server
 
-**Create working directory:**
+**Copy server scripts to working directory:**
 ```bash
-# For PDF named input.pdf, create input.chatfield/
-mkdir input.chatfield
+# Copy scripts into input.chatfield/ (already created in Step 1)
 cp scripts/chatfield/run_server.py input.chatfield/
 cp scripts/chatfield/chatfield_interview.py input.chatfield/
 ```
