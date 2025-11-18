@@ -199,8 +199,10 @@ def create_form_pdf(output_path: str, lang: str):
 
     # Create Font objects for Unicode support
     custom_font = None
+    widget_font_name = "Helvetica"  # Default for US/ES
     if fontfile:
         custom_font = fitz.Font(fontfile=fontfile)
+        widget_font_name = custom_font.name
         print(f"  Using custom font: {custom_font.name}")
 
     # Current Y position
@@ -301,7 +303,7 @@ def create_form_pdf(output_path: str, lang: str):
     widget.field_name = "business_name"
     widget.rect = fitz.Rect(50, y, page_width - 50, y + 20)
     widget.text_fontsize = 10
-    widget.text_font = "Helvetica"
+    widget.text_font = widget_font_name
     widget.fill_color = (1, 1, 1)
     widget.border_color = (0.7, 0.7, 0.7)
     widget.border_width = 0.5
@@ -316,7 +318,7 @@ def create_form_pdf(output_path: str, lang: str):
     widget.field_name = "business_address"
     widget.rect = fitz.Rect(50, y, page_width - 50, y + 20)
     widget.text_fontsize = 10
-    widget.text_font = "Helvetica"
+    widget.text_font = widget_font_name
     widget.fill_color = (1, 1, 1)
     widget.border_color = (0.7, 0.7, 0.7)
     widget.border_width = 0.5
@@ -376,7 +378,7 @@ def create_form_pdf(output_path: str, lang: str):
     widget.field_name = "num_employees"
     widget.rect = fitz.Rect(50, y, 180, y + 20)
     widget.text_fontsize = 10
-    widget.text_font = "Helvetica"
+    widget.text_font = widget_font_name
     widget.fill_color = (1, 1, 1)
     widget.border_color = (0.7, 0.7, 0.7)
     widget.border_width = 0.5
@@ -391,7 +393,7 @@ def create_form_pdf(output_path: str, lang: str):
     widget.field_name = "delivery_radius"
     widget.rect = fitz.Rect(50, y, 180, y + 20)
     widget.text_fontsize = 10
-    widget.text_font = "Helvetica"
+    widget.text_font = widget_font_name
     widget.fill_color = (1, 1, 1)
     widget.border_color = (0.7, 0.7, 0.7)
     widget.border_width = 0.5
@@ -434,7 +436,7 @@ def create_form_pdf(output_path: str, lang: str):
     widget.field_name = "certification_date"
     widget.rect = fitz.Rect(50, y, 220, y + 20)
     widget.text_fontsize = 10
-    widget.text_font = "Helvetica"
+    widget.text_font = widget_font_name
     widget.fill_color = (1, 1, 1)
     widget.border_color = (0.7, 0.7, 0.7)
     widget.border_width = 0.5
@@ -451,7 +453,7 @@ def create_form_pdf(output_path: str, lang: str):
     widget.field_name = "product_description"
     widget.rect = fitz.Rect(50, y, page_width - 50, y + 55)
     widget.text_fontsize = 9
-    widget.text_font = "Helvetica"
+    widget.text_font = widget_font_name
     widget.field_flags = fitz.PDF_TX_FIELD_IS_MULTILINE
     widget.fill_color = (1, 1, 1)
     widget.border_color = (0.7, 0.7, 0.7)
@@ -469,7 +471,7 @@ def create_form_pdf(output_path: str, lang: str):
     widget.field_name = "safety_procedures"
     widget.rect = fitz.Rect(50, y, page_width - 50, y + 55)
     widget.text_fontsize = 9
-    widget.text_font = "Helvetica"
+    widget.text_font = widget_font_name
     widget.field_flags = fitz.PDF_TX_FIELD_IS_MULTILINE
     widget.fill_color = (1, 1, 1)
     widget.border_color = (0.7, 0.7, 0.7)
