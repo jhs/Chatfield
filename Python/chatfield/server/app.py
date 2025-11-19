@@ -9,15 +9,26 @@ from fastapi.responses import HTMLResponse, JSONResponse
 from pydantic import BaseModel
 
 from ..interviewer import Interviewer
-from .interview import interview
+from ..interview import Interview
+
+# Global interview - will be set by set_interview() before server starts
+_interview: Optional[Interview] = None
+
+
+def set_interview(interview: Interview) -> None:
+    """Set the interview to be used by the server."""
+    global _interview
+    _interview = interview
 
 
 class InterviewSession:
     """Manages a single interview session."""
 
     def __init__(self, thread_id: str):
-        """Initialize session with the predefined interview."""
-        self.interview = interview
+        """Initialize session with the global interview."""
+        if _interview is None:
+            raise RuntimeError("No interview has been set. Call set_interview() before starting the server.")
+        self.interview = _interview
         self.interviewer = Interviewer(self.interview, thread_id=thread_id)
         self.thread_id = thread_id
 

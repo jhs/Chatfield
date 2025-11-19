@@ -9,8 +9,50 @@ import uvicorn
 import argparse
 import threading
 import time
+import importlib.util
+from pathlib import Path
 
 from . import app
+
+def load_interview_from_file(file_path: str):
+    """
+    Load an interview object from a Python file.
+
+    Args:
+        file_path: Path to a Python file that defines an 'interview' variable
+
+    Returns:
+        The Interview object from the file
+
+    Raises:
+        FileNotFoundError: If the file doesn't exist
+        AttributeError: If the file doesn't contain an 'interview' variable
+    """
+    path = Path(file_path).resolve()
+
+    if not path.exists():
+        raise FileNotFoundError(f"Interview file not found: {file_path}")
+
+    # Load the module dynamically
+    spec = importlib.util.spec_from_file_location("custom_interview", path)
+    if spec is None or spec.loader is None:
+        raise ValueError(f"Cannot load module from: {file_path}")
+
+    module = importlib.util.module_from_spec(spec)
+    sys.modules["custom_interview"] = module
+    spec.loader.exec_module(module)
+
+    # Extract the interview object
+    if not hasattr(module, 'interview'):
+        raise AttributeError(
+            f"File {file_path} must define an 'interview' variable.\n"
+            "Example:\n"
+            "  from chatfield import chatfield\n"
+            "  interview = chatfield().field('name').build()"
+        )
+
+    return module.interview
+
 
 def find_free_port():
     """Find a free port on localhost."""
@@ -61,7 +103,14 @@ def main():
     # Enable DEBUG logging only for chatfield modules
     logging.getLogger('chatfield').setLevel(logging.DEBUG)
 
-    parser = argparse.ArgumentParser(description='Chatfield FastAPI Server')
+    parser = argparse.ArgumentParser(
+        description='Chatfield FastAPI Server',
+        epilog='Example: python -m chatfield.server my_interview.py'
+    )
+    parser.add_argument(
+        'interview_file',
+        help='Path to Python file defining an interview'
+    )
     parser.add_argument(
         '--port',
         type=int,
@@ -75,6 +124,17 @@ def main():
         help='Host to bind to (default: 127.0.0.1)'
     )
     args = parser.parse_args()
+
+    # Load the interview
+    print(f"Loading interview from: {args.interview_file}", file=sys.stderr, flush=True)
+    try:
+        interview = load_interview_from_file(args.interview_file)
+    except Exception as e:
+        print(f"ERROR: Failed to load interview: {e}", file=sys.stderr, flush=True)
+        sys.exit(1)
+
+    # Set the interview in the app
+    app.set_interview(interview)
 
     # Determine port
     if args.port == 0:
