@@ -30,7 +30,9 @@ Extract `field_id` and `value` for each field.
 
 ### 2. Create `.values.json`
 
-Create a JSON file with the collected field values:
+Create `<basename>.values.json` in the `<basename>.chatfield/` directory with the collected field values:
+
+**Location**: `<basename>.chatfield/<basename>.values.json`
 
 ```json
 [
@@ -51,7 +53,7 @@ Create a JSON file with the collected field values:
 Run the population script (note, the `scripts` directory is relative to the base directory for this skill):
 
 ```bash
-python scripts/fill_fillable_fields.py input.pdf input.values.json input.done.pdf
+python scripts/fill_fillable_fields.py <basename>.pdf <basename>.chatfield/<basename>.values.json <basename>.done.pdf
 ```
 
 ### 4. Verify Output
@@ -66,8 +68,8 @@ python scripts/fill_fillable_fields.py input.pdf input.values.json input.done.pd
 # 1. Parse server output (manual extraction from stdout)
 # Server printed: {'name': {'value': 'Jason Smith'}, 'age': {'value': '25'}, 'over_18': {'value': true}}
 
-# 2. Create values.json
-cat > input.values.json << 'EOF'
+# 2. Create values.json in the .chatfield/ directory
+cat > input.chatfield/input.values.json << 'EOF'
 [
   {"field_id": "name", "page": 1, "value": "Jason Smith"},
   {"field_id": "age", "page": 1, "value": 25},
@@ -76,7 +78,7 @@ cat > input.values.json << 'EOF'
 EOF
 
 # 3. Fill PDF
-python scripts/fill_fillable_fields.py input.pdf input.values.json input.done.pdf
+python scripts/fill_fillable_fields.py input.pdf input.chatfield/input.values.json input.done.pdf
 ```
 
 ## Troubleshooting
