@@ -99,7 +99,7 @@ Parse server output and populate the PDF.
 **Steps:**
 1. Parse server stdout to extract field values
 2. Create `.values.json` with proper format
-3. Run population script: `../scripts/fill_fillable_fields.py input.pdf input.chatfield/input.values.json input.done.pdf`
+3. Run population script
 4. Verify output PDF exists
 
 **Result**: `input.done.pdf`
