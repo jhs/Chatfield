@@ -1,6 +1,6 @@
 # Converting PDF Forms to Chatfield Interviews
 
-This guide covers how to build a Chatfield interview definition from PDF form data, regardless of whether the form is fillable or non-fillable.
+This guide covers how to build a Chatfield interview definition from PDF form data.
 
 **For complete API reference**: See ./api-reference.md for all builder methods, transformations, and validation rules.
 
