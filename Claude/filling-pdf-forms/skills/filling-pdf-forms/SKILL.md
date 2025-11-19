@@ -12,7 +12,7 @@ Complete PDF forms by collecting required data through conversational interviews
 
 ## When to Use This Skill
 
-Use when completing PDF forms with user-provided data.
+Use when completing PDF forms with user-provided data. Your goal is to produce a `.done.pdf` corresponding to the user's starting PDF file, populated with the user-provided information.
 
 ## Workflow
 
@@ -99,7 +99,10 @@ Parse server output and populate the PDF.
 **Steps:**
 1. Parse server stdout to extract field values
 2. Create `.values.json` with proper format
-3. Run population script
+3. Run population script:
+   ```bash
+   python scripts/fill_fillable_fields.py input.pdf input.values.json input.done.pdf
+   ```
 4. Verify output PDF exists
 
 **Result**: `input.done.pdf`
