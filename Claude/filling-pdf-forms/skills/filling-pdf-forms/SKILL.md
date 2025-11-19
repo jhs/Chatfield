@@ -1,7 +1,7 @@
 ---
 name: filling-pdf-forms
 description: Complete PDF forms by collecting data through conversational interviews and populating form fields. Use when filling forms, completing documents, or when the user mentions PDFs, forms, form completion, or document population.
-allowed-tools: Read, Write, Edit, Glob, Bash
+allowed-tools: Read, Write, Edit, Glob, Bash, Task
 version: 1.0.0a2
 license: Apache 2.0
 ---
@@ -14,54 +14,92 @@ Complete PDF forms by collecting required data through conversational interviews
 
 Use when completing PDF forms with user-provided data.
 
-## Workflow Selection
+## Workflow
 
-PDFs may have programmatic form fields (fillable) or require visual annotation (non-fillable). Check which type:
+### Step 1: Form Extraction
+
+Use the `extracting-form-fields` sub-agent to extract the PDF form into useful files.
+
+**Invoke via Task tool:**
+
+```python
+Task(
+    subagent_type="general-purpose",
+    description="Extract PDF form fields",
+    prompt=f"""
+    Extract form field data from PDF: {pdf_absolute_path}
+
+    Use the extracting-form-fields skill to complete this task.
+    """
+)
+```
+
+When the task reports "Done", it will have created (for `input.pdf`):
+- `input.chatfield/` directory
+- `input.chatfield/input.form.md` - PDF content as Markdown
+- `input.chatfield/input.form.json` - Form field definitions
+- `input.chatfield/interview.py` - Template Form Data Model file ready for editing
+
+### Step 2: Build Form Data Model
+
+Edit `[basename].chatfield/interview.py` to define the Chatfield interview.
+
+**See:** ./references/converting-pdf-to-chatfield.md for mandatory guidance.
+
+This step creates the **Form Data Model** - the faithful representation of the PDF form using the Chatfield data model API.
+
+**Key steps:**
+- Read `.form.md` for form knowledge (purpose, instructions, context)
+- Read `.form.json` for field IDs and types
+- Build Form Data Model using chatfield builder API
+- Match the form's language in all strings
+- Use validation checklist before proceeding
+
+### Step 3: Translation (If Needed)
+
+Determine if translation is needed.
+
+#### When Translation is Needed
+
+**Explicit**: User states "I need to fill this Spanish form but I only speak English"
+
+**Implicit**: User request is in language X, but PDF is in language Y
+- Example: "Help me complete form.es.pdf" (English request, Spanish form)
+
+**To apply translation, see:** ./references/translating.md
+
+Translation creates `interview_<lang>.py` and **re-defines** the Form Data Model from `interview.py` to the new `interview_<lang>.py` instead. Henceforth, use the translated file as the Form Data Model.
+
+### Step 4: Run Interview Server
+
+Run the Chatfield interview server with the Form Data Model:
 
 ```bash
-python scripts/check_fillable_fields.py input.pdf
+# Using base Form Data Model (same language):
+python -m chatfield.server input.chatfield/interview.py
+
+# OR using translated Form Data Model:
+python -m chatfield.server input.chatfield/interview_es.py
 ```
 
-**Fillable fields detected?** → See [references/fillable-forms.md](references/fillable-forms.md)
+Server will:
+1. Start conversational interview
+2. Collect data from user
+3. Output results to stdout
+4. Exit when complete
 
-**No fillable fields?** → See [references/nonfillable-forms.md](references/nonfillable-forms.md)
+Capture the stdout output - you'll need it for population.
 
-Both workflows use identical Chatfield conversational interview models - only the field extraction and PDF population mechanisms differ.
+### Step 5: Populate PDF
 
----
+Parse server output and populate the PDF.
 
-## Interview Validation Checklist
+**See:** ./references/populating.md
 
-Both fillable and non-fillable workflows require building a high-quality Chatfield interview. Use this checklist to validate the interview definition before running the server:
+**Steps:**
+1. Parse server stdout to extract field values
+2. Create `.values.json` with proper format
+3. Run population script: `../scripts/fill_fillable_fields.py input.pdf input.chatfield/input.values.json input.done.pdf`
+4. Verify output PDF exists
 
-```
-Interview Validation Checklist:
-- [ ] All field_ids from .form.json or .fields.json are mapped (either directly or via .as_*() casts)
-- [ ] No field_ids are duplicated or missing
-- [ ] CRITICAL: All cast names use exact PDF field_ids from .form.json
-- [ ] Fan-out patterns use .as_*() casts with PDF field_ids as cast names to populate multiple PDF fields
-- [ ] Split pattern: multi-part values use .as_*() casts with PDF field_ids as cast names
-- [ ] Discriminate + split: mutually-exclusive fields use .as_*() casts with "or empty/0 if N/A" descriptions
-- [ ] Expand pattern: multiple checkboxes use .as_*() casts on single field
-- [ ] .conclude() used only when necessary (multi-field dependencies or complex logic)
-- [ ] Alice traits include extracted form knowledge
-- [ ] Field hints provide context from PDF instructions
-- [ ] Optional fields explicitly marked with hint("Background: Optional...")
-- [ ] .must() used sparingly (only for true content requirements)
-- [ ] .as_*() transformations used liberally for all type casts and formatting
-- [ ] Field .desc() questions are natural and user-friendly (no technical field_ids)
-```
-
-**If any items fail validation:**
-1. Review the specific issue in the checklist
-2. Fix the interview definition
-3. Re-run validation checklist
-4. Proceed only when all items pass
-
----
-
-## Additional Resources
-
-- **Fillable Forms:** [references/fillable-forms.md](references/fillable-forms.md) - Complete workflow for PDFs with programmatic form fields
-- **Non-fillable Forms:** [references/nonfillable-forms.md](references/nonfillable-forms.md) - Complete workflow for PDFs requiring visual annotation
-- **API Reference:** [references/api-reference.md](references/api-reference.md) - Builder methods, transformations, and validation rules
+**Result**: `input.done.pdf`
