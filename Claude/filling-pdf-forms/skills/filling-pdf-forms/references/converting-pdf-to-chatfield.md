@@ -19,7 +19,7 @@ Why? Downstream code will NOT see the PDF anymore. The interview must create the
 **CRITICAL: Only pass English-language strings to the chatfield builder API for English-language forms.**
 
 The chatfield object strings should virtually always match the PDF's primary language:
-- `.type()` - Use form's language
+- `.type()` - Use short identifier (e.g., "DHFS_FoodBusinessLicense"), not full official name. **HARD LIMIT: 64 characters maximum**
 - `.desc()` - Use form's language
 - `.trait()` - Use form's language for Background content
 - `.hint()` - Use form's language
@@ -31,13 +31,14 @@ The chatfield object strings should virtually always match the PDF's primary lan
 These fundamental rules apply to all Form Data Models:
 
 1. **Faithfulness to PDF**: The interview definition must accurately represent the source PDF form
-2. **Direct mapping default**: Use PDF field_ids directly from `.form.json` unless using fan-out patterns
-3. **Fan-out patterns**: Use `.as_*()` casts to populate multiple PDF fields from single collected value
-4. **Exact field_ids**: Keep field IDs from `.form.json` unchanged (use as cast names or direct field names)
-5. **Extract knowledge**: ALL form instructions go into Alice traits/hints
-6. **Format flexibility**: Never specify format in `.desc()` - Alice accepts variations
-7. **Validation vs transformation**: `.must()` for content constraints (use SPARINGLY), `.as_*()` for formatting (use LIBERALLY)
-8. **Language matching**: All strings (`.type()`, `.desc()`, `.trait()`, `.hint()`) must match the PDF's language
+2. **Short type identifiers**: Top-level `.type()` should be a short "class name" identifier (e.g., "W9_TIN", "DHFS_FoodBusinessLicense"), not the full official form name. **HARD LIMIT: 64 characters maximum**
+3. **Direct mapping default**: Use PDF field_ids directly from `.form.json` unless using fan-out patterns
+4. **Fan-out patterns**: Use `.as_*()` casts to populate multiple PDF fields from single collected value
+5. **Exact field_ids**: Keep field IDs from `.form.json` unchanged (use as cast names or direct field names)
+6. **Extract knowledge**: ALL form instructions go into Alice traits/hints
+7. **Format flexibility**: Never specify format in `.desc()` - Alice accepts variations
+8. **Validation vs transformation**: `.must()` for content constraints (use SPARINGLY), `.as_*()` for formatting (use LIBERALLY)
+9. **Language matching**: All strings (`.desc()`, `.trait()`, `.hint()`) must match the PDF's language
 
 ## Reading Input Files
 
@@ -193,7 +194,7 @@ Never specify format in `.desc()` - Alice accepts variations. Use `.as_*()` for 
 from chatfield import chatfield
 
 interview = (chatfield()
-    .type("W-9 Request for Taxpayer Identification Number")
+    .type("W9_TIN")
     .desc("Form to provide TIN to entities paying income")
 
     .alice()
