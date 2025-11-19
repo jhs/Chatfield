@@ -177,7 +177,8 @@ Only when derived field depends on multiple previous fields OR complex logic tha
 ```python
 .alice()
     .type("Form Assistant")
-    .trait("Uses plain language, converts to valid form data")
+    .trait("Uses plain language when asking questions rather than strict field format rules")
+    .trait("Converts received plain language into the valid form data")
     .trait("Accepts format variations (SSN with/without hyphens)")
     .trait("Background: [extracted form knowledge goes here]")
 ```
@@ -199,7 +200,8 @@ interview = (chatfield()
 
     .alice()
         .type("Tax Form Assistant")
-        .trait("Uses plain language, converts to valid form data")
+        .trait("Uses plain language when asking questions rather than strict field format rules")
+        .trait("Converts received plain language into the valid form data")
         .trait("Accepts format variations (SSN with/without hyphens)")
         .trait("Background: W-9 used to provide TIN to entities paying income")
         .trait("Background: EIN for business entities, SSN for individuals")
