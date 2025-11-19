@@ -48,7 +48,7 @@ Create a JSON file with the collected field values:
 
 ### 3. Populate PDF
 
-Run the population script:
+Run the population script (note, the `scripts` directory is relative to the base directory for this skill):
 
 ```bash
 python scripts/fill_fillable_fields.py input.pdf input.values.json input.done.pdf
