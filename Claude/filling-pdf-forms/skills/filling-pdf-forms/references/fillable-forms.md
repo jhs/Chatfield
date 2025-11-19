@@ -100,7 +100,7 @@ interview = (chatfield()
 
     # Default: map directly (one PDF field_id → one question)
     .field("topmostSubform[0].Page1[0].f1_01[0]")
-        .desc("What is your full legal name?")
+        .desc("What is your full legal name?")  # English .desc() because English form
         .hint("Background: Should match official records per form instructions")
 
     # Fan-out pattern: collect once, use .as_*() to populate multiple PDF fields
