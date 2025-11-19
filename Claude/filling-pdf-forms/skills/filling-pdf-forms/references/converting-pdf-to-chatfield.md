@@ -26,6 +26,19 @@ The chatfield object strings should virtually always match the PDF's primary lan
 
 **Translation happens LATER** (see ./translating.md), not during initial definition.
 
+## Key Rules
+
+These fundamental rules apply to all Form Data Models:
+
+1. **Faithfulness to PDF**: The interview definition must accurately represent the source PDF form
+2. **Direct mapping default**: Use PDF field_ids directly from `.form.json` unless using fan-out patterns
+3. **Fan-out patterns**: Use `.as_*()` casts to populate multiple PDF fields from single collected value
+4. **Exact field_ids**: Keep field IDs from `.form.json` unchanged (use as cast names or direct field names)
+5. **Extract knowledge**: ALL form instructions go into Alice traits/hints
+6. **Format flexibility**: Never specify format in `.desc()` - Alice accepts variations
+7. **Validation vs transformation**: `.must()` for content constraints (use SPARINGLY), `.as_*()` for formatting (use LIBERALLY)
+8. **Language matching**: All strings (`.type()`, `.desc()`, `.trait()`, `.hint()`) must match the PDF's language
+
 ## Reading Input Files
 
 Your inputs from form-extract:
