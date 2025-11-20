@@ -89,6 +89,30 @@ console.log(`Destination: ${trip.destination}`)
 console.log(`Budget: ${trip.budget}`)
 ```
 
+## Chatfield as a Claude Code Plugin
+
+The **Chatfield** Claude Code Marketplace includes a plugin to complete PDF forms through conversation.
+
+**Add the Chatfield Marketplace**
+
+```bash
+/plugin marketplace add jhs/Chatfield
+```
+
+**Add the Chatfield PDF plugin**
+
+```bash
+/plugin install filling-pdf-forms@jhs/Chatfield
+```
+
+**To use**, `/pdf path/to/form.pdf` or just ask "Help me complete this PDF form"
+
+The plugin understands form fields, interviews you conversationally, and produces a completed `.done.pdf` file. 
+
+Chatfield supports both fillable and non-fillable PDFs, with text content or without text content.
+
+If the form is not the language you speak, Chatfield will speak your language and translate for you.
+
 ## Core Concepts
 
 Chatfield transforms traditional form fields into conversational topics. The AI interviewer guides users through data collection naturally, validating responses and transforming them into structured data.
