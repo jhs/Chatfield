@@ -1,0 +1,45 @@
+@startuml converting-pdf-to-chatfield
+!theme plain
+skinparam backgroundColor #FEFEFE
+skinparam activity {
+  BackgroundColor<<Validation>> LightSalmon
+  BackgroundColor<<Process>> LightBlue
+  BackgroundColor<<Reading>> LightYellow
+  BackgroundColor<<Building>> LightGreen
+}
+
+title Step 2: Converting PDF Forms to Chatfield Interviews
+
+' Validation checkpoint procedure
+!procedure $validate($step_name, $checklist_ref)
+  repeat
+    :<color:red><b>▸ VALIDATION CHECKPOINT</b></color>\n$step_name;<<Validation>>
+
+    if (All checks pass?) then (no)
+      :Fix issues identified in validation;
+    else (yes)
+    endif
+  repeat while (All checks pass?) is (no)
+  ->yes;
+
+  #LightGreen:**✓ VALIDATED** - $step_name;
+!endprocedure
+
+start
+:Prerequisites: Form extraction complete;
+
+partition "Read Input Files" #LightYellow {
+  :Read <basename>.form.md;<<Reading>>
+
+  :Read <basename>.form.json;<<Reading>>
+}
+
+:Build Interview Definition;<<Building>>
+
+$validate("Form Data Model", "See validation checklist below")
+
+#LightGreen:**✓ FORM DATA MODEL COMPLETE**;
+:interview.py ready for next step;
+stop
+
+@enduml
