@@ -1,18 +1,28 @@
 # Converting PDF Forms to Chatfield Interviews
 
-This guide covers how to build a Chatfield interview definition from PDF form data.
+<purpose>
+This guide covers how to build a Chatfield interview definition from PDF form data. This is the core transformation step that converts a static PDF form into a conversational interview.
+</purpose>
 
+<important>
 **For complete API reference**: See ./api-reference.md for all builder methods, transformations, and validation rules.
+</important>
 
 ## The Form Data Model
 
+<definition>
 The **Form Data Model** is the `interview.py` file in the `.chatfield/` working directory. This file contains the chatfield builder definition that faithfully represents the PDF form.
+</definition>
 
 ## Critical Principle: Faithfulness to Original PDF
 
-**The chatfield definition must be as accurate and faithful as possible to the source PDF.**
+<critical_principle>
+**The Form Data Model must be as accurate and faithful as possible to the source PDF.**
 
-Why? Downstream code will NOT see the PDF anymore. The interview must create the "illusion" that the AI agent is holding the form on a clipboard, speaking to the user, and writing information - all from the chatfield definition alone.
+**Why?** Downstream code will NOT see the PDF anymore. The interview must create the "illusion" that the AI agent has full access to the form, speaking to the user, writing information - all from the Form Data Model alone.
+
+This means every field, every instruction, every validation rule from the PDF must be captured in the interview definition.
+</critical_principle>
 
 ## Language Matching Rule
 
@@ -243,13 +253,14 @@ interview = (chatfield()
 
 ## Validation Checklist
 
+<validation_checklist>
 Before proceeding, validate the interview definition:
 
 ```
 Interview Validation Checklist:
 - [ ] All field_ids from .form.json are mapped
 - [ ] No field_ids duplicated or missing
-- [ ] CRITICAL: All cast names use exact PDF field_ids from .form.json
+- [ ] Formatting logic uses .as_*() to convert, not .desc() or .hint() to describe
 - [ ] Fan-out patterns use .as_*() with PDF field_ids as cast names
 - [ ] Split patterns use .as_*() with "or empty/0 if N/A" descriptions
 - [ ] Discriminate + split uses .as_*() for mutually-exclusive fields
@@ -259,7 +270,6 @@ Interview Validation Checklist:
 - [ ] Field hints provide context from PDF instructions
 - [ ] Optional fields explicitly marked with hint("Background: Optional...")
 - [ ] .must() used sparingly (only true content requirements)
-- [ ] .as_*() transformations used liberally
 - [ ] Field .desc() questions are natural and user-friendly (no technical field_ids)
 - [ ] ALL STRINGS match the PDF's primary language
 ```
@@ -269,6 +279,7 @@ If any items fail:
 2. Fix the interview definition
 3. Re-run validation checklist
 4. Proceed only when all items pass
+</validation_checklist>
 
 ## The Result: Form Data Model
 
