@@ -1,12 +1,18 @@
 # Translating Forms for Users
 
-Use this guide when the PDF form is in a language different from the user's language.
+<purpose>
+Use this guide when the PDF form is in a language different from the user's language. This enables cross-language form completion where the user speaks one language and the form is in another.
+</purpose>
 
 ## Critical Principle
 
-The **Form Data Model** (`interview.py`) was already created with the form's language
+<critical_principle>
+The **Form Data Model** (`interview.py`) was already created with the form's language.
 
 **DO NOT recreate it.** Instead, ADAPT it for translation.
+
+The form definition stays in the form's language. Only Alice's behavior and Bob's profile are modified to enable translation.
+</critical_principle>
 
 ## Process
 
@@ -139,7 +145,8 @@ interview = (chatfield()
 
 ## Validation Checklist
 
-Before proceeding:
+<validation_checklist>
+Before proceeding, verify ALL items:
 
 ```
 Translation Validation Checklist:
@@ -153,7 +160,6 @@ Translation Validation Checklist:
 - [ ] Added Alice trait: "Translates Bob's responses into [FORM_LANGUAGE]"
 - [ ] Added Alice trait: "Explains [FORM_LANGUAGE] terms in [USER_LANGUAGE]"
 - [ ] Added Bob trait: "Speaks [USER_LANGUAGE] only"
-- [ ] Added Bob trait: "Needs help completing [FORM_LANGUAGE] form"
 ```
 
 If any items fail:
@@ -161,6 +167,7 @@ If any items fail:
 2. Fix the interview definition
 3. Re-run validation checklist
 4. Proceed only when all items pass
+</validation_checklist>
 
 ## Re-define Form Data Model
 
