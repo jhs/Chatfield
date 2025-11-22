@@ -1,26 +1,19 @@
-# Populating PDF Forms
+# Populating Fillable PDF Forms
 
 <purpose>
-After collecting data via Chatfield interview, populate the PDF with the results.
+After collecting data via Chatfield interview, populate fillable PDF forms with the results.
 </purpose>
 
 ## Process Overview
 
 ```plantuml
-@startuml populating
-title Populating PDF Forms
+@startuml populating-fillable
+title Populating Fillable PDF Forms
 start
-:Prerequisites: Interview complete;
-partition "1. Parse Server Output" {
-  :Extract field_id and value for each field;
-}
-partition "2. Create Values JSON" {
-  :Read <basename>.form.json for metadata;
-  :Create <basename>.values.json;
-}
-partition "3. Populate PDF" {
-  :Execute fill_fillable_fields.py;
-}
+:Parse server output;
+:Read <basename>.form.json for metadata;
+:Create <basename>.values.json;
+:Execute fill_fillable_fields.py;
 repeat
   :Validate
   (see validation checklist);

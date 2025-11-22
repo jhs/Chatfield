@@ -45,6 +45,13 @@ partition "Interview Loop" {
 }
 :Capture stdout output;
 :Step 5: Populate PDF;
+if (Fillable form?) then (yes)
+  :Populate fillable fields
+  (see populating-fillable.md);
+else (no)
+  :Populate non-fillable fields
+  (see populating-nonfillable.md);
+endif
 |User|
 :**✓ SUCCESS**;
 :Receive completed PDF <basename>.done.pdf;
@@ -82,7 +89,9 @@ Task(
 )
 ```
 
-When the task reports "Done", it will have created (for `input.pdf`):
+When the task finishes, it reports whether the PDF is "fillable" or "non-fillable", because you must use this important information later.
+
+The task creates (for `input.pdf`):
 - `input.chatfield/` directory
 - `input.chatfield/input.form.md` - PDF content as Markdown
 - `input.chatfield/input.form.json` - Form field definitions
@@ -136,15 +145,12 @@ Capture the stdout output - you'll need it for population.
 
 Parse server output and populate the PDF.
 
-**See:** ./references/populating.md
+#### If Fillable:
 
-**Steps:**
-1. Parse server stdout to extract field values
-2. Create `.values.json` with proper format
-3. Run population script:
-   ```bash
-   python scripts/fill_fillable_fields.py input.pdf input.values.json input.done.pdf
-   ```
-4. Verify output PDF exists
+**See:** ./references/populating-fillable.md
+
+#### If Non-fillable:
+
+**See:** ./references/populating-nonfillable.md
 
 **Result**: `input.done.pdf`
