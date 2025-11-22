@@ -27,30 +27,15 @@ This skill extracts PDF form information into useful JSON.
 @startuml SKILL
 title Extracting Form Fields - High-Level Workflow
 start
-:PDF path provided;
 :Create working directory;
 :Extract PDF content as Markdown;
 :Check Fillability;
 if (PDF has fillable fields?) then (yes)
-  partition "Fillable Workflow" {
-    :Extract form field metadata;
-  }
+  :Fillable workflow
+  (see fillable-forms.md);
 else (no)
-  partition "Non-fillable Workflow" {
-    :Convert PDF to PNG images;
-    :Visual analysis & determine bounding boxes;
-    :Create .form.json;
-    repeat
-      :Create validation images;
-      :Automated intersection check;
-      :Manual image inspection;
-      if (Validation passes?) then (yes)
-      else (no)
-        :Fix bounding boxes;
-      endif
-    repeat while (Validation passes?) is (no)
-    ->yes;
-  }
+  :Non-fillable workflow
+  (see nonfillable-forms.md);
 endif
 :Copy interview template;
 :**✓ EXTRACTION COMPLETE**;
