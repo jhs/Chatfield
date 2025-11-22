@@ -2,6 +2,20 @@
 
 This guide is for the "extracting-form-fields" agent performing extraction on fillable PDFs.
 
+## Process Overview
+
+```plantuml
+@startuml fillable-forms
+title Fillable PDF Forms - Extraction Workflow
+start
+:Prerequisites: Working directory created,
+PDF content extracted as Markdown;
+:Extract form field metadata;
+:**✓ FILLABLE EXTRACTION COMPLETE**;
+stop
+@enduml
+```
+
 ## Extraction Process
 
 ### 1. Extract Form Field Metadata

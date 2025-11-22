@@ -5,6 +5,31 @@ You'll need to visually determine where the data should be added as text annotat
 - Create a JSON file with field information and validation images showing the bounding boxes.
 - Validate the the bounding boxes.
 
+## Process Overview
+
+```plantuml
+@startuml nonfillable-forms
+title Non-fillable PDF Forms - Extraction Workflow
+start
+:Prerequisites: Working directory created,
+PDF content extracted as Markdown;
+:Convert PDF to PNG images;
+:Visual analysis & determine bounding boxes;
+:Create .form.json;
+repeat
+  :Create validation images;
+  :Automated intersection check;
+  :Manual image inspection;
+  if (Validation passes?) then (yes)
+  else (no)
+    :Fix bounding boxes;
+  endif
+repeat while (Validation passes?) is (no)
+->yes;
+:**✓ NON-FILLABLE EXTRACTION COMPLETE**;
+stop
+@enduml
+```
 
 ## Extraction Process
 
