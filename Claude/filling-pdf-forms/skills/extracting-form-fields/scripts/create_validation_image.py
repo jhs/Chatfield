@@ -2,66 +2,42 @@ import json
 import sys
 
 from PIL import Image, ImageDraw
-from pypdf import PdfReader
 
 
 # Creates "validation" images with rectangles for the bounding box information that
-# Claude creates when determining where to add text annotations in PDFs. See forms.md.
+# Claude creates when determining where to add text annotations in PDFs.
+# This version works with IMAGE coordinates (from .scan.json files).
 
 
-def pdf_to_image_coords(pdf_bbox, image_width, image_height, pdf_width, pdf_height):
-    """Transform bounding box from PDF coordinates to image coordinates
-
-    PDF coordinates: origin at bottom-left, y increases upward
-    Image coordinates: origin at top-left, y increases downward
+def create_validation_image(page_number, fields_json_path, input_path, output_path):
     """
-    x_scale = image_width / pdf_width
-    y_scale = image_height / pdf_height
+    Create a validation image with bounding boxes overlaid.
 
-    # Scale X coordinates
-    left = pdf_bbox[0] * x_scale
-    right = pdf_bbox[2] * x_scale
-
-    # Flip Y coordinates: PDF bottom-left origin → Image top-left origin
-    # PDF y1 is bottom, y2 is top (in PDF coords where y increases upward)
-    # Image needs top edge at smaller y value (since y increases downward)
-    top = image_height - (pdf_bbox[3] * y_scale)
-    bottom = image_height - (pdf_bbox[1] * y_scale)
-
-    return [left, top, right, bottom]
-
-
-def create_validation_image(page_number, fields_json_path, pdf_path, input_path, output_path):
-    # Input file should be in the `fields.json` format described in forms.md.
+    Args:
+        page_number: Page number (1-indexed)
+        fields_json_path: Path to .scan.json file (IMAGE coordinates)
+        input_path: Path to input PNG image
+        output_path: Path to output validation image
+    """
+    # Input file should be in the .scan.json format with IMAGE coordinates
     with open(fields_json_path, 'r') as f:
         fields = json.load(f)
 
-    # Get PDF dimensions for coordinate transformation
-    reader = PdfReader(pdf_path)
-    page = reader.pages[page_number - 1]  # Convert to 0-indexed
-    pdf_width = float(page.mediabox.width)
-    pdf_height = float(page.mediabox.height)
-
     img = Image.open(input_path)
-    image_width = img.width
-    image_height = img.height
     draw = ImageDraw.Draw(img)
     num_boxes = 0
 
     for field in fields:
         if field['page'] == page_number:
-            # Transform PDF coordinates to image coordinates
-            entry_box_pdf = field['rect']
-            entry_box_img = pdf_to_image_coords(entry_box_pdf, image_width, image_height, pdf_width, pdf_height)
-
-            label_box_pdf = field.get('label_rect', [0, 0, 0, 0])
+            # Coordinates are already in image space - use them directly!
+            entry_box_img = field['rect']
+            label_box_img = field.get('label_rect', [0, 0, 0, 0])
 
             # Draw red rectangle over entry bounding box
             draw.rectangle(entry_box_img, outline='red', width=2)
             num_boxes += 1
 
-            if label_box_pdf != [0, 0, 0, 0]:
-                label_box_img = pdf_to_image_coords(label_box_pdf, image_width, image_height, pdf_width, pdf_height)
+            if label_box_img != [0, 0, 0, 0]:
                 draw.rectangle(label_box_img, outline='blue', width=2)
                 num_boxes += 1
 
@@ -70,12 +46,14 @@ def create_validation_image(page_number, fields_json_path, pdf_path, input_path,
 
 
 if __name__ == "__main__":
-    if len(sys.argv) != 6:
-        print("Usage: create_validation_image.py [page number] [fields.json file] [pdf path] [input image path] [output image path]")
+    if len(sys.argv) != 5:
+        print("Usage: create_validation_image.py [page number] [scan.json file] [input image path] [output image path]")
+        print()
+        print("Example:")
+        print("  python create_validation_image.py 1 form.chatfield/form.scan.json form.chatfield/images/page_1.png form.chatfield/images/page_1_validation.png")
         sys.exit(1)
     page_number = int(sys.argv[1])
     fields_json_path = sys.argv[2]
-    pdf_path = sys.argv[3]
-    input_image_path = sys.argv[4]
-    output_image_path = sys.argv[5]
-    create_validation_image(page_number, fields_json_path, pdf_path, input_image_path, output_image_path)
+    input_image_path = sys.argv[3]
+    output_image_path = sys.argv[4]
+    create_validation_image(page_number, fields_json_path, input_image_path, output_image_path)
