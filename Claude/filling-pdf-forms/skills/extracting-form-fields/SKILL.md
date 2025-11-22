@@ -10,36 +10,70 @@ license: Apache 2.0
 
 Prepare working directory and extract field data from PDF forms.
 
-## Purpose
-
+<purpose>
 This skill extracts PDF form information into useful JSON.
 - Detects fillable vs. non-fillable PDFs
 - Extracts PDF content as readable Markdown
 - Creates field metadata in common JSON format
-
-## When to Use This Skill
-
-Use when you need to extract form field information from a PDF as the first step in form filling workflows.
-
-**Note**: This skill is typically invoked by the `filling-pdf-forms` skill via an agent, not used directly.
+</purpose>
 
 ## Inputs
 
 - **PDF path**: Path to PDF file (e.g., `/home/user/input.pdf`)
 
-## Outputs
+## Process Overview
 
-For `input.pdf`, creates:
-```
-input.chatfield/
-├── input.form.md           # PDF content as Markdown
-├── input.form.json         # Field metadata
-└── interview.py            # Form Data Model starting template
+```plantuml
+@startuml SKILL
+title Extracting Form Fields - High-Level Workflow
+start
+:PDF path provided;
+:Create working directory;
+:Extract PDF content as Markdown;
+:Check Fillability;
+if (PDF has fillable fields?) then (yes)
+  partition "Fillable Workflow" {
+    :Extract form field metadata;
+  }
+else (no)
+  partition "Non-fillable Workflow" {
+    :Convert PDF to PNG images;
+    :Visual analysis & determine bounding boxes;
+    :Create .form.json;
+    repeat
+      :Create validation images;
+      :Automated intersection check;
+      :Manual image inspection;
+      if (Validation passes?) then (yes)
+      else (no)
+        :Fix bounding boxes;
+      endif
+    repeat while (Validation passes?) is (no)
+    ->yes;
+  }
+endif
+:Copy interview template;
+:**✓ EXTRACTION COMPLETE**;
+:Ready for Form Data Model creation;
+stop
+@enduml
 ```
 
 ## Process
 
-### 1. Check Fillability
+### 1. Create Working Directory
+
+```bash
+mkdir <basename>.chatfield
+```
+
+### 2. Extract PDF Content
+
+```bash
+markitdown <pdf_path> > <basename>.chatfield/<basename>.form.md
+```
+
+### 3. Check Fillability
 
 ```bash
 python scripts/check_fillable_fields.py <pdf_path>
@@ -49,35 +83,20 @@ python scripts/check_fillable_fields.py <pdf_path>
 - `"This PDF has fillable form fields"` → use fillable workflow
 - `"This PDF does not have fillable form fields; you will need to visually determine where to enter data"` → use non-fillable workflow
 
-### 2. Create Working Directory
-
-```bash
-mkdir <basename>.chatfield
-```
-
-### 3. Extract PDF Content
-
-```bash
-markitdown <pdf_path> > <basename>.chatfield/<basename>.form.md
-```
-
 ### 4. Branch Based on Fillability
 
 #### If Fillable:
-Follow ./references/fillable-forms.md:
-- Use `scripts/extract_form_field_info.py` to create `.form.json`
-- Extracts programmatic field metadata automatically
+
+Follow ./references/fillable-forms.md
 
 #### If Non-fillable:
-Follow ./references/nonfillable-forms.md:
-- Convert PDF to images using `scripts/convert_pdf_to_images.py`
-- Guide visual analysis and bounding box creation
-- Create `.fields.json` with field definitions
-- Validate using `scripts/create_validation_image.py` and `scripts/check_bounding_boxes.py`
+
+Follow ./references/nonfillable-forms.md
 
 ### 5. Copy Interview Template
 
-Requires access to `filling-pdf-forms` skill's template:
+Copy a file from the included `filling-pdf-forms` skill's template. The path below is relative to this file.
+
 ```bash
 cp ../filling-pdf-forms/scripts/chatfield_interview_template.py <basename>.chatfield/interview.py
 ```
@@ -107,74 +126,7 @@ cp ../filling-pdf-forms/scripts/chatfield_interview_template.py <basename>.chatf
 ]
 ```
 
-### Non-fillable PDFs - .fields.json
-
-```json
-[
-  {
-    "field_id": "full_name",
-    "type": "text",
-    "page": 1,
-    "label": {
-      "text": "Full Name:",
-      "bounding_box": {"x1": 50, "y1": 700, "x2": 150, "y2": 720}
-    },
-    "entry_text": {
-      "bounding_box": {"x1": 160, "y1": 700, "x2": 500, "y2": 720}
-    }
-  },
-  {
-    "field_id": "is_citizen",
-    "type": "checkbox",
-    "page": 1,
-    "label": {
-      "text": "US Citizen",
-      "bounding_box": {"x1": 50, "y1": 650, "x2": 150, "y2": 670}
-    },
-    "checkbox": {
-      "bounding_box": {"x1": 155, "y1": 650, "x2": 170, "y2": 665}
-    }
-  }
-]
-```
-
-## Completion Report
-
-Return to calling skill:
-
-```
-Extraction complete for <pdf_path>:
-
-Created:
-- <basename>.chatfield/ directory
-- <basename>.chatfield/<basename>.form.md (PDF content as Markdown)
-- <basename>.chatfield/<basename>.form.json (field metadata for N fields)
-  OR <basename>.chatfield/<basename>.fields.json (for non-fillable)
-- <basename>.chatfield/interview.py (template ready for editing)
-
-Form type: FILLABLE (or NON-FILLABLE)
-
-Ready for Form Data Model creation.
-```
-
-## Scripts Reference
-
-### Fillable PDF Scripts
-- `check_fillable_fields.py` - Detect fillable fields
-- `extract_form_field_info.py` - Extract programmatic field metadata
-- `fill_fillable_fields.py` - Populate fillable PDF (used later by filling-pdf-forms)
-
-### Non-fillable PDF Scripts
-- `convert_pdf_to_images.py` - Convert PDF pages to PNG images
-- `create_validation_image.py` - Visualize bounding boxes
-- `check_bounding_boxes.py` - Validate field definitions
-- `fill_pdf_form_with_annotations.py` - Annotate PDF visually (used later by filling-pdf-forms)
-
 ## References
 
 - ./references/fillable-forms.md - Fillable PDF extraction workflow
 - ./references/nonfillable-forms.md - Non-fillable PDF extraction workflow
-
-## Integration
-
-This skill is designed to be used by the `filling-pdf-forms` skill via the `extracting-form-fields` agent. The agent orchestrates this skill's resources to prepare the PDF for chatfield interview creation.
