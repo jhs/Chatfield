@@ -66,6 +66,11 @@ Create `<basename>.values.json` in the `<basename>.chatfield/` directory with th
 ]
 ```
 
+**Value selection priority:**
+- **CRITICAL**: If `.as_lang_primary` exists for a field, **always prefer it** over the raw value
+- This ensures forms are populated in the form's language, not the conversation language
+- Only use the raw value if no `.as_lang_primary` cast exists
+
 **Boolean conversion for checkboxes:**
 - Read `.form.json` for `checked_value` and `unchecked_value`
 - Typically: `"/1"` or `"/On"` for checked, `"/Off"` for unchecked
@@ -83,9 +88,10 @@ python scripts/fill_fillable_fields.py <basename>.pdf <basename>.chatfield/<base
 
 ```bash
 # 1. Parse server output (manual extraction from stdout)
-# Server printed: {'name': {'value': 'Jason Smith'}, 'age': {'value': '25'}, 'over_18': {'value': true}}
+# Server printed: {'name': {'value': 'Jason Smith', 'as_lang_primary': 'Jason Smith'}, 'age': {'value': '25'}, 'over_18': {'value': true}}
 
 # 2. Create values.json in the .chatfield/ directory
+# Note: Use as_lang_primary for 'name' field since it exists
 cat > input.chatfield/input.values.json << 'EOF'
 [
   {"field_id": "name", "page": 1, "value": "Jason Smith"},
@@ -112,4 +118,7 @@ python scripts/fill_fillable_fields.py input.pdf input.chatfield/input.values.js
 **Type errors:**
 - Ensure numeric fields use numbers, not strings: `25` not `"25"`
 - Ensure boolean checkboxes use proper values from `.form.json`
+
+**Language translation (for translated forms):**
+- Ensure `.as_lang_primary` value is used, when it exists
 </validation_checklist>

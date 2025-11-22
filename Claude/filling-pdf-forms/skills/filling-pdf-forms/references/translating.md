@@ -77,6 +77,7 @@ Edit `interview_<lang>.py` to add translation traits.
 **What to change:**
 - ✅ Alice traits - Add translation instructions
 - ✅ Bob traits - Add language preference
+- ✅ Text fields - Add `.as_lang("primary", "translated to [FORM_LANGUAGE]")`
 
 **What NOT to change:**
 - ❌ Form `.type()` or `.desc()` - Keep form's language
@@ -107,6 +108,17 @@ Add these traits to Bob:
     # Keep existing .type()
     .trait("Speaks [USER_LANGUAGE] only")
     # Keep all existing .trait() calls
+```
+
+### 5. Field Language Casts
+
+Add `.as_lang("primary", "translate to [FORM_LANGUAGE]")` to **all text fields** to ensure values are translated to the form's language:
+
+```python
+.field("field_name")
+    .desc("...")
+    .as_lang("primary", "Translated to [FORM_LANGUAGE]")
+    # Keep all existing casts
 ```
 
 ## Complete Example
@@ -168,6 +180,7 @@ interview = (chatfield()
     .field("nombre_completo")  # Unchanged
         .desc("¿Cuál es su nombre completo?")  # Unchanged - form's language
         .hint("Background: Debe coincidir con el pasaporte")  # Unchanged
+        .as_lang("primary", "translate to Spanish")  # ADDED
 
     .field("fecha_nacimiento")  # Unchanged
         .desc("¿Cuál es su fecha de nacimiento?")  # Unchanged
@@ -196,6 +209,7 @@ Translation Validation Checklist:
 - [ ] Added Alice trait: "Translates [USER_LANGUAGE] responses into [FORM_LANGUAGE]"
 - [ ] Added Alice trait: "Explains [FORM_LANGUAGE] terms in [USER_LANGUAGE]"
 - [ ] Added Bob trait: "Speaks [USER_LANGUAGE] only"
+- [ ] Added .as_lang("primary", "translate to [FORM_LANGUAGE]") to all text fields
 ```
 </validation_checklist>
 
