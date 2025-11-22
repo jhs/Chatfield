@@ -17,7 +17,7 @@ Use when completing PDF forms with user-provided data. Your goal is to produce a
 ## Process Overview
 
 ```plantuml
-@startuml workflow
+@startuml SKILL
 !theme plain
 skinparam backgroundColor #FEFEFE
 skinparam activity {
