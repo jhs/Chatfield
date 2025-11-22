@@ -5,7 +5,7 @@ This guide covers how to build a Chatfield interview definition from PDF form da
 </purpose>
 
 <important>
-**Read complete API reference**: See ./api-reference.md for all builder methods, transformations, and validation rules.
+**Read complete API reference**: See ./data-model-api.md for all builder methods, transformations, and validation rules.
 </important>
 
 ## Process Overview
@@ -202,7 +202,7 @@ All hints must have a prefix:
 - **"Tooltip:"** - May be shared with Bob if helpful
   - Example: `.hint("Tooltip: Your employer provides this number")`
 
-**See ./api-reference.md** for complete list of transformations (`.as_int()`, `.as_bool()`, etc.) and cardinality options (`.as_one()`, `.as_multi()`, etc.).
+**See ./data-model-api.md** for complete list of transformations (`.as_int()`, `.as_bool()`, etc.) and cardinality options (`.as_one()`, `.as_multi()`, etc.).
 
 ## When to Use `.conclude()`
 
