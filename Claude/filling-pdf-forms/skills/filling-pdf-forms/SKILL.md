@@ -70,18 +70,21 @@ stop
 
 ### Step 0: Initialize Chatfield
 
-Ensure the `chatfield` package is available before proceeding. If not, install its wheel file in ./scripts.
+Ensure all required packages are available before proceeding.
 
-**Check**
+**Check and install required packages:**
 
 ```bash
-# Check if chatfield is installed
-python -c "import chatfield"
+python -c "import pypdf" 2>/dev/null || pip install pypdf
+python -c "import markitdown" 2>/dev/null || pip install "markitdown[pdf]"
 ```
 
-**Install if missing**
+**Check and install chatfield**
+
+(Note, the ./scripts is relative to this .md file. Use its correct path in your command.)
+
 ```bash
-pip install ./scripts/chatfield-1.0.0a2-py3-none-any.whl
+python -c "import chatfield" 2>/dev/null || pip install ./scripts/chatfield-1.0.0a2-py3-none-any.whl
 ```
 
 ### Step 1: Form Extraction
