@@ -67,9 +67,10 @@ Create `<basename>.values.json` in the `<basename>.chatfield/` directory with th
 ```
 
 **Value selection priority:**
-- **CRITICAL**: If `.as_lang_primary` exists for a field, **always prefer it** over the raw value
+- **CRITICAL**: If a language cast exists for a field (e.g., `.as_lang_es`, `.as_lang_fr`), **always prefer it** over the raw value
 - This ensures forms are populated in the form's language, not the conversation language
-- Only use the raw value if no `.as_lang_primary` cast exists
+- The language cast name matches the form's language code (e.g., `as_lang_es` for Spanish forms)
+- Only use the raw value if no language cast exists
 
 **Boolean conversion for checkboxes:**
 - Read `.form.json` for `checked_value` and `unchecked_value`
@@ -88,10 +89,10 @@ python scripts/fill_fillable_fields.py <basename>.pdf <basename>.chatfield/<base
 
 ```bash
 # 1. Parse server output (manual extraction from stdout)
-# Server printed: {'name': {'value': 'Jason Smith', 'as_lang_primary': 'Jason Smith'}, 'age': {'value': '25'}, 'over_18': {'value': true}}
+# Server printed: {'name': {'value': 'Jason Smith', 'as_lang_es': 'Jason Smith'}, 'age': {'value': '25'}, 'over_18': {'value': true}}
 
 # 2. Create values.json in the .chatfield/ directory
-# Note: Use as_lang_primary for 'name' field since it exists
+# Note: Use as_lang_es for 'name' field since it exists (Spanish form)
 cat > input.chatfield/input.values.json << 'EOF'
 [
   {"field_id": "name", "page": 1, "value": "Jason Smith"},
@@ -120,5 +121,5 @@ python scripts/fill_fillable_fields.py input.pdf input.chatfield/input.values.js
 - Ensure boolean checkboxes use proper values from `.form.json`
 
 **Language translation (for translated forms):**
-- Ensure `.as_lang_primary` value is used, when it exists
+- Ensure language cast value is used when it exists (e.g., `as_lang_es` for Spanish forms)
 </validation_checklist>

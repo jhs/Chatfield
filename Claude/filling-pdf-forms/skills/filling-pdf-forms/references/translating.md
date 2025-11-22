@@ -28,6 +28,10 @@ partition "2. Edit Language-Specific Version" {
   partition "4. Bob Language Traits" {
     :Add language trait to Bob;
   }
+
+  partition "5. Field Language Casts" {
+    :Add .as_lang("<lang>") to all text fields;
+  }
 }
 
 repeat
@@ -77,7 +81,7 @@ Edit `interview_<lang>.py` to add translation traits.
 **What to change:**
 - ✅ Alice traits - Add translation instructions
 - ✅ Bob traits - Add language preference
-- ✅ Text fields - Add `.as_lang("primary", "translated to [FORM_LANGUAGE]")`
+- ✅ Text fields - Add `.as_lang("<form-lang-code>")` for translation (e.g., "es" for Spanish)
 
 **What NOT to change:**
 - ❌ Form `.type()` or `.desc()` - Keep form's language
@@ -112,12 +116,12 @@ Add these traits to Bob:
 
 ### 5. Field Language Casts
 
-Add `.as_lang("primary", "translate to [FORM_LANGUAGE]")` to **all text fields** to ensure values are translated to the form's language:
+Add `.as_lang("<form-lang-code>")` to **all text fields** to ensure values are translated to the form's language using ISO 639-1 language codes (es, fr, th, de, etc.):
 
 ```python
 .field("field_name")
     .desc("...")
-    .as_lang("primary", "Translated to [FORM_LANGUAGE]")
+    .as_lang("es")  # For Spanish form, use "fr" for French, "th" for Thai, etc.
     # Keep all existing casts
 ```
 
@@ -180,7 +184,7 @@ interview = (chatfield()
     .field("nombre_completo")  # Unchanged
         .desc("¿Cuál es su nombre completo?")  # Unchanged - form's language
         .hint("Background: Debe coincidir con el pasaporte")  # Unchanged
-        .as_lang("primary", "translate to Spanish")  # ADDED
+        .as_lang("es")  # ADDED - translate to Spanish
 
     .field("fecha_nacimiento")  # Unchanged
         .desc("¿Cuál es su fecha de nacimiento?")  # Unchanged
@@ -209,7 +213,7 @@ Translation Validation Checklist:
 - [ ] Added Alice trait: "Translates [USER_LANGUAGE] responses into [FORM_LANGUAGE]"
 - [ ] Added Alice trait: "Explains [FORM_LANGUAGE] terms in [USER_LANGUAGE]"
 - [ ] Added Bob trait: "Speaks [USER_LANGUAGE] only"
-- [ ] Added .as_lang("primary", "translate to [FORM_LANGUAGE]") to all text fields
+- [ ] Added .as_lang("<form-lang-code>") to all text fields (e.g., "es" for Spanish)
 ```
 </validation_checklist>
 
