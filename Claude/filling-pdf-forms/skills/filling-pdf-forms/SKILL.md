@@ -27,6 +27,8 @@ start
 
 |filling-pdf-forms skill|
 
+:Step 0: Initialize Chatfield;
+
 :Step 1: Form Extraction;
 
 :Step 2: Build Form Data Model;
@@ -65,6 +67,22 @@ stop
 ```
 
 ## Workflow
+
+### Step 0: Initialize Chatfield
+
+Ensure the `chatfield` package is available before proceeding. If not, install its wheel file in ./scripts.
+
+**Check**
+
+```bash
+# Check if chatfield is installed
+python -c "import chatfield"
+```
+
+**Install if missing**
+```bash
+pip install ./scripts/chatfield-1.0.0a2-py3-none-any.whl
+```
 
 ### Step 1: Form Extraction
 
