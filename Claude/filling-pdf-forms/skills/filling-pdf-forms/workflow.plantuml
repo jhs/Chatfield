@@ -1,4 +1,4 @@
-@startuml filling-pdf-forms-workflow
+@startuml workflow
 !theme plain
 skinparam backgroundColor #FEFEFE
 skinparam activity {
@@ -22,7 +22,7 @@ start
 
 :Step 3: Translation Decision;
 
-if (User language is the same as form language?) then (yes)
+if (User language == form language?) then (yes)
   :Use base Form Data Model;
 else (no)
   :Translation Setup;
