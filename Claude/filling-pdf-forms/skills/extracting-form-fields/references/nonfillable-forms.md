@@ -157,9 +157,9 @@ First, create validation images for each page:
 
 ```bash
 # For each page (e.g., if you have 3 pages)
-python scripts/create_validation_image.py 1 <basename>.chatfield/<basename>.form.json <basename>.chatfield/images/page_1.png <basename>.chatfield/images/page_1_validation.png
-python scripts/create_validation_image.py 2 <basename>.chatfield/<basename>.form.json <basename>.chatfield/images/page_2.png <basename>.chatfield/images/page_2_validation.png
-python scripts/create_validation_image.py 3 <basename>.chatfield/<basename>.form.json <basename>.chatfield/images/page_3.png <basename>.chatfield/images/page_3_validation.png
+python scripts/create_validation_image.py 1 <basename>.chatfield/<basename>.form.json <basename>.pdf <basename>.chatfield/images/page_1.png <basename>.chatfield/images/page_1_validation.png
+python scripts/create_validation_image.py 2 <basename>.chatfield/<basename>.form.json <basename>.pdf <basename>.chatfield/images/page_2.png <basename>.chatfield/images/page_2_validation.png
+python scripts/create_validation_image.py 3 <basename>.chatfield/<basename>.form.json <basename>.pdf <basename>.chatfield/images/page_3.png <basename>.chatfield/images/page_3_validation.png
 ```
 
 This overlays colored rectangles (red for entry boxes, blue for labels) on the PNG images to visualize bounding boxes.
@@ -189,7 +189,7 @@ Remember: label (blue) bounding boxes should contain text labels, entry (red) bo
 - Entry boxes should have extra space for text
 
 **Validation script errors:**
-- Ensure all page images exist in `images/` directory
+- Ensure all page images exist
 - Verify JSON syntax in `.form.json`
 - Check that page numbers are 1-indexed
 
