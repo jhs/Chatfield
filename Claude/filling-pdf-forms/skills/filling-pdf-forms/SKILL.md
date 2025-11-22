@@ -77,7 +77,7 @@ Task(
     subagent_type="general-purpose",
     description="Extract PDF form fields",
     prompt=f"""
-    Extract form field data from PDF: {pdf_absolute_path}
+    Extract form field data from PDF: {pdf_path}
 
     Use the extracting-form-fields skill to complete this task.
     """

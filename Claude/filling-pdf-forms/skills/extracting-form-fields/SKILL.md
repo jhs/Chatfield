@@ -25,7 +25,7 @@ Use when you need to extract form field information from a PDF as the first step
 
 ## Inputs
 
-- **PDF path**: Absolute path to PDF file (e.g., `/home/user/input.pdf`)
+- **PDF path**: Path to PDF file (e.g., `/home/user/input.pdf`)
 
 ## Outputs
 
