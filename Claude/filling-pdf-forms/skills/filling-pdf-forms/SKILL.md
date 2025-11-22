@@ -10,9 +10,9 @@ license: Apache 2.0
 
 Complete PDF forms by collecting required data through conversational interviews and populating form fields.
 
-## When to Use This Skill
-
-Use when completing PDF forms with user-provided data. Your goal is to produce a `.done.pdf` corresponding to the user's starting PDF file, populated with the user-provided information.
+<purpose>
+Use when completing PDF forms with user-provided data. Your goal is to produce a `.done.pdf` corresponding to the user's starting PDF file, populated with the user-provided information, by following the below process exactly.
+</purpose>
 
 ## Process Overview
 
