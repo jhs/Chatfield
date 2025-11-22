@@ -74,7 +74,7 @@ python scripts/check_fillable_fields.py <pdf_path>
 
 **Output:**
 - `"This PDF has fillable form fields"` → use fillable workflow
-- `"This PDF does not have fillable form fields; you will need to visually determine where to enter data"` → use non-fillable workflow
+- `"This PDF does not have fillable form fields"` → use non-fillable workflow
 
 ### 5. Branch Based on Fillability
 
