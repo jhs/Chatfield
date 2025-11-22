@@ -92,18 +92,12 @@ When the task reports "Done", it will have created (for `input.pdf`):
 
 ### Step 2: Build Form Data Model
 
-Edit `[basename].chatfield/interview.py` to define the Chatfield interview.
+**First, see:** ./references/data-model-api.md to learn how to build Chatfield data models
+**Then, see:** ./references/converting-pdf-to-chatfield.md for guidance on how to make the needed model.
 
-**See:** ./references/converting-pdf-to-chatfield.md for mandatory guidance.
+With those references understood, edit `[basename].chatfield/interview.py` to define the Chatfield interview.
 
 This step creates the **Form Data Model** - the faithful representation of the PDF form using the Chatfield data model API.
-
-**Key steps:**
-- Read `.form.md` for form knowledge (purpose, instructions, context)
-- Read `.form.json` for field IDs and types
-- Build Form Data Model using chatfield builder API
-- Match the form's language in all strings
-- Use validation checklist before proceeding
 
 ### Step 3: Translation (If Needed)
 
