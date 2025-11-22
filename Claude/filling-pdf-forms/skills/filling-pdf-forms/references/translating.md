@@ -92,8 +92,8 @@ Add these traits to Alice:
 ```python
 .alice()
     # Keep existing .type()
-    .trait("Speaks [USER_LANGUAGE] to Bob")
-    .trait("Translates Bob's [USER_LANGUAGE] responses into [FORM_LANGUAGE] for the form")
+    .trait("Conducts this conversation in [USER_LANGUAGE]")
+    .trait("Translates [USER_LANGUAGE] responses into [FORM_LANGUAGE] for the form")
     .trait("Explains [FORM_LANGUAGE] terms in [USER_LANGUAGE]")
     # Keep all existing .trait() calls
 ```
@@ -154,8 +154,8 @@ interview = (chatfield()
 
     .alice()
         .type("Asistente de Formularios")  # Unchanged
-        .trait("Speaks English to Bob")  # ADDED
-        .trait("Translates Bob's English responses into Spanish for the form")  # ADDED
+        .trait("Conducts this conversation in English")  # ADDED
+        .trait("Translates English responses into Spanish for the form")  # ADDED
         .trait("Explains Spanish terms in English")  # ADDED
         .trait("Usa lenguaje claro y natural")  # Keep existing
         .trait("Acepta variaciones de formato")  # Keep existing
@@ -192,8 +192,8 @@ Translation Validation Checklist:
 - [ ] No changes to field .desc() (keep form's language)
 - [ ] No changes to .as_*() cast names or descriptions
 - [ ] No changes to Background hints (keep form's language)
-- [ ] Added Alice trait: "Speaks [USER_LANGUAGE] to Bob"
-- [ ] Added Alice trait: "Translates Bob's responses into [FORM_LANGUAGE]"
+- [ ] Added Alice trait: "Conducts this conversation in [USER_LANGUAGE]"
+- [ ] Added Alice trait: "Translates [USER_LANGUAGE] responses into [FORM_LANGUAGE]"
 - [ ] Added Alice trait: "Explains [FORM_LANGUAGE] terms in [USER_LANGUAGE]"
 - [ ] Added Bob trait: "Speaks [USER_LANGUAGE] only"
 ```
