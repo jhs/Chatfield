@@ -94,14 +94,12 @@ def monitor_interview_completion(server):
 
 def main():
     """Run the Chatfield FastAPI server."""
-    # Configure logging to show DEBUG and greater for chatfield.* only
     logging.basicConfig(
         level=logging.WARNING,  # Set root logger to WARNING to silence other libraries
         format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
         stream=sys.stderr
     )
-    # Enable DEBUG logging only for chatfield modules
-    logging.getLogger('chatfield').setLevel(logging.DEBUG)
+    logging.getLogger('chatfield').setLevel(logging.INFO)
 
     parser = argparse.ArgumentParser(
         description='Chatfield FastAPI Server',
