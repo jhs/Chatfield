@@ -72,20 +72,11 @@ stop
 
 Ensure all required packages are available before proceeding.
 
-**Check and install required packages:**
-
-```bash
-python -c "import pypdf" 2>/dev/null || pip install pypdf
-python -c "import markitdown" 2>/dev/null || pip install "markitdown[pdf]"
-```
-
-**Check and install chatfield**
-
-(Note, the ./scripts is relative to this .md file. Use its correct path in your command.)
-
-```bash
-python -c "import chatfield" 2>/dev/null || pip install ./scripts/chatfield-1.0.0a2-py3-none-any.whl
-```
+**Required packages:** Test for and install each package if missing:
+- `pypdf`
+- `pdf2image`
+- `markitdown` - To install: `pip install "markitdown[pdf]"`
+- `chatfield` - To install: `pip install ./scripts/chatfield-1.0.0a2-py3-none-any.whl` (path relative to this .md file)
 
 ### Step 1: Form Extraction
 
