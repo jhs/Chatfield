@@ -287,9 +287,9 @@ interview = (chatfield()
 
 ## Validation Checklist
 
-<validation_checklist>
 Before proceeding, validate the interview definition:
 
+<validation_checklist>
 ```
 Interview Validation Checklist:
 - [ ] All field_ids from .form.json are mapped
@@ -309,13 +309,13 @@ Interview Validation Checklist:
 - [ ] Field .desc() questions are natural and user-friendly (no technical field_ids)
 - [ ] ALL STRINGS match the PDF's primary language
 ```
+</validation_checklist>
 
 If any items fail:
 1. Review the specific issue
 2. Fix the interview definition
 3. Re-run validation checklist
 4. Proceed only when all items pass
-</validation_checklist>
 
 ## The Result: Form Data Model
 
