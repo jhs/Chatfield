@@ -1,4 +1,4 @@
-.PHONY: help install install-dev test test-cov lint format typecheck clean build publish docs proxy plantuml plantuml-extract plantuml-png
+.PHONY: help install install-dev test test-cov lint format typecheck clean build publish docs proxy plantuml plantuml-extract plantuml-png plantuml-clean
 
 help:
 	@echo "Available commands:"
@@ -92,12 +92,12 @@ ci: check
 	@echo "✅ CI checks passed!"
 
 # PlantUML file generation and diagram rendering
-.PHONY: plantuml plantuml-extract plantuml-png
+.PHONY: plantuml plantuml-extract plantuml-png plantuml-clean
 
 # Paths relative to Python/
 SKILL_DIR = ../Claude/filling-pdf-forms/skills/filling-pdf-forms
 PLANTUML_FILES = \
-	$(SKILL_DIR)/workflow.plantuml \
+	$(SKILL_DIR)/SKILL.plantuml \
 	$(SKILL_DIR)/references/translating.plantuml \
 	$(SKILL_DIR)/references/converting-pdf-to-chatfield.plantuml \
 	$(SKILL_DIR)/references/populating.plantuml
@@ -105,30 +105,28 @@ PLANTUML_FILES = \
 # Extract .plantuml files from .md sources
 plantuml-extract: $(PLANTUML_FILES)
 
-$(SKILL_DIR)/workflow.plantuml: $(SKILL_DIR)/SKILL.md
-	@echo "Generating $@ from $<"
+$(SKILL_DIR)/SKILL.plantuml: $(SKILL_DIR)/SKILL.md
 	@sed -n '/^```plantuml$$/,/^```$$/p' $< | sed '1d;$$d' > $@
 
 $(SKILL_DIR)/references/translating.plantuml: $(SKILL_DIR)/references/translating.md
-	@echo "Generating $@ from $<"
 	@sed -n '/^```plantuml$$/,/^```$$/p' $< | sed '1d;$$d' > $@
 
 $(SKILL_DIR)/references/converting-pdf-to-chatfield.plantuml: $(SKILL_DIR)/references/converting-pdf-to-chatfield.md
-	@echo "Generating $@ from $<"
 	@sed -n '/^```plantuml$$/,/^```$$/p' $< | sed '1d;$$d' > $@
 
 $(SKILL_DIR)/references/populating.plantuml: $(SKILL_DIR)/references/populating.md
-	@echo "Generating $@ from $<"
 	@sed -n '/^```plantuml$$/,/^```$$/p' $< | sed '1d;$$d' > $@
 
 # Generate PNG diagrams from .plantuml files using Docker
 plantuml-png: plantuml-extract
-	@echo "Generating PNG diagrams from PlantUML files..."
-	@docker run --rm -v "$(shell cd .. && pwd)":/data plantuml/plantuml -tpng "/data/Claude/filling-pdf-forms/skills/filling-pdf-forms/workflow.plantuml"
-	@docker run --rm -v "$(shell cd .. && pwd)":/data plantuml/plantuml -tpng "/data/Claude/filling-pdf-forms/skills/filling-pdf-forms/references/translating.plantuml"
-	@docker run --rm -v "$(shell cd .. && pwd)":/data plantuml/plantuml -tpng "/data/Claude/filling-pdf-forms/skills/filling-pdf-forms/references/populating.plantuml"
-	@docker run --rm -v "$(shell cd .. && pwd)":/data plantuml/plantuml -tpng "/data/Claude/filling-pdf-forms/skills/filling-pdf-forms/references/converting-pdf-to-chatfield.plantuml"
-	@echo "✅ PNG diagrams generated!"
+	@docker run --rm -v "$(shell cd .. && pwd)":/data plantuml/plantuml -tpng "/data/Claude/filling-pdf-forms/skills/filling-pdf-forms/SKILL.plantuml" 2>/dev/null
+	@docker run --rm -v "$(shell cd .. && pwd)":/data plantuml/plantuml -tpng "/data/Claude/filling-pdf-forms/skills/filling-pdf-forms/references/translating.plantuml" 2>/dev/null
+	@docker run --rm -v "$(shell cd .. && pwd)":/data plantuml/plantuml -tpng "/data/Claude/filling-pdf-forms/skills/filling-pdf-forms/references/populating.plantuml" 2>/dev/null
+	@docker run --rm -v "$(shell cd .. && pwd)":/data plantuml/plantuml -tpng "/data/Claude/filling-pdf-forms/skills/filling-pdf-forms/references/converting-pdf-to-chatfield.plantuml" 2>/dev/null
 
-# Main plantuml target: extract .plantuml from .md, then generate PNG
-plantuml: plantuml-png
+# Clean up temporary .plantuml files
+plantuml-clean:
+	@rm -f $(PLANTUML_FILES)
+
+# Main plantuml target: extract .plantuml from .md, generate PNG, then clean up .plantuml files
+plantuml: plantuml-png plantuml-clean
