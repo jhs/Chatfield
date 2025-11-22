@@ -1,0 +1,39 @@
+---
+title: Translating Forms for Users
+---
+flowchart TD
+    Start([Prerequisites:<br/>Form Data Model created]) --> Copy
+
+    subgraph Step1 ["1. Copy Form Data Model"]
+        Copy[Create language-specific .py file]
+    end
+
+    Copy --> Edit
+
+    subgraph Step2 ["2. Edit Language-Specific Version"]
+        Edit[Edit interview_lang.py]
+
+        subgraph Step3 ["3. Alice Translation Traits"]
+            Alice[Add translation traits to Alice]
+        end
+
+        subgraph Step4 ["4. Bob Language Traits"]
+            Bob[Add language trait to Bob]
+        end
+
+        Edit --> Alice
+        Alice --> Bob
+    end
+
+    Bob --> Validate{Validate translation setup<br/>All checks pass?}
+    Validate -->|No| Fix[Fix issues]
+    Fix --> Validate
+    Validate -->|Yes| Complete([✓ TRANSLATION COMPLETE<br/>Re-define Form Data Model as interview_lang.py])
+
+    classDef success fill:#90EE90
+    classDef decision fill:#FFFFE0
+    classDef process fill:#ADD8E6
+
+    class Complete success
+    class Validate decision
+    class Copy,Edit,Alice,Bob,Fix process

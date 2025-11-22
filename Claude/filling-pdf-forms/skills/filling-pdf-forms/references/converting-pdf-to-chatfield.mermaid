@@ -1,0 +1,25 @@
+---
+title: Converting PDF Forms to Chatfield Interviews
+---
+flowchart TD
+    Start([Prerequisites:<br/>Form extraction complete]) --> ReadMd
+
+    subgraph Input ["Read Input Files"]
+        ReadMd[Read basename.form.md]
+        ReadJson[Read basename.form.json]
+        ReadMd --> ReadJson
+    end
+
+    ReadJson --> Build[Build Interview Definition]
+    Build --> Validate{Validate Form Data Model<br/>All checks pass?}
+    Validate -->|No| Fix[Fix issues identified<br/>in validation]
+    Fix --> Validate
+    Validate -->|Yes| Complete([✓ FORM DATA MODEL COMPLETE<br/>interview.py ready for next step])
+
+    classDef success fill:#90EE90
+    classDef decision fill:#FFFFE0
+    classDef process fill:#ADD8E6
+
+    class Complete success
+    class Validate decision
+    class ReadMd,ReadJson,Build,Fix process

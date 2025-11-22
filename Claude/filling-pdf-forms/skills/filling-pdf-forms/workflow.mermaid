@@ -1,0 +1,44 @@
+---
+title: Filling PDF Forms - High-Level Workflow
+---
+flowchart TD
+    Start([User provides PDF form]) --> Extract
+
+    subgraph Skill ["filling-pdf-forms skill"]
+        Extract[Step 1: Form Extraction] --> Build[Step 2: Build Form Data Model]
+        Build --> Decision[Step 3: Translation Decision]
+
+        Decision -->|User language == form language| Base[Use base Form Data Model]
+        Decision -->|Different languages| Translate[Translation Setup]
+
+        Base --> Interview[Step 4: Run Interview Server]
+        Translate --> Interview
+
+        subgraph Loop ["Interview Loop"]
+            Question[Server generates question<br/>Display to user]
+            Response[User provides response]
+            Process[Server validates & processes]
+            Check{All fields<br/>collected?}
+
+            Question --> Response
+            Response --> Process
+            Process --> Check
+            Check -->|No| Question
+        end
+
+        Interview --> Question
+        Check -->|Yes| Capture[Capture stdout output]
+        Capture --> Populate[Step 5: Populate PDF]
+    end
+
+    Populate --> Done([✓ SUCCESS<br/>Receive completed PDF])
+
+    classDef success fill:#90EE90
+    classDef decision fill:#FFFFE0
+    classDef process fill:#ADD8E6
+    classDef output fill:#F08080
+
+    class Done success
+    class Decision,Check decision
+    class Extract,Build,Interview,Capture,Populate process
+    class Done output

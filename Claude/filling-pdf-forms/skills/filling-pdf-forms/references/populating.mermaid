@@ -1,0 +1,36 @@
+---
+title: Populating PDF Forms
+---
+flowchart TD
+    Start([Prerequisites:<br/>Interview complete]) --> Parse
+
+    subgraph Step1 ["1. Parse Server Output"]
+        Parse[Extract field_id and value<br/>for each field]
+    end
+
+    Parse --> Read
+
+    subgraph Step2 ["2. Create Values JSON"]
+        Read[Read basename.form.json<br/>for metadata]
+        Create[Create basename.values.json]
+        Read --> Create
+    end
+
+    Create --> Execute
+
+    subgraph Step3 ["3. Populate PDF"]
+        Execute[Execute fill_fillable_fields.py]
+    end
+
+    Execute --> Validate{Validate<br/>All checks pass?}
+    Validate -->|No| Fix[Fix issues]
+    Fix --> Validate
+    Validate -->|Yes| Complete([✓ PDF POPULATION COMPLETE])
+
+    classDef success fill:#90EE90
+    classDef decision fill:#FFFFE0
+    classDef process fill:#ADD8E6
+
+    class Complete success
+    class Validate decision
+    class Parse,Read,Create,Execute,Fix process
