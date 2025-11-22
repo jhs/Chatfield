@@ -11,7 +11,6 @@ You'll need to visually determine where the data should be added as text annotat
 @startuml nonfillable-forms
 title Non-fillable PDF Forms - Extraction Workflow
 start
-:Prerequisites: Working directory created,
 PDF content extracted as Markdown;
 :Convert PDF to PNG images;
 :Visual analysis & determine bounding boxes;
@@ -32,8 +31,6 @@ stop
 ```
 
 ## Extraction Process
-
-Not implemented. Crash and tell the user non-fillable forms are not yet implemented.
 
 ## Step 1: Visual Analysis (REQUIRED)
 - Convert the PDF to PNG images. Run this script from this skill's directory:
