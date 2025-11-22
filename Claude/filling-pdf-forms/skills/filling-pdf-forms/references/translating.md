@@ -8,48 +8,36 @@ Use this guide when the PDF form is in a language different from the user's lang
 
 ```plantuml
 @startuml translating
-
 title Translating Forms for Users
-
 start
 :Prerequisites: Form Data Model created\n(form language already determined);
-
 partition "1. Copy Form Data Model" {
   :Create language-specific .py file;
 }
-
 partition "2. Edit Language-Specific Version" {
   :Edit interview_<lang>.py;
-
   partition "3. Alice Translation Traits" {
     :Add translation traits to Alice;
   }
-
   partition "4. Bob Language Traits" {
     :Add language trait to Bob;
   }
-
   partition "5. Field Language Casts" {
     :Add .as_lang("<lang>") to all text fields;
   }
 }
-
 repeat
   :Validate translation setup
   (see validation checklist);
-
   if (All checks pass?) then (yes)
   else (no)
     :Fix issues;
   endif
 repeat while (All checks pass?) is (no)
 ->yes;
-
 :**✓ TRANSLATION COMPLETE**;
 :Re-define Form Data Model as interview_<lang>.py;
-
 stop
-
 @enduml
 ```
 

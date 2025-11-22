@@ -18,31 +18,21 @@ Use when completing PDF forms with user-provided data. Your goal is to produce a
 
 ```plantuml
 @startuml SKILL
-
 title Filling PDF Forms - High-Level Workflow
-
 |User|
 start
 :User provides PDF form to complete;
-
 |filling-pdf-forms skill|
-
 :Step 0: Initialize Chatfield;
-
 :Step 1: Form Extraction;
-
 :Step 2: Build Form Data Model;
-
 :Step 3: Translation Decision;
-
 if (User language == form language?) then (yes)
   :Use base Form Data Model;
 else (no)
   :Translation Setup;
 endif
-
 :Step 4: Run Interview Server;
-
 partition "Interview Loop" {
   repeat
     :Server generates question → Display to user;
@@ -53,16 +43,12 @@ partition "Interview Loop" {
   repeat while (All fields collected?) is (no)
   ->yes;
 }
-
 :Capture stdout output;
-
 :Step 5: Populate PDF;
-
 |User|
 :**✓ SUCCESS**;
 :Receive completed PDF <basename>.done.pdf;
 stop
-
 @enduml
 ```
 
