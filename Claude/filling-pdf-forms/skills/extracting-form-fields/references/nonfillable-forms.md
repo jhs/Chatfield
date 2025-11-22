@@ -11,19 +11,25 @@ You'll need to visually determine where the data should be added as text annotat
 @startuml nonfillable-forms
 title Non-fillable PDF Forms - Extraction Workflow
 start
-PDF content extracted as Markdown;
 :Convert PDF to PNG images;
 :Visual analysis & determine bounding boxes;
 :Create .form.json;
 repeat
+  repeat
+    :Automated intersection check;
+    if (Automated check passes?) then (yes)
+    else (no)
+      :Fix bounding boxes in .form.json;
+    endif
+  repeat while (Automated check passes?) is (no)
+  ->yes;
   :Create validation images;
-  :Automated intersection check;
   :Manual image inspection;
-  if (Validation passes?) then (yes)
+  if (Manual check passes?) then (yes)
   else (no)
-    :Fix bounding boxes;
+    :Fix bounding boxes in .form.json;
   endif
-repeat while (Validation passes?) is (no)
+repeat while (Manual check passes?) is (no)
 ->yes;
 :**✓ NON-FILLABLE EXTRACTION COMPLETE**;
 stop
@@ -125,14 +131,41 @@ Create `<basename>.chatfield/<basename>.form.json` with field definitions in the
 
 ## Step 3. Validate Bounding Boxes (REQUIRED)
 
-### Automated intersection check
-- Verify that none of bounding boxes intersect and that the entry bounding boxes are tall enough by checking the form.json file with the `check_bounding_boxes.py` script (run from this skill's scripts/):
-`python scripts/check_bounding_boxes.py <JSON file>`
+This is a two-stage validation process. You must pass the automated check before proceeding to manual inspection.
 
-If there are errors, reanalyze the relevant fields, adjust the bounding boxes, and iterate until there are no remaining errors.
+### Stage 1: Automated intersection check
 
-### Manual image inspection
-**CRITICAL: Do not proceed without visually inspecting validation images**
+Run the automated check script:
+
+```bash
+python scripts/check_bounding_boxes.py <basename>.chatfield/<basename>.form.json
+```
+
+**What it checks:**
+- Label/entry bounding box intersections (must not overlap)
+- Boxes outside page boundaries
+- Boxes too small to contain text
+- Missing required fields
+
+**If there are errors:** Fix the bounding boxes in `.form.json` and re-run the automated check. Iterate until there are no remaining errors.
+
+**Only proceed to Stage 2 once all automated checks pass.**
+
+### Stage 2: Manual image inspection
+
+First, create validation images for each page:
+
+```bash
+# For each page (e.g., if you have 3 pages)
+python scripts/create_validation_image.py 1 <basename>.chatfield/<basename>.form.json <basename>.chatfield/images/page_1.png <basename>.chatfield/images/page_1_validation.png
+python scripts/create_validation_image.py 2 <basename>.chatfield/<basename>.form.json <basename>.chatfield/images/page_2.png <basename>.chatfield/images/page_2_validation.png
+python scripts/create_validation_image.py 3 <basename>.chatfield/<basename>.form.json <basename>.chatfield/images/page_3.png <basename>.chatfield/images/page_3_validation.png
+```
+
+This overlays colored rectangles (red for entry boxes, blue for labels) on the PNG images to visualize bounding boxes.
+
+**CRITICAL: Visually inspect validation images**
+
 Remember: label (blue) bounding boxes should contain text labels, entry (red) boxes should not.
 - Red rectangles must ONLY cover input areas
 - Red rectangles MUST NOT contain any text
@@ -141,43 +174,7 @@ Remember: label (blue) bounding boxes should contain text labels, entry (red) bo
   - Red rectangle MUST be centered on the checkbox square
   - Blue rectangle should cover the text label for the checkbox
 
-- If any rectangles look wrong, fix form.json, regenerate the validation images, and verify again. Repeat this process until the bounding boxes are fully accurate.
-
-```bash
-python scripts/create_validation_image.py \
-  input.pdf \
-  input.chatfield/input.form.json \
-  input.chatfield/validation.pdf
-```
-
-This overlays colored rectangles on the PDF to visualize bounding boxes.
-
-**Automated validation:**
-```bash
-python scripts/check_bounding_boxes.py \
-  input.chatfield/input.form.json \
-  input.chatfield/images/
-```
-
-Checks for:
-- Label/entry bounding box intersections (must not overlap)
-- Boxes outside page boundaries
-- Boxes too small to contain text
-- Missing required fields
-
-**Review validation.pdf:**
-- Open in PDF viewer
-- Verify boxes align with form fields
-- Adjust coordinates in `.form.json` if needed
-- Re-run validation until all checks pass
-
-### 8. Copy Interview Template
-
-```bash
-cp scripts/chatfield_interview_template.py input.chatfield/interview.py
-```
-
-This creates the template file that the main skill will edit to build the Form Data Model.
+**If any rectangles look wrong:** Fix bounding boxes in `.form.json`, then return to Stage 1 (automated check gate). You must pass both stages again.
 
 ## Troubleshooting
 
