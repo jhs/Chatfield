@@ -92,8 +92,8 @@ When the task reports "Done", it will have created (for `input.pdf`):
 
 ### Step 2: Build Form Data Model
 
-**First, see:** ./references/data-model-api.md to learn how to build Chatfield data models
-**Then, see:** ./references/converting-pdf-to-chatfield.md for guidance on how to make the needed model.
+**First, read entirely:** ./references/data-model-api.md to learn how to build Chatfield data models
+**Then, read entirely:** ./references/converting-pdf-to-chatfield.md for guidance on how to make the needed model.
 
 With those references understood, edit `[basename].chatfield/interview.py` to define the Chatfield interview.
 
