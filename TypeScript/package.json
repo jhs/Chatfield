@@ -40,11 +40,7 @@
     "clean": "rm -rf dist",
     "prepublishOnly": "npm run build",
     "proxy": "cd ../Python && python litellm_proxy.py",
-    "examples": "http-server . -p 8080 -c-1",
-    "plantuml": "find .. -name '*.plantuml' -exec sh -c 'ENCODED=$(node -e \"const fs=require(\\\"fs\\\");const e=require(\\\"plantuml-encoder\\\");console.log(e.encode(fs.readFileSync(\\\"$1\\\",\\\"utf8\\\")));\") && curl -s \"https://www.plantuml.com/plantuml/png/$ENCODED\" -o \"${1%.plantuml}.png\" && echo \"✓ ${1%.plantuml}.png\"' _ {} \\;",
-    "plantuml:watch": "nodemon --watch '../**/*.plantuml' --exec 'npm run plantuml'",
-    "plantuml:docker": "find .. -name '*.plantuml' -exec sh -c 'docker run --rm -v \"$(cd .. && pwd)\":/data plantuml/plantuml -tpng \"/data/$(realpath --relative-to=\"$(cd .. && pwd)\" \"$1\")\" && echo \"✓ ${1%.plantuml}.png\"' _ {} \\;",
-    "plantuml:docker:watch": "nodemon --watch '../**/*.plantuml' --exec 'npm run plantuml:docker'"
+    "examples": "http-server . -p 8080 -c-1"
   },
   "keywords": [
     "llm",

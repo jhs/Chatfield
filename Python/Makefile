@@ -1,4 +1,4 @@
-.PHONY: help install install-dev test test-cov lint format typecheck clean build publish docs proxy
+.PHONY: help install install-dev test test-cov lint format typecheck clean build publish docs proxy plantuml
 
 help:
 	@echo "Available commands:"
@@ -14,6 +14,7 @@ help:
 	@echo "  make publish       Upload package to PyPI (requires credentials)"
 	@echo "  make docs          Generate documentation (if available)"
 	@echo "  make proxy         Start LiteLLM proxy server for development"
+	@echo "  make plantuml      Generate PNG diagrams from PlantUML files"
 
 install:
 	pip install -e .
@@ -89,3 +90,12 @@ check: lint typecheck test
 
 ci: check
 	@echo "✅ CI checks passed!"
+
+# PlantUML diagram generation using Docker
+.PHONY: plantuml
+
+plantuml:
+	@docker run --rm -v "$(shell cd .. && pwd)":/data plantuml/plantuml -tpng "/data/Claude/filling-pdf-forms/skills/filling-pdf-forms/workflow.plantuml"
+	@docker run --rm -v "$(shell cd .. && pwd)":/data plantuml/plantuml -tpng "/data/Claude/filling-pdf-forms/skills/filling-pdf-forms/references/translating.plantuml"
+	@docker run --rm -v "$(shell cd .. && pwd)":/data plantuml/plantuml -tpng "/data/Claude/filling-pdf-forms/skills/filling-pdf-forms/references/populating.plantuml"
+	@docker run --rm -v "$(shell cd .. && pwd)":/data plantuml/plantuml -tpng "/data/Claude/filling-pdf-forms/skills/filling-pdf-forms/references/converting-pdf-to-chatfield.plantuml"
