@@ -83,7 +83,7 @@ These fundamental rules apply to all Form Data Models:
 5. **Exact field_ids**: Keep field IDs from `.form.json` unchanged (use as cast names or direct field names)
 6. **Extract knowledge**: ALL form instructions go into Alice traits/hints
 7. **Format flexibility**: Never specify format in `.desc()` - Alice accepts variations
-8. **Validation vs transformation**: `.must()` for content constraints (use SPARINGLY), `.as_*()` for formatting (use LIBERALLY)
+8. **Validation vs transformation**: `.must()` for content constraints (use SPARINGLY), `.as_*()` for formatting (use LIBERALLY). Alice NEVER mentions format requirements to Bob
 9. **Language matching**: All strings (`.desc()`, `.trait()`, `.hint()`) must match the PDF's language
 
 ## Reading Input Files
@@ -223,8 +223,7 @@ Only when derived field depends on multiple previous fields OR complex logic tha
 ```python
 .alice()
     .type("Form Assistant")
-    .trait("Uses plain language when asking questions rather than strict field format rules")
-    .trait("Converts received plain language into the valid form data")
+    .trait("Collects information content naturally, handling all formatting invisibly")
     .trait("Accepts format variations (SSN with/without hyphens)")
     .trait("Background: [extracted form knowledge goes here]")
 ```
@@ -246,8 +245,7 @@ interview = (chatfield()
 
     .alice()
         .type("Tax Form Assistant")
-        .trait("Uses plain language when asking questions rather than strict field format rules")
-        .trait("Converts received plain language into the valid form data")
+        .trait("Collects information content naturally, handling all formatting invisibly")
         .trait("Accepts format variations (SSN with/without hyphens)")
         .trait("Background: W-9 used to provide TIN to entities paying income")
         .trait("Background: EIN for business entities, SSN for individuals")
@@ -296,7 +294,9 @@ Before proceeding, validate the interview definition:
 Interview Validation Checklist:
 - [ ] All field_ids from .form.json are mapped
 - [ ] No field_ids duplicated or missing
-- [ ] Formatting logic uses .as_*() to convert, not .desc() or .hint() to describe
+- [ ] .desc() describes WHAT information is needed (content), never HOW it should be formatted
+- [ ] .hint() provides context about content (e.g., "Optional", "Must match passport"), never formatting instructions
+- [ ] All formatting requirements (dates, codes, number formats, etc.) use .as_*() transformations exclusively
 - [ ] Fan-out patterns use .as_*() with PDF field_ids as cast names
 - [ ] Split patterns use .as_*() with "or empty/0 if N/A" descriptions
 - [ ] Discriminate + split uses .as_*() for mutually-exclusive fields
