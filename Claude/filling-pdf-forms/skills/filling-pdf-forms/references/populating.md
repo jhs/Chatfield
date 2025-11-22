@@ -1,6 +1,8 @@
 # Populating PDF Forms
 
+<purpose>
 After collecting data via Chatfield interview, populate the PDF with the results.
+</purpose>
 
 ## Process Overview
 
