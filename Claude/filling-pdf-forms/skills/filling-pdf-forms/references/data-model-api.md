@@ -14,11 +14,8 @@ API reference for building conversational form interviews. Powered by the Chatfi
   - Special Field Types
   - Transformations
   - Cardinality
-- Running Interviews
 - Field Access
 - Optional Fields
-- API Configuration
-- Next Steps
 
 ---
 
@@ -181,27 +178,6 @@ Select from predefined options:
 
 ---
 
-## Running Interviews
-
-```python
-interviewer = Interviewer(interview)
-user_input = None
-while not interview._done:
-    message = interviewer.go(user_input)
-    print(f"Assistant: {message}")
-    if not interview._done:
-        user_input = input("You: ").strip()
-```
-
-**Interview properties:**
-- `interview._done` - All fields collected
-- `interview._enough` - Non-confidential/conclude fields collected
-- `interview.field_name` - Field value (FieldProxy string)
-- `interview.field_name.as_*` - Transformations
-- `interview["field[0].name"]` - Bracket notation for special chars
-
----
-
 ## Field Access
 
 **Dot notation** (regular fields):
@@ -238,28 +214,3 @@ Fields known to be optional (from PDF tooltip, nearby context, or instructions):
 ```
 
 For optional **choices**, use `.as_nullable_one()` or `.as_nullable_multi()` (see examples above).
-
----
-
-## API Configuration
-
-```python
-# Environment variable (default)
-interviewer = Interviewer(interview)
-
-# Explicit API key
-interviewer = Interviewer(interview, api_key='your-key')
-
-# Custom base URL (LiteLLM proxy)
-interviewer = Interviewer(
-    interview,
-    api_key='your-key',
-    base_url='https://my-proxy.com/v1'
-)
-```
-
----
-
-## Next Steps
-
-- **PDF forms:** ../SKILL.md for PDF workflow
