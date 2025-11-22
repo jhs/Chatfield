@@ -1,95 +1,37 @@
 @startuml populating
 !theme plain
-skinparam backgroundColor #FEFEFE
-skinparam activity {
-  BackgroundColor<<Validation>> LightSalmon
-  BackgroundColor<<Process>> LightBlue
-  BackgroundColor<<Parse>> LightYellow
-  BackgroundColor<<Output>> LightGreen
-  BackgroundColor<<Error>> Pink
-}
 
-title Step 5: Populating PDF Forms
-
-' Validation checkpoint procedure
-!procedure $validate($step_name, $checklist_ref)
-  repeat
-    :<color:red><b>▸ VALIDATION CHECKPOINT</b></color>\n$step_name;<<Validation>>
-
-    if (All checks pass?) then (no)
-      :Fix issues identified in validation;
-    else (yes)
-    endif
-  repeat while (All checks pass?) is (no)
-  ->yes;
-
-  #LightGreen:**✓ VALIDATED** - $step_name;
-!endprocedure
+title Populating PDF Forms
 
 start
 :Prerequisites: Interview complete;
 
-partition "Parse Server Output" #LightYellow {
-  :Read captured stdout;<<Parse>>
-
-  :Extract field_id and value pairs;<<Parse>>
+partition "1. Parse Server Output" {
+  :Extract field_id and value for each field;
 }
 
-partition "Convert Types for PDF" #LightBlue {
-  :Read <basename>.form.json for metadata;<<Process>>
+partition "2. Create Values JSON" {
+  :Read <basename>.form.json for metadata;
 
-  repeat
-    :Process next field value;<<Process>>
-
-    if (Field type?) then (checkbox)
-      :Convert boolean to PDF checkbox value;
-
-    elseif (Field type?) then (numeric)
-      :Ensure value is number, not string;
-
-    elseif (Field type?) then (radio/choice)
-      :Validate value against valid options;
-
-    else (text)
-      :Keep as string;
-    endif
-
-    :Add page number from .form.json;
-
-  repeat while (More field values?) is (yes)
-  ->no;
+  :Create <basename>.values.json;
 }
 
-partition "Create Values JSON" #LightGreen {
-  :Create <basename>.values.json;<<Process>>
+partition "3. Populate PDF" {
+  :Execute fill_fillable_fields.py;
 }
 
-$validate("Values JSON", "See validation checklist below")
+repeat
+  :Validate
+  (see validation checklist);
 
-partition "Run Population Script" #LightBlue {
-  :Execute fill_fillable_fields.py;<<Process>>
-
-  if (Script successful?) then (yes)
-    :Script completed without errors;
+  if (All checks pass?) then (yes)
   else (no)
-    #Pink:**SCRIPT ERROR** - Population failed;<<Error>>
-    stop
+    :Fix issues;
   endif
-}
+repeat while (All checks pass?) is (no)
+->yes;
 
-partition "Verify Output" #LightGreen {
-  :Check <basename>.done.pdf exists;<<Process>>
-
-  if (Output file exists?) then (yes)
-    #LightGreen:**✓ SUCCESS** - PDF populated;<<Output>>
-    :Completed PDF: <basename>.done.pdf;
-  else (no)
-    #Pink:**ERROR** - Output file not created;<<Error>>
-    stop
-  endif
-}
-
-#LightGreen:**✓ PDF POPULATION COMPLETE**;
+:**✓ PDF POPULATION COMPLETE**;
 stop
 
 @enduml

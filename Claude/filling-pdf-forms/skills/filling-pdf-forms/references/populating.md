@@ -2,41 +2,21 @@
 
 After collecting data via Chatfield interview, populate the PDF with the results.
 
-## Prerequisites
-
-- Completed Chatfield interview (server has exited)
-- Server output captured (field values in stdout)
-- Original PDF file
-- Working directory (`<basename>.chatfield/`) with `.form.json`
-
 ## Process
 
 ### 1. Parse Server Output
 
-Server outputs collected data to stdout in format:
+The server stdout will contain logs of the data collection and also a final summary of all data pretty-printed.
 
-```python
-{
-    'field_id': {
-        'value': 'collected value',
-        'context': 'conversation context',
-        'as_quote': 'original quote'
-    },
-    ...
-}
-```
-
-Extract `field_id` and `value` for each field.
+Extract `field_id` and the proper value for each field.
 
 ### 2. Create `.values.json`
 
 Create `<basename>.values.json` in the `<basename>.chatfield/` directory with the collected field values:
 
-**Location**: `<basename>.chatfield/<basename>.values.json`
-
 ```json
 [
-  {"field_id": "name", "page": 1, "value": "Jason Smith"},
+  {"field_id": "name", "page": 1, "value": "John Doe"},
   {"field_id": "age_years", "page": 1, "value": 25},
   {"field_id": "age_display", "page": 1, "value": "25"},
   {"field_id": "checkbox_over_18", "page": 1, "value": "/1"}
@@ -55,12 +35,6 @@ Run the population script (note, the `scripts` directory is relative to the base
 ```bash
 python scripts/fill_fillable_fields.py <basename>.pdf <basename>.chatfield/<basename>.values.json <basename>.done.pdf
 ```
-
-### 4. Verify Output
-
-- Check that `input.done.pdf` was created
-- Open in PDF viewer to verify all fields populated correctly
-- Leave `<basename>.chatfield/` directory for inspection/debugging
 
 ## Complete Example
 
@@ -81,8 +55,9 @@ EOF
 python scripts/fill_fillable_fields.py input.pdf input.chatfield/input.values.json input.done.pdf
 ```
 
-## Troubleshooting
+## Validation Checklist
 
+<validation_checklist>
 **Missing fields:**
 - Check that all field_ids from `.form.json` are in `.values.json`
 - Verify field_id spelling matches exactly
@@ -94,7 +69,4 @@ python scripts/fill_fillable_fields.py input.pdf input.chatfield/input.values.js
 **Type errors:**
 - Ensure numeric fields use numbers, not strings: `25` not `"25"`
 - Ensure boolean checkboxes use proper values from `.form.json`
-
----
-
-**Result**: `input.done.pdf` (completed form ready for submission)
+</validation_checklist>

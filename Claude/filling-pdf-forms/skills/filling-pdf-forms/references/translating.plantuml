@@ -1,7 +1,7 @@
 @startuml translating
 !theme plain
 
-title Step 3: Translating Forms for Users
+title Translating Forms for Users
 
 start
 :Prerequisites: Form Data Model created\n(form language already determined);
@@ -23,7 +23,8 @@ partition "2. Edit Language-Specific Version" {
 }
 
 repeat
-  :Validate translation setup;
+  :Validate translation setup
+  (see validation checklist);
 
   if (All checks pass?) then (yes)
   else (no)
