@@ -5,8 +5,45 @@ This guide covers how to build a Chatfield interview definition from PDF form da
 </purpose>
 
 <important>
-**For complete API reference**: See ./api-reference.md for all builder methods, transformations, and validation rules.
+**Read complete API reference**: See ./api-reference.md for all builder methods, transformations, and validation rules.
 </important>
+
+## Process Overview
+
+```plantuml
+@startuml converting-pdf-to-chatfield
+!theme plain
+
+title Converting PDF Forms to Chatfield Interviews
+
+start
+:Prerequisites: Form extraction complete;
+
+partition "Read Input Files" {
+  :Read <basename>.form.md;
+
+  :Read <basename>.form.json;
+}
+
+:Build Interview Definition;
+
+repeat
+  :Validate Form Data Model
+  (see validation checklist);
+
+  if (All checks pass?) then (yes)
+  else (no)
+    :Fix issues identified in validation;
+  endif
+repeat while (All checks pass?) is (no)
+->yes;
+
+:**✓ FORM DATA MODEL COMPLETE**;
+:interview.py ready for next step;
+stop
+
+@enduml
+```
 
 ## The Form Data Model
 

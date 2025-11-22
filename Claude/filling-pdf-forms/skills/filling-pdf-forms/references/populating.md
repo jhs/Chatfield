@@ -2,6 +2,48 @@
 
 After collecting data via Chatfield interview, populate the PDF with the results.
 
+## Process Overview
+
+```plantuml
+@startuml populating
+!theme plain
+
+title Populating PDF Forms
+
+start
+:Prerequisites: Interview complete;
+
+partition "1. Parse Server Output" {
+  :Extract field_id and value for each field;
+}
+
+partition "2. Create Values JSON" {
+  :Read <basename>.form.json for metadata;
+
+  :Create <basename>.values.json;
+}
+
+partition "3. Populate PDF" {
+  :Execute fill_fillable_fields.py;
+}
+
+repeat
+  :Validate
+  (see validation checklist);
+
+  if (All checks pass?) then (yes)
+  else (no)
+    :Fix issues;
+  endif
+repeat while (All checks pass?) is (no)
+->yes;
+
+:**✓ PDF POPULATION COMPLETE**;
+stop
+
+@enduml
+```
+
 ## Process
 
 ### 1. Parse Server Output

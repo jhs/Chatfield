@@ -14,6 +14,64 @@ Complete PDF forms by collecting required data through conversational interviews
 
 Use when completing PDF forms with user-provided data. Your goal is to produce a `.done.pdf` corresponding to the user's starting PDF file, populated with the user-provided information.
 
+## Process Overview
+
+```plantuml
+@startuml workflow
+!theme plain
+skinparam backgroundColor #FEFEFE
+skinparam activity {
+  BackgroundColor<<Decision>> LightYellow
+  BackgroundColor<<Process>> LightBlue
+  BackgroundColor<<SubProcess>> LightGreen
+  BackgroundColor<<Output>> LightCoral
+}
+
+title Filling PDF Forms - High-Level Workflow
+
+|User|
+start
+:User provides PDF form to complete;
+
+|filling-pdf-forms skill|
+
+:Step 1: Form Extraction;
+
+:Step 2: Build Form Data Model;
+
+:Step 3: Translation Decision;
+
+if (User language == form language?) then (yes)
+  :Use base Form Data Model;
+else (no)
+  :Translation Setup;
+endif
+
+:Step 4: Run Interview Server;
+
+partition "Interview Loop" #LightGreen {
+  repeat
+    :Server generates question → Display to user;
+    |User|
+    :User provides response;
+    |filling-pdf-forms skill|
+    :Server validates & processes;
+  repeat while (All fields collected?) is (no)
+  ->yes;
+}
+
+:Capture stdout output;
+
+:Step 5: Populate PDF;
+
+|User|
+#LightGreen:**✓ SUCCESS**;
+:Receive completed PDF <basename>.done.pdf;<<Output>>
+stop
+
+@enduml
+```
+
 ## Workflow
 
 ### Step 1: Form Extraction
