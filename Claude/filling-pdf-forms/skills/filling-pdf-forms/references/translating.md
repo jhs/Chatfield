@@ -16,23 +16,16 @@ The form definition stays in the form's language. Only Alice's behavior and Bob'
 
 ## Process
 
-### 1. Identify Languages
+### 1. Copy Form Data Model
 
-- **Form language**: Already determined (from form-extract and converting step)
-- **User language**: From user's request or explicit statement
-
-### 2. Copy Form Data Model
-
-Create a language-specific version:
+Create a language-specific .py file. Use ISO 639-1 language codes: `en`, `es`, `fr`, `de`, `zh`, `ja`, etc.
 
 ```bash
-# If user speaks Spanish for an English form:
+# If user speaks Spanish
 cp input.chatfield/interview.py input.chatfield/interview_es.py
 ```
 
-Use ISO 639-1 language codes: `en`, `es`, `fr`, `de`, `zh`, `ja`, etc.
-
-### 3. Edit Language-Specific Version
+### 2. Edit Language-Specific Version
 
 Edit `interview_<lang>.py` to add translation traits.
 
@@ -47,28 +40,27 @@ Edit `interview_<lang>.py` to add translation traits.
 - ❌ Background hints - Keep form's language
 - ❌ Any field IDs or cast names
 
-### 4. Alice Translation Traits
+### 3. Alice Translation Traits
 
 Add these traits to Alice:
 
 ```python
 .alice()
-    .type("Form Assistant")  # Keep existing
+    # Keep existing .type()
     .trait("Speaks [USER_LANGUAGE] to Bob")
     .trait("Translates Bob's [USER_LANGUAGE] responses into [FORM_LANGUAGE] for the form")
     .trait("Explains [FORM_LANGUAGE] terms in [USER_LANGUAGE]")
     # Keep all existing .trait() calls
 ```
 
-### 5. Bob Language Traits
+### 4. Bob Language Traits
 
 Add these traits to Bob:
 
 ```python
 .bob()
-    .type("Person completing form")  # Keep existing
+    # Keep existing .type()
     .trait("Speaks [USER_LANGUAGE] only")
-    .trait("Needs help completing [FORM_LANGUAGE] form")
     # Keep all existing .trait() calls
 ```
 
@@ -126,7 +118,6 @@ interview = (chatfield()
     .bob()
         .type("Solicitante de visa")  # Unchanged
         .trait("Speaks English only")  # ADDED
-        .trait("Needs help completing Spanish form")  # ADDED
         .trait("Habla de forma natural y libre")  # Keep existing
 
     .field("nombre_completo")  # Unchanged
@@ -145,9 +136,9 @@ interview = (chatfield()
 
 ## Validation Checklist
 
-<validation_checklist>
 Before proceeding, verify ALL items:
 
+<validation_checklist>
 ```
 Translation Validation Checklist:
 - [ ] Created interview_<lang>.py (copied from interview.py)
@@ -161,20 +152,16 @@ Translation Validation Checklist:
 - [ ] Added Alice trait: "Explains [FORM_LANGUAGE] terms in [USER_LANGUAGE]"
 - [ ] Added Bob trait: "Speaks [USER_LANGUAGE] only"
 ```
+</validation_checklist>
 
 If any items fail:
 1. Review the specific issue
 2. Fix the interview definition
 3. Re-run validation checklist
 4. Proceed only when all items pass
-</validation_checklist>
 
 ## Re-define Form Data Model
 
 **CRITICAL**: When translation setup is complete, the **Form Data Model** is now the language-specific version (`interview_<lang>.py`), NOT the base `interview.py`.
 
 Use this file for all subsequent steps (server execution, etc.).
-
----
-
-**Next Step**: Server execution with translated Form Data Model (`python -m chatfield.server <basename>.chatfield/interview_<lang>.py`)

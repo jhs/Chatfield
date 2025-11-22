@@ -1,73 +1,39 @@
 @startuml translating
 !theme plain
-skinparam backgroundColor #FEFEFE
-skinparam activity {
-  BackgroundColor<<Validation>> LightSalmon
-  BackgroundColor<<Process>> LightBlue
-  BackgroundColor<<Decision>> LightYellow
-  BackgroundColor<<Edit>> LightGreen
-}
 
 title Step 3: Translating Forms for Users
 
-' Validation checkpoint procedure
-!procedure $validate($step_name, $checklist_ref)
-  repeat
-    :<color:red><b>▸ VALIDATION CHECKPOINT</b></color>\n$step_name;<<Validation>>
-
-    if (All checks pass?) then (no)
-      :Fix issues identified in validation;
-    else (yes)
-    endif
-  repeat while (All checks pass?) is (no)
-  ->yes;
-
-  #LightGreen:**✓ VALIDATED** - $step_name;
-!endprocedure
-
 start
-:Prerequisites: Form Data Model created;
+:Prerequisites: Form Data Model created\n(form language already determined);
 
-:Determine translation need;<<Decision>>
+partition "1. Copy Form Data Model" {
+  :Create language-specific .py file;
+}
 
-partition "Identify Languages" #LightYellow {
-  :Form language already known;
+partition "2. Edit Language-Specific Version" {
+  :Edit interview_<lang>.py;
 
-  :Identify user language;
+  partition "3. Alice Translation Traits" {
+    :Add translation traits to Alice;
+  }
 
-  if (User language = Form language?) then (yes)
-    #LightGreen:**No translation needed**;
-    :Use base Form Data Model (interview.py);
-    stop
+  partition "4. Bob Language Traits" {
+    :Add language trait to Bob;
+  }
+}
+
+repeat
+  :Validate translation setup;
+
+  if (All checks pass?) then (yes)
   else (no)
-    :Translation required;
+    :Fix issues;
   endif
-}
+repeat while (All checks pass?) is (no)
+->yes;
 
-partition "Create Translated Version" #LightGreen {
-  :Copy Form Data Model;<<Process>>
-
-  :Edit interview_<lang>.py;<<Edit>>
-
-  partition "Modify Alice Traits" #LightBlue {
-    :Add translation traits to Alice;<<Edit>>
-
-    :Verify no changes to other Alice traits;
-  }
-
-  partition "Modify Bob Traits" #LightBlue {
-    :Add language traits to Bob;<<Edit>>
-
-    :Verify no changes to other Bob traits;
-  }
-
-  :Verify NO changes to form definition;
-}
-
-$validate("Translation Setup", "See validation checklist below")
-
-#LightGreen:**✓ TRANSLATION COMPLETE**;
-:Re-define Form Data Model;
+:**✓ TRANSLATION COMPLETE**;
+:Re-define Form Data Model as interview_<lang>.py;
 
 stop
 
