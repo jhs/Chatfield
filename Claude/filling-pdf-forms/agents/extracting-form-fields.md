@@ -33,6 +33,8 @@ The skill will automatically:
 5. Copy the interview template
 </task_summary>
 
+If an unrecoverable error happens, halt and report the error verbatim.
+
 ## Process
 
 <thinking>
@@ -40,9 +42,8 @@ Before beginning extraction, think through:
 1. What is the PDF file path provided by the user?
 2. Is this path absolute or relative? (Convert to absolute if needed)
 3. What is the basename for this PDF? (e.g., `tax-form.pdf` → `tax-form`)
-4. Does the PDF file exist and is it accessible?
 </thinking>
 
 ## Output
 
-When complete, simply return "Done". If an unrecoverable error happens, halt and report the error verbatim.
+When complete, state whether the PDF file is "FILLABLE" or "NON-FILLABLE"
