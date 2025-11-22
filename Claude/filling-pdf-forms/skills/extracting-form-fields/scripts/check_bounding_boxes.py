@@ -3,8 +3,8 @@ import json
 import sys
 
 
-# Script to check that the `fields.json` file that Claude creates when analyzing PDFs
-# does not have overlapping bounding boxes. See forms.md.
+# Script to check that bounding boxes in a JSON file do not overlap or have other issues.
+# Works with any coordinate system since it only checks geometric relationships.
 
 
 @dataclass
@@ -64,9 +64,14 @@ def get_bounding_box_messages(fields_json_stream) -> list[str]:
 
 if __name__ == "__main__":
     if len(sys.argv) != 2:
-        print("Usage: check_bounding_boxes.py [fields.json]")
+        print("Usage: check_bounding_boxes.py [fields.json or scan.json]")
+        print()
+        print("Examples:")
+        print("  python check_bounding_boxes.py form.chatfield/form.scan.json")
+        print("  python check_bounding_boxes.py form.chatfield/form.form.json")
         sys.exit(1)
-    # Input file should be in the `fields.json` format described in forms.md.
+    # Input file can be .scan.json (image coords) or .form.json (PDF coords)
+    # The geometry checks work the same either way
     with open(sys.argv[1]) as f:
         messages = get_bounding_box_messages(f)
     for msg in messages:
