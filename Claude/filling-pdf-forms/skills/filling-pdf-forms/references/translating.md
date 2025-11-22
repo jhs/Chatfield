@@ -8,7 +8,6 @@ Use this guide when the PDF form is in a language different from the user's lang
 
 ```plantuml
 @startuml translating
-!theme plain
 
 title Translating Forms for Users
 

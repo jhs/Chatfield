@@ -6,7 +6,6 @@ After collecting data via Chatfield interview, populate the PDF with the results
 
 ```plantuml
 @startuml populating
-!theme plain
 
 title Populating PDF Forms
 

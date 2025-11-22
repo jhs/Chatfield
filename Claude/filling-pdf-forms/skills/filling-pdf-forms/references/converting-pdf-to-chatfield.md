@@ -12,7 +12,6 @@ This guide covers how to build a Chatfield interview definition from PDF form da
 
 ```plantuml
 @startuml converting-pdf-to-chatfield
-!theme plain
 
 title Converting PDF Forms to Chatfield Interviews
 

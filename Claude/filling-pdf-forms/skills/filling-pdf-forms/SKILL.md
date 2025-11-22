@@ -18,14 +18,6 @@ Use when completing PDF forms with user-provided data. Your goal is to produce a
 
 ```plantuml
 @startuml SKILL
-!theme plain
-skinparam backgroundColor #FEFEFE
-skinparam activity {
-  BackgroundColor<<Decision>> LightYellow
-  BackgroundColor<<Process>> LightBlue
-  BackgroundColor<<SubProcess>> LightGreen
-  BackgroundColor<<Output>> LightCoral
-}
 
 title Filling PDF Forms - High-Level Workflow
 
@@ -49,7 +41,7 @@ endif
 
 :Step 4: Run Interview Server;
 
-partition "Interview Loop" #LightGreen {
+partition "Interview Loop" {
   repeat
     :Server generates question → Display to user;
     |User|
@@ -65,8 +57,8 @@ partition "Interview Loop" #LightGreen {
 :Step 5: Populate PDF;
 
 |User|
-#LightGreen:**✓ SUCCESS**;
-:Receive completed PDF <basename>.done.pdf;<<Output>>
+:**✓ SUCCESS**;
+:Receive completed PDF <basename>.done.pdf;
 stop
 
 @enduml
