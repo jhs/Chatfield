@@ -12,26 +12,29 @@ You'll need to visually determine where the data should be added as text annotat
 title Non-fillable PDF Forms - Extraction Workflow
 start
 :Convert PDF to PNG images;
-:Visual analysis & determine bounding boxes;
-:Create .form.json;
+:Visual analysis & determine bounding boxes
+in IMAGE coordinates;
+:Create .scan.json;
 repeat
-  repeat
-    :Automated intersection check;
-    if (Automated check passes?) then (yes)
+  :Automated intersection check
+  on image coordinates;
+  if (Automated check passes?) then (yes)
+    :Create validation images
+    (overlay on PNGs);
+    :Manual image inspection;
+    if (Manual check passes?) then (yes)
     else (no)
-      :Fix bounding boxes in .form.json;
+      :Fix bounding boxes in .scan.json;
     endif
-  repeat while (Automated check passes?) is (no)
-  ->yes;
-  :Create validation images;
-  :Manual image inspection;
-  if (Manual check passes?) then (yes)
   else (no)
-    :Fix bounding boxes in .form.json;
+    :Fix bounding boxes in .scan.json;
   endif
-repeat while (Manual check passes?) is (no)
+repeat while (Both checks pass?) is (no)
 ->yes;
-:**✓ NON-FILLABLE EXTRACTION COMPLETE**;
+:Convert coordinates
+(.scan.json → .form.json);
+:**✓ NON-FILLABLE EXTRACTION COMPLETE**
+.form.json ready with PDF coordinates;
 stop
 @enduml
 ```
