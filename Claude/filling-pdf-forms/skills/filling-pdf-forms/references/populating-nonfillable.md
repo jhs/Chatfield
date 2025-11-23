@@ -28,7 +28,7 @@ Extract `field_id` and value for each field from the interview results.
 
 ### 2. Create `.values.json`
 
-Create `<basename>.values.json` with the collected field values in the format expected by the annotation script:
+Create `<basename>.chatfield/<basename>.values.json` with the collected field values in the format expected by the annotation script:
 
 ```json
 {
@@ -63,7 +63,7 @@ Create `<basename>.values.json` with the collected field values in the format ex
 Run the annotation script to create the filled PDF:
 
 ```bash
-python scripts/fill_nonfillable_fields.py <basename>.pdf <basename>.values.json <basename>.done.pdf
+python scripts/fill_nonfillable_fields.py <basename>.pdf <basename>.chatfield/<basename>.values.json <basename>.done.pdf
 ```
 
 This script:

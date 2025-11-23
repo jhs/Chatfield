@@ -9,7 +9,7 @@ This script reads:
 And creates an annotated PDF with the values placed at the specified locations.
 
 Usage:
-    python fill_nonfillable_fields.py <input.pdf> <basename>.values.json <output.pdf>
+    python fill_nonfillable_fields.py <input.pdf> <basename>.chatfield/<basename>.values.json <output.pdf>
 """
 
 import json

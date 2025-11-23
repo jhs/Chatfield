@@ -50,7 +50,7 @@
     "terminal.integrated.env.windows": {
         "PYTHONPATH": "${workspaceFolder}/chatfield"
     },
-    "workbench.colorTheme": "Monokai",
+    "workbench.colorTheme": "Zenburn",
     "files.associations": {
         "*.hbs.txt": "handlebars",
     }
