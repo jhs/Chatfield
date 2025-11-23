@@ -78,7 +78,7 @@ def convert_scan_to_form(scan_json_path, pdf_path, output_json_path):
 
     # Determine images directory (same directory as scan.json)
     scan_path = Path(scan_json_path)
-    images_dir = scan_path.parent / "images"
+    images_dir = scan_path.parent
 
     if not images_dir.exists():
         raise FileNotFoundError(

@@ -43,7 +43,10 @@ stop
 
 ## Step 1: Visual Analysis (REQUIRED)
 - Convert the PDF to PNG images. Run this script from this skill's directory:
-`python scripts/convert_pdf_to_images.py <file.pdf> <path to basename.chatfield dir> The script will create a PNG image for each page in the PDF.
+```bash
+python scripts/convert_pdf_to_images.py <basename>.pdf <basename>.chatfield/
+```
+The script will create a PNG image for each page.
 - Read and analyze the the .form.md file which is a Markdown text preview of the PDF content
 - Carefully examine each PNG image and identify all form fields and areas where the user should enter data. For each form field where the user should enter information, determine bounding boxes, in the image coordinate system, for both the field label and the input entry area. The label and entry bounding boxes MUST NOT INTERSECT; the text entry box should only include the area where data should be entered. Usually this area will be immediately to the side, above, or below its label. Entry bounding boxes must be tall and wide enough to contain their text.
 
@@ -161,9 +164,9 @@ Create validation images for each page:
 
 ```bash
 # For each page (e.g., if you have 3 pages)
-python scripts/create_validation_image.py 1 <basename>.chatfield/<basename>.scan.json <basename>.chatfield/images/page_1.png <basename>.chatfield/images/page_1_validation.png
-python scripts/create_validation_image.py 2 <basename>.chatfield/<basename>.scan.json <basename>.chatfield/images/page_2.png <basename>.chatfield/images/page_2_validation.png
-python scripts/create_validation_image.py 3 <basename>.chatfield/<basename>.scan.json <basename>.chatfield/images/page_3.png <basename>.chatfield/images/page_3_validation.png
+python scripts/create_validation_image.py 1 <basename>.chatfield/<basename>.scan.json <basename>.chatfield/page_1.png <basename>.chatfield/page_1_validation.png
+python scripts/create_validation_image.py 2 <basename>.chatfield/<basename>.scan.json <basename>.chatfield/page_2.png <basename>.chatfield/page_2_validation.png
+python scripts/create_validation_image.py 3 <basename>.chatfield/<basename>.scan.json <basename>.chatfield/page_3.png <basename>.chatfield/page_3_validation.png
 ```
 
 This overlays colored rectangles (red for entry boxes, blue for labels) on the PNG images to visualize bounding boxes.
@@ -201,7 +204,7 @@ python scripts/convert_coordinates.py <basename>.chatfield/<basename>.scan.json 
 - Entry boxes should have extra space for text
 
 **Validation script errors:**
-- Ensure all page images exist in `<basename>.chatfield/images/`
+- Ensure all page images exist in `<basename>.chatfield/`
 - Verify JSON syntax in `.scan.json`
 - Check that page numbers are 1-indexed
 

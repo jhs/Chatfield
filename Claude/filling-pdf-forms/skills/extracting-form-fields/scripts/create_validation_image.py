@@ -50,7 +50,7 @@ if __name__ == "__main__":
         print("Usage: create_validation_image.py [page number] [scan.json file] [input image path] [output image path]")
         print()
         print("Example:")
-        print("  python create_validation_image.py 1 form.chatfield/form.scan.json form.chatfield/images/page_1.png form.chatfield/images/page_1_validation.png")
+        print("  python create_validation_image.py 1 form.chatfield/form.scan.json form.chatfield/page_1.png form.chatfield/page_1_validation.png")
         sys.exit(1)
     page_number = int(sys.argv[1])
     fields_json_path = sys.argv[2]
