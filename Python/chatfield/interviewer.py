@@ -1,5 +1,6 @@
 """LangGraph-based evaluator for Chatfield conversations."""
 
+import os
 import re
 import uuid
 import logging
@@ -970,10 +971,12 @@ class Interviewer:
             graph_input = Command(update={}, resume={'user_input': user_input})
         else:
             logger.info(f'New conversation: {self.config["configurable"]["thread_id"]}')
-            thread_id = self.config["configurable"]["thread_id"]
-            trace_url = f"https://smith.langchain.com/o/92e94533-dd45-4b1d-bc4f-4fd9476bb1e4/projects/p/1991a1b2-6dad-4d39-8a19-bbc3be33a8b6/t/{thread_id}"
-            logger.info(f'LangSmith trace: {trace_url}')
-            
+            langsmith_api_key = os.environ.get('LANGCHAIN_API_KEY')
+            if langsmith_api_key:
+                thread_id = self.config["configurable"]["thread_id"]
+                trace_url = f"https://smith.langchain.com/o/92e94533-dd45-4b1d-bc4f-4fd9476bb1e4/projects/p/1991a1b2-6dad-4d39-8a19-bbc3be33a8b6/t/{thread_id}"
+                logger.info(f'LangSmith trace: {trace_url}')
+
             user_message = HumanMessage(content=user_input) if user_input else None
             user_messages = [user_message] if user_message else []
             graph_input = State(messages=user_messages)
