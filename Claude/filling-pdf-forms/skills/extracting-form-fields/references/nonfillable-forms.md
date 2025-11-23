@@ -118,6 +118,8 @@ Create `<basename>.chatfield/<basename>.scan.json` formatted like the below exam
 
 **Field structure:**
 - `field_id` - Unique identifier (will be used in chatfield definition)
+  - **CRITICAL:** Every field MUST have a unique field_id with no collisions
+  - Field IDs are internal identifiers, not user-facing
 - `type` - "text" or "checkbox"
 - `page` - Page number (1-indexed)
 - `rect` - Entry area bounding box [x1, y1, x2, y2] where data will be written
