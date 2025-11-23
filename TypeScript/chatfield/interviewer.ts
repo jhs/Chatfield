@@ -435,12 +435,12 @@ export class Interviewer {
     const interview = this.getStateInterview(state)
     console.log(`Listen> ${interview._name}`)
     // console.log(`Config:`, config)
-    
+
     // Copy state back to interview for interrupt
     this.interview._copy_from(interview)
 
     // Get the last AI message
-    const msg = state.messages && state.messages.length > 0 ? 
+    const msg = state.messages && state.messages.length > 0 ?
                 state.messages[state.messages.length - 1] : null
     if (!(msg instanceof AIMessage)) {
       throw new Error(`Expected last message to be an AIMessage, got ${msg?.constructor.name}: ${msg}`)
@@ -768,9 +768,9 @@ export class Interviewer {
        // console.log('New conversation:', this.config.configurable.thread_id)
       const langsmithApiKey = process.env.LANGCHAIN_API_KEY
       if (langsmithApiKey) {
-      const threadId = this.config.configurable.thread_id
-      const traceUrl = `https://smith.langchain.com/o/92e94533-dd45-4b1d-bc4f-4fd9476bb1e4/projects/p/1991a1b2-6dad-4d39-8a19-bbc3be33a8b6/t/${threadId}`
-      console.log(`LangSmith trace: ${traceUrl}`)
+        const threadId = this.config.configurable.thread_id
+        const traceUrl = `https://smith.langchain.com/o/92e94533-dd45-4b1d-bc4f-4fd9476bb1e4/projects/p/1991a1b2-6dad-4d39-8a19-bbc3be33a8b6/t/${threadId}`
+        console.log(`LangSmith trace: ${traceUrl}`)
       }
       
       const messages = userInput ? [new HumanMessage(userInput)] : []
