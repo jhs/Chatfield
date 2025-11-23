@@ -42,7 +42,7 @@ stop
 - Convert the PDF to PNG images. Run this script from this skill's directory:
 `python scripts/convert_pdf_to_images.py <file.pdf> <path to basename.chatfield dir> The script will create a PNG image for each page in the PDF.
 - Read and analyze the the .form.md file which is a Markdown text preview of the PDF content
-- Carefully examine each PNG image and identify all form fields and areas where the user should enter data. For each form field where the user should enter text, determine bounding boxes for both the form field label, and the area where the user should enter text. The label and entry bounding boxes MUST NOT INTERSECT; the text entry box should only include the area where data should be entered. Usually this area will be immediately to the side, above, or below its label. Entry bounding boxes must be tall and wide enough to contain their text.
+- Carefully examine each PNG image and identify all form fields and areas where the user should enter data. For each form field where the user should enter information, determine bounding boxes, in the image coordinate system, for both the field label and the input entry area. The label and entry bounding boxes MUST NOT INTERSECT; the text entry box should only include the area where data should be entered. Usually this area will be immediately to the side, above, or below its label. Entry bounding boxes must be tall and wide enough to contain their text.
 
 These are some examples of form structures that you might see (in English, but the form can be any language):
 
@@ -83,9 +83,9 @@ For checkboxes:
 - Distinguish between label text ("Yes", "No") and the clickable checkbox squares.
 - The entry bounding box should cover ONLY the small square, not the text label.
 
-## Step 2: Create .form.json
+## Step 2: Create .scan.json
 
-Create `<basename>.chatfield/<basename>.form.json` with field definitions in the format of this example:
+Create `<basename>.chatfield/<basename>.scan.json` formatted like the below example. Rectangle values are **IMAGE coordinates** (what you see directly in the PNG, top-left origin).
 
 ```json
 [
@@ -93,17 +93,17 @@ Create `<basename>.chatfield/<basename>.form.json` with field definitions in the
     "field_id": "full_name",
     "type": "text",
     "page": 1,
-    "rect": [160, 700, 500, 720],
+    "rect": [180, 200, 550, 220],
     "label_text": "Full Name:",
-    "label_rect": [50, 700, 150, 720]
+    "label_rect": [50, 200, 175, 220]
   },
   {
     "field_id": "is_citizen",
     "type": "checkbox",
     "page": 1,
-    "rect": [155, 650, 170, 665],
+    "rect": [60, 320, 75, 335],
     "label_text": "US Citizen",
-    "label_rect": [50, 650, 150, 670],
+    "label_rect": [80, 320, 150, 335],
     "checked_value": "X",
     "unchecked_value": ""
   }
@@ -121,15 +121,17 @@ Create `<basename>.chatfield/<basename>.form.json` with field definitions in the
   - `checked_value` - String to write when checked (typically "X" or "✓")
   - `unchecked_value` - String to write when unchecked (typically "")
 
-**Bounding box coordinates:**
-- PDF coordinate system: Origin (0,0) at bottom-left
-- Format: `[x1, y1, x2, y2]` where (x1,y1) is bottom-left, (x2,y2) is top-right
+**Bounding box coordinates (IMAGE COORDINATES):**
+- Image coordinate system: Origin (0,0) at top-left
+- X increases to the right, Y increases downward
+- Format: `[x1, y1, x2, y2]` where (x1,y1) is top-left corner, (x2,y2) is bottom-right corner
+- These are the pixel coordinates you see directly in the PNG image
 - Entry boxes (`rect`) must be tall and wide enough to contain text
 - Label boxes (`label_rect`) should contain the label text
 - Entry and label boxes MUST NOT overlap
-- Checkboxes should be at least 15x15 pixels
+- Checkboxes should be at least 10-20 pixels square
 
-## Step 3. Validate Bounding Boxes (REQUIRED)
+## Step 3: Validate Bounding Boxes (REQUIRED)
 
 This is a two-stage validation process. You must pass the automated check before proceeding to manual inspection.
 
@@ -138,28 +140,27 @@ This is a two-stage validation process. You must pass the automated check before
 Run the automated check script:
 
 ```bash
-python scripts/check_bounding_boxes.py <basename>.chatfield/<basename>.form.json
+python scripts/check_bounding_boxes.py <basename>.chatfield/<basename>.scan.json
 ```
 
 **What it checks:**
 - Label/entry bounding box intersections (must not overlap)
-- Boxes outside page boundaries
 - Boxes too small to contain text
 - Missing required fields
 
-**If there are errors:** Fix the bounding boxes in `.form.json` and re-run the automated check. Iterate until there are no remaining errors.
+**If there are errors:** Fix the bounding boxes in `.scan.json` and re-run the automated check. Iterate until there are no remaining errors.
 
 **Only proceed to Stage 2 once all automated checks pass.**
 
 ### Stage 2: Manual image inspection
 
-First, create validation images for each page:
+Create validation images for each page:
 
 ```bash
 # For each page (e.g., if you have 3 pages)
-python scripts/create_validation_image.py 1 <basename>.chatfield/<basename>.form.json <basename>.pdf <basename>.chatfield/images/page_1.png <basename>.chatfield/images/page_1_validation.png
-python scripts/create_validation_image.py 2 <basename>.chatfield/<basename>.form.json <basename>.pdf <basename>.chatfield/images/page_2.png <basename>.chatfield/images/page_2_validation.png
-python scripts/create_validation_image.py 3 <basename>.chatfield/<basename>.form.json <basename>.pdf <basename>.chatfield/images/page_3.png <basename>.chatfield/images/page_3_validation.png
+python scripts/create_validation_image.py 1 <basename>.chatfield/<basename>.scan.json <basename>.chatfield/images/page_1.png <basename>.chatfield/images/page_1_validation.png
+python scripts/create_validation_image.py 2 <basename>.chatfield/<basename>.scan.json <basename>.chatfield/images/page_2.png <basename>.chatfield/images/page_2_validation.png
+python scripts/create_validation_image.py 3 <basename>.chatfield/<basename>.scan.json <basename>.chatfield/images/page_3.png <basename>.chatfield/images/page_3_validation.png
 ```
 
 This overlays colored rectangles (red for entry boxes, blue for labels) on the PNG images to visualize bounding boxes.
@@ -168,29 +169,37 @@ This overlays colored rectangles (red for entry boxes, blue for labels) on the P
 
 Remember: label (blue) bounding boxes should contain text labels, entry (red) boxes should not.
 - Red rectangles must ONLY cover input areas
-- Red rectangles MUST NOT contain any text
+- Red rectangles MUST NOT contain any text or labels
 - Blue rectangles should contain label text
 - For checkboxes:
   - Red rectangle MUST be centered on the checkbox square
   - Blue rectangle should cover the text label for the checkbox
 
-**If any rectangles look wrong:** Fix bounding boxes in `.form.json`, then return to Stage 1 (automated check gate). You must pass both stages again.
+**If any rectangles look wrong:** Fix bounding boxes in `.scan.json`, then return to Stage 1 (automated check gate). You must pass both stages again.
+
+## Step 4: Convert to PDF Coordinates
+
+Once all validation passes, convert the image coordinates to PDF coordinates:
+
+```bash
+python scripts/convert_coordinates.py <basename>.chatfield/<basename>.scan.json <basename>.pdf <basename>.chatfield/<basename>.form.json
+```
 
 ## Troubleshooting
 
-**Bounding boxes don't align:**
-- Review validation
-- Adjust coordinates in `.form.json`
-- Remember: PDF coordinates start at bottom-left (0,0)
+**Bounding boxes don't align in validation images:**
+- Review the validation image carefully
+- Adjust coordinates in `.scan.json`
+- Remember: You're using IMAGE coordinates (origin at top-left, Y downward)
 - Re-run validation after changes
 
 **Text gets cut off:**
-- Increase bounding box height and/or width
+- Increase bounding box height and/or width in `.scan.json`
 - Entry boxes should have extra space for text
 
 **Validation script errors:**
-- Ensure all page images exist
-- Verify JSON syntax in `.form.json`
+- Ensure all page images exist in `<basename>.chatfield/images/`
+- Verify JSON syntax in `.scan.json`
 - Check that page numbers are 1-indexed
 
 ---
