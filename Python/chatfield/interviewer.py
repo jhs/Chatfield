@@ -165,13 +165,14 @@ class Interviewer:
         temperature = None,
         base_url: Optional[str] = None,
         api_key: Optional[str] = None,
-        endpoint_security: Optional[EndpointSecurityMode] = None
+        endpoint_security: Optional[EndpointSecurityMode] = None,
+        checkpointer = None
     ):
         # Isomorphic:
         # TypeScript has options parameter, Python uses all kwargs.
         self.interview = interview
         self.template_engine = TemplateEngine()
-        self.checkpointer = InMemorySaver()
+        self.checkpointer = checkpointer or InMemorySaver()
         self.config = {"configurable": {"thread_id": thread_id or str(uuid.uuid4())}}
 
         # Initialize LLM
