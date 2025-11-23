@@ -1,6 +1,4 @@
-"""
-Form data definition using the Chatfield builder API
-"""
+# DO NOT add a docstring
 
 from chatfield import chatfield
 
