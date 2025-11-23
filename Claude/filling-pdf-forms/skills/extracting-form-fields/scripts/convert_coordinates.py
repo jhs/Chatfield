@@ -9,7 +9,7 @@ Image coordinates: Origin at top-left, Y increases downward
 PDF coordinates: Origin at bottom-left, Y increases upward
 
 Usage:
-    python convert_coordinates.py <scan.json> <pdf_file> <output_form.json>
+    python convert_coordinates.py <scan.json> <pdf_file>
 """
 
 import json
@@ -152,16 +152,25 @@ def convert_scan_to_form(scan_json_path, pdf_path, output_json_path):
 
 
 if __name__ == "__main__":
-    if len(sys.argv) != 4:
-        print("Usage: convert_coordinates.py <scan.json> <pdf_file> <output_form.json>")
+    if len(sys.argv) != 3:
+        print("Usage: convert_coordinates.py <scan.json> <pdf_file>")
         print()
         print("Example:")
-        print("  python convert_coordinates.py my_form.chatfield/my_form.scan.json my_form.pdf my_form.chatfield/my_form.form.json")
+        print("  python convert_coordinates.py my_form.chatfield/my_form.scan.json my_form.pdf")
+        print()
+        print("Output filename is automatically computed by replacing .scan.json with .form.json")
         sys.exit(1)
 
     scan_json_path = sys.argv[1]
     pdf_path = sys.argv[2]
-    output_json_path = sys.argv[3]
+
+    # Compute output filename by replacing .scan.json with .form.json
+    scan_path = Path(scan_json_path)
+    if not scan_path.name.endswith('.scan.json'):
+        print(f"Error: Input file must end with .scan.json, got: {scan_path.name}", file=sys.stderr)
+        sys.exit(1)
+
+    output_json_path = str(scan_path.parent / scan_path.name.replace('.scan.json', '.form.json'))
 
     try:
         convert_scan_to_form(scan_json_path, pdf_path, output_json_path)

@@ -182,7 +182,7 @@ Remember: label (blue) bounding boxes should contain text labels, entry (red) bo
 Once all validation passes, convert the image coordinates to PDF coordinates:
 
 ```bash
-python scripts/convert_coordinates.py <basename>.chatfield/<basename>.scan.json <basename>.pdf <basename>.chatfield/<basename>.form.json
+python scripts/convert_coordinates.py <basename>.chatfield/<basename>.scan.json <basename>.pdf
 ```
 
 ## Troubleshooting
