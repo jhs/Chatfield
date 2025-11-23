@@ -108,6 +108,9 @@ visualization = [
     "ipython>=8.0.0",
     "grandalf>=0.8",
 ]
+agent = [
+    "langgraph-checkpoint-sqlite>=3.0.0",
+]
 
 [project.urls]
 Homepage = "https://github.com/yourusername/chatfield"
