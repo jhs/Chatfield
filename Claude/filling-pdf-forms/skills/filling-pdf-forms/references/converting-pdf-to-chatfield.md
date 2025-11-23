@@ -311,13 +311,3 @@ If any items fail:
 ## The Result: Form Data Model
 
 When validation passes, you have successfully created the **Form Data Model** in `<basename>.chatfield/interview.py`.
-
-This file will be referenced in later steps for:
-- Translation (if needed - see ./translating.md)
-- Server execution (`python -m chatfield.server <basename>.chatfield/interview.py`)
-
----
-
-**Next Steps:**
-- If user's language ≠ form's language → See ./translating.md
-- If user's language = form's language → Skip to server execution
