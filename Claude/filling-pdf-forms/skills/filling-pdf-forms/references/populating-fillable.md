@@ -13,16 +13,16 @@ start
 :Parse server output;
 :Read <basename>.form.json for metadata;
 :Create <basename>.values.json;
-:Execute fill_fillable_fields.py;
 repeat
-  :Validate
+  :Validate .values.json
   (see validation checklist);
   if (All checks pass?) then (yes)
   else (no)
-    :Fix issues;
+    :Fix .values.json;
   endif
 repeat while (All checks pass?) is (no)
 ->yes;
+:Execute fill_fillable_fields.py;
 :**✓ PDF POPULATION COMPLETE**;
 stop
 @enduml
@@ -60,9 +60,19 @@ Create `<basename>.values.json` in the `<basename>.chatfield/` directory with th
 - Typically: `"/1"` or `"/On"` for checked, `"/Off"` for unchecked
 - Convert Python `True`/`False` → PDF checkbox values
 
-### 3. Populate PDF
+### 3. Validate `.values.json`
 
-Run the population script (note, the `scripts` directory is relative to the base directory for this skill):
+**Before running the population script**, validate the `.values.json` file against the validation checklist below:
+- Verify all field_ids from `.form.json` are present
+- Check checkbox values match `checked_value`/`unchecked_value` from `.form.json`
+- Ensure numeric fields use numbers, not strings
+- Confirm language cast values are used when available
+
+If validation fails, fix the `.values.json` file and re-validate until all checks pass.
+
+### 4. Populate PDF
+
+Once validation passes, run the population script (note, the `scripts` directory is relative to the base directory for this skill):
 
 ```bash
 python scripts/fill_fillable_fields.py <basename>.pdf <basename>.chatfield/<basename>.values.json <basename>.done.pdf
@@ -84,7 +94,13 @@ cat > input.chatfield/input.values.json << 'EOF'
 ]
 EOF
 
-# 3. Fill PDF
+# 3. Validate values.json (check validation checklist)
+# ✓ All field_ids present
+# ✓ Checkbox value "/1" matches checked_value from .form.json
+# ✓ Age is numeric (25, not "25")
+# ✓ Language cast used for name field
+
+# 4. Fill PDF (only after validation passes)
 python scripts/fill_fillable_fields.py input.pdf input.chatfield/input.values.json input.done.pdf
 ```
 
