@@ -98,16 +98,17 @@ Task(
 
 **Result**: The **Form Data Model**, a faithful representation of PDF form using Chatfield API.
 
-### Step 3: Translation (If Needed)
+### Step 3: Translation
 
-Determine if translation is needed.
+Determine if translation is needed. Translation is needed either:
+- **Explicit**: User states "I need to fill this Spanish form but I only speak English"
+- **Implicit**: User request is in language X, but PDF is in language Y
 
-#### When Translation is Needed
+Example: "Help me complete form.es.pdf" (English request, Spanish form)
 
-**Explicit**: User states "I need to fill this Spanish form but I only speak English"
-
-**Implicit**: User request is in language X, but PDF is in language Y
-- Example: "Help me complete form.es.pdf" (English request, Spanish form)
+State to the user whether you will translate. Either:
+- Claude: This form uses <common-language>
+- or Claude: This form uses <form-language> so I will set up translation to <user-language>
 
 **To apply translation, see:** ./references/Translating.md
 
