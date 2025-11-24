@@ -27,13 +27,13 @@ start
 :Step 1: Form Extraction;
 :Step 2: Build Form Data Model;
 :Step 3: Translation Decision;
-if (User language == form language?) then (yes)
+if (User language is form language?) then (yes)
   :Use base Form Data Model;
 else (no)
   :Translation Setup;
 endif
-:Step 4: Run Interview Loop via CLI;
-partition "CLI Interview Loop" {
+:Step 4: Run Interview Loop;
+partition "Chatfield CLI Interview Loop" {
   :Initialize: Run CLI without message;
   repeat
     :CLI outputs question to stdout;
