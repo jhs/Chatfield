@@ -11,7 +11,7 @@ Run `chatfield.cli` iteratively, presenting its output messages via AskUserQuest
 ## Workflow Overview
 
 ```plantuml
-@startuml CLI-INTERVIEW-LOOP
+@startuml CLI-Interview-Loop
 title CLI Interview Loop
 start
 :Initialize chatfield.cli (no message);
