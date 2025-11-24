@@ -11,7 +11,7 @@ Run `chatfield.cli` iteratively, presenting its output messages via AskUserQuest
 ## Workflow Overview
 
 ```plantuml
-@startuml cli-interview-loop
+@startuml CLI-INTERVIEW-LOOP
 title CLI Interview Loop
 start
 :Initialize chatfield.cli (no message);
@@ -19,9 +19,9 @@ start
 repeat
   :Understand the chatfield.cli message;
   :Consider the Form Data Model for multiSelect;
-  :Build AskUserQuestion
+  :Build AskUserQuestion;
   :Present to user via AskUserQuestion();
-  :Call chatfield.cli with the result as a message
+  :Call chatfield.cli with the result as a message;
   :chatfield.cli outputs next question/response;
 repeat while (Complete?) is (no)
 ->yes;
