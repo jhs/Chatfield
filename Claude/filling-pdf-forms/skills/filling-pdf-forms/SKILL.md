@@ -65,11 +65,11 @@ stop
 
 ### Step 0: Initialize Chatfield
 
-Test for and install missing packages:
-- `pypdf`
-- `pdf2image`
+Test: `python -c "import pypdf; import pdf2image; import markitdown; import chatfield"`.
+
+Install via `pip` if needed; exceptions:
 - `markitdown` → `pip install "markitdown[pdf]"`
-- `chatfield` → `pip install ./scripts/chatfield-1.0.0a2-py3-none-any.whl` (path relative to this .md)
+- `chatfield` → `pip install ./scripts/chatfield-1.0.0a2-py3-none-any.whl` (relative to this .md)
 
 ### Step 1: Form Extraction
 
