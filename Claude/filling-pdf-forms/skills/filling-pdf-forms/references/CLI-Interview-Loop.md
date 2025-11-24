@@ -57,7 +57,7 @@ In all cases, chatfield.cli will print to its stdout a message for the user.
 5. Present AskUserQuestion to user
 6. Handle response:
    - "Other" text → pass to chatfield.cli
-   - "Skip" → pass "skip" or equivalent paraphrase to chatfield.cli
+   - "Skip" → Context-aware response: Yes/No questions → "No"; Optional/nullable fields → "N/A"; Other fields → "Skip"
    - "Delegate" → research answer, pass to chatfield.cli
    - Options 3-4 → pass selection to chatfield.cli
    - Multi-select → join with commas, pass to chatfield.cli

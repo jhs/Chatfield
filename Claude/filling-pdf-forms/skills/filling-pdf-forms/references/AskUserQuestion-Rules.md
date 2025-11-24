@@ -18,7 +18,7 @@ AskUserQuestion(
         "multiSelect": <True/False>,  # Based on data model
         "options": [
             # POSITION 1: REQUIRED
-            {"label": "Skip", "description": "Skip this field (negative/N/A/blank as appropriate)"},
+            {"label": "Skip", "description": "Skip (N/A, blank, negative, etc)"},
             # POSITION 2: REQUIRED
             {"label": "Delegate", "description": "Ask Claude to look up the needed information using all available resources"},
             # POSITION 3: First option from chatfield.cli (if present)
@@ -109,6 +109,8 @@ Options:
 ---
 
 ## Quick Examples (RULES 1-7)
+
+**Note:** Skip handling is context-aware per "Handle Responses" table above.
 
 ### RULE 1: Free Text
 ```
