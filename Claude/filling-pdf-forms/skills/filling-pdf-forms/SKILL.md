@@ -49,10 +49,10 @@ partition "CLI Interview Loop" {
 :Step 5: Populate PDF;
 if (Fillable form?) then (yes)
   :Populate fillable fields
-  (see populating-fillable.md);
+  (see Populating-Fillable.md);
 else (no)
   :Populate non-fillable fields
-  (see populating-nonfillable.md);
+  (see Populating-Nonfillable.md);
 endif
 |User|
 :**✓ SUCCESS**;
@@ -92,8 +92,8 @@ Task(
 
 ### Step 2: Build Form Data Model
 
-1. Read entirely: `./references/data-model-api.md` - Learn Chatfield API
-2. Read entirely: `./references/converting-pdf-to-chatfield.md` - PDF→Chatfield Form Data Model guidance
+1. Read entirely: `./references/Data-Model-API.md` - Learn Chatfield API
+2. Read entirely: `./references/Converting-PDF-To-Chatfield.md` - PDF→Chatfield Form Data Model guidance
 3. Edit `<basename>.chatfield/interview.py` - Define Form Data Model
 
 **Result**: The **Form Data Model**, a faithful representation of PDF form using Chatfield API.
@@ -109,7 +109,7 @@ Determine if translation is needed.
 **Implicit**: User request is in language X, but PDF is in language Y
 - Example: "Help me complete form.es.pdf" (English request, Spanish form)
 
-**To apply translation, see:** ./references/translating.md
+**To apply translation, see:** ./references/Translating.md
 
 Translation creates `interview_<lang>.py` and **re-defines** the Form Data Model from `interview.py` to the new `interview_<lang>.py` instead. Henceforth, use the translated file as the Form Data Model.
 
@@ -124,10 +124,10 @@ Parse `--inspect` output and populate the PDF.
 
 #### If Fillable:
 
-**See:** ./references/populating-fillable.md
+**See:** ./references/Populating-Fillable.md
 
 #### If Non-fillable:
 
-**See:** ./references/populating-nonfillable.md
+**See:** ./references/Populating-Nonfillable.md
 
 **Result**: `<basename>.done.pdf`

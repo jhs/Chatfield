@@ -33,10 +33,10 @@ start
 :Check Fillability;
 if (PDF has fillable fields?) then (yes)
   :Fillable workflow
-  (see fillable-forms.md);
+  (see Fillable-Forms.md);
 else (no)
   :Non-fillable workflow
-  (see nonfillable-forms.md);
+  (see Nonfillable-Forms.md);
 endif
 :**✓ EXTRACTION COMPLETE**;
 :Ready for Form Data Model creation;
@@ -80,11 +80,11 @@ python scripts/check_fillable_fields.py <pdf_path>
 
 #### If Fillable:
 
-Follow ./references/fillable-forms.md
+Follow ./references/Fillable-Forms.md
 
 #### If Non-fillable:
 
-Follow ./references/nonfillable-forms.md
+Follow ./references/Nonfillable-Forms.md
 
 ## Output Format
 
@@ -113,5 +113,5 @@ Follow ./references/nonfillable-forms.md
 
 ## References
 
-- ./references/fillable-forms.md - Fillable PDF extraction workflow
-- ./references/nonfillable-forms.md - Non-fillable PDF extraction workflow
+- ./references/Fillable-Forms.md - Fillable PDF extraction workflow
+- ./references/Nonfillable-Forms.md - Non-fillable PDF extraction workflow

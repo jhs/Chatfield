@@ -99,14 +99,14 @@ SKILL_DIR = ../Claude/filling-pdf-forms/skills/filling-pdf-forms
 EXTRACTING_SKILL_DIR = ../Claude/filling-pdf-forms/skills/extracting-form-fields
 PLANTUML_FILES = \
 	$(SKILL_DIR)/SKILL.plantuml \
-	$(SKILL_DIR)/references/translating.plantuml \
-	$(SKILL_DIR)/references/converting-pdf-to-chatfield.plantuml \
-	$(SKILL_DIR)/references/populating-fillable.plantuml \
-	$(SKILL_DIR)/references/populating-nonfillable.plantuml \
-	$(SKILL_DIR)/references/CLI-INTERVIEW-LOOP.plantuml \
+	$(SKILL_DIR)/references/Translating.plantuml \
+	$(SKILL_DIR)/references/Converting-PDF-To-Chatfield.plantuml \
+	$(SKILL_DIR)/references/Populating-Fillable.plantuml \
+	$(SKILL_DIR)/references/Populating-Nonfillable.plantuml \
+	$(SKILL_DIR)/references/CLI-Interview-Loop.plantuml \
 	$(EXTRACTING_SKILL_DIR)/SKILL.plantuml \
-	$(EXTRACTING_SKILL_DIR)/references/fillable-forms.plantuml \
-	$(EXTRACTING_SKILL_DIR)/references/nonfillable-forms.plantuml
+	$(EXTRACTING_SKILL_DIR)/references/Fillable-Forms.plantuml \
+	$(EXTRACTING_SKILL_DIR)/references/Nonfillable-Forms.plantuml
 
 # Extract .plantuml files from .md sources
 plantuml-extract: $(PLANTUML_FILES)
@@ -114,41 +114,41 @@ plantuml-extract: $(PLANTUML_FILES)
 $(SKILL_DIR)/SKILL.plantuml: $(SKILL_DIR)/SKILL.md
 	@sed -n '/^```plantuml$$/,/^```$$/p' $< | sed '1d;$$d' > $@
 
-$(SKILL_DIR)/references/translating.plantuml: $(SKILL_DIR)/references/translating.md
+$(SKILL_DIR)/references/Translating.plantuml: $(SKILL_DIR)/references/Translating.md
 	@sed -n '/^```plantuml$$/,/^```$$/p' $< | sed '1d;$$d' > $@
 
-$(SKILL_DIR)/references/converting-pdf-to-chatfield.plantuml: $(SKILL_DIR)/references/converting-pdf-to-chatfield.md
+$(SKILL_DIR)/references/Converting-PDF-To-Chatfield.plantuml: $(SKILL_DIR)/references/Converting-PDF-To-Chatfield.md
 	@sed -n '/^```plantuml$$/,/^```$$/p' $< | sed '1d;$$d' > $@
 
-$(SKILL_DIR)/references/populating-fillable.plantuml: $(SKILL_DIR)/references/populating-fillable.md
+$(SKILL_DIR)/references/Populating-Fillable.plantuml: $(SKILL_DIR)/references/Populating-Fillable.md
 	@sed -n '/^```plantuml$$/,/^```$$/p' $< | sed '1d;$$d' > $@
 
-$(SKILL_DIR)/references/populating-nonfillable.plantuml: $(SKILL_DIR)/references/populating-nonfillable.md
+$(SKILL_DIR)/references/Populating-Nonfillable.plantuml: $(SKILL_DIR)/references/Populating-Nonfillable.md
 	@sed -n '/^```plantuml$$/,/^```$$/p' $< | sed '1d;$$d' > $@
 
-$(SKILL_DIR)/references/CLI-INTERVIEW-LOOP.plantuml: $(SKILL_DIR)/references/CLI-INTERVIEW-LOOP.md
+$(SKILL_DIR)/references/CLI-Interview-Loop.plantuml: $(SKILL_DIR)/references/CLI-Interview-Loop.md
 	@sed -n '/^```plantuml$$/,/^```$$/p' $< | sed '1d;$$d' > $@
 
 $(EXTRACTING_SKILL_DIR)/SKILL.plantuml: $(EXTRACTING_SKILL_DIR)/SKILL.md
 	@sed -n '/^```plantuml$$/,/^```$$/p' $< | sed '1d;$$d' > $@
 
-$(EXTRACTING_SKILL_DIR)/references/fillable-forms.plantuml: $(EXTRACTING_SKILL_DIR)/references/fillable-forms.md
+$(EXTRACTING_SKILL_DIR)/references/Fillable-Forms.plantuml: $(EXTRACTING_SKILL_DIR)/references/Fillable-Forms.md
 	@sed -n '/^```plantuml$$/,/^```$$/p' $< | sed '1d;$$d' > $@
 
-$(EXTRACTING_SKILL_DIR)/references/nonfillable-forms.plantuml: $(EXTRACTING_SKILL_DIR)/references/nonfillable-forms.md
+$(EXTRACTING_SKILL_DIR)/references/Nonfillable-Forms.plantuml: $(EXTRACTING_SKILL_DIR)/references/Nonfillable-Forms.md
 	@sed -n '/^```plantuml$$/,/^```$$/p' $< | sed '1d;$$d' > $@
 
 # Generate PNG diagrams from .plantuml files using Docker
 plantuml-png: plantuml-extract
 	@docker run --rm -v "$(shell cd .. && pwd)":/data plantuml/plantuml -tpng "/data/Claude/filling-pdf-forms/skills/filling-pdf-forms/SKILL.plantuml" 2>/dev/null
-	@docker run --rm -v "$(shell cd .. && pwd)":/data plantuml/plantuml -tpng "/data/Claude/filling-pdf-forms/skills/filling-pdf-forms/references/translating.plantuml" 2>/dev/null
-	@docker run --rm -v "$(shell cd .. && pwd)":/data plantuml/plantuml -tpng "/data/Claude/filling-pdf-forms/skills/filling-pdf-forms/references/populating-fillable.plantuml" 2>/dev/null
-	@docker run --rm -v "$(shell cd .. && pwd)":/data plantuml/plantuml -tpng "/data/Claude/filling-pdf-forms/skills/filling-pdf-forms/references/populating-nonfillable.plantuml" 2>/dev/null
-	@docker run --rm -v "$(shell cd .. && pwd)":/data plantuml/plantuml -tpng "/data/Claude/filling-pdf-forms/skills/filling-pdf-forms/references/converting-pdf-to-chatfield.plantuml" 2>/dev/null
-	@docker run --rm -v "$(shell cd .. && pwd)":/data plantuml/plantuml -tpng "/data/Claude/filling-pdf-forms/skills/filling-pdf-forms/references/CLI-INTERVIEW-LOOP.plantuml" 2>/dev/null
+	@docker run --rm -v "$(shell cd .. && pwd)":/data plantuml/plantuml -tpng "/data/Claude/filling-pdf-forms/skills/filling-pdf-forms/references/Translating.plantuml" 2>/dev/null
+	@docker run --rm -v "$(shell cd .. && pwd)":/data plantuml/plantuml -tpng "/data/Claude/filling-pdf-forms/skills/filling-pdf-forms/references/Populating-Fillable.plantuml" 2>/dev/null
+	@docker run --rm -v "$(shell cd .. && pwd)":/data plantuml/plantuml -tpng "/data/Claude/filling-pdf-forms/skills/filling-pdf-forms/references/Populating-Nonfillable.plantuml" 2>/dev/null
+	@docker run --rm -v "$(shell cd .. && pwd)":/data plantuml/plantuml -tpng "/data/Claude/filling-pdf-forms/skills/filling-pdf-forms/references/Converting-PDF-To-Chatfield.plantuml" 2>/dev/null
+	@docker run --rm -v "$(shell cd .. && pwd)":/data plantuml/plantuml -tpng "/data/Claude/filling-pdf-forms/skills/filling-pdf-forms/references/CLI-Interview-Loop.plantuml" 2>/dev/null
 	@docker run --rm -v "$(shell cd .. && pwd)":/data plantuml/plantuml -tpng "/data/Claude/filling-pdf-forms/skills/extracting-form-fields/SKILL.plantuml" 2>/dev/null
-	@docker run --rm -v "$(shell cd .. && pwd)":/data plantuml/plantuml -tpng "/data/Claude/filling-pdf-forms/skills/extracting-form-fields/references/fillable-forms.plantuml" 2>/dev/null
-	@docker run --rm -v "$(shell cd .. && pwd)":/data plantuml/plantuml -tpng "/data/Claude/filling-pdf-forms/skills/extracting-form-fields/references/nonfillable-forms.plantuml" 2>/dev/null
+	@docker run --rm -v "$(shell cd .. && pwd)":/data plantuml/plantuml -tpng "/data/Claude/filling-pdf-forms/skills/extracting-form-fields/references/Fillable-Forms.plantuml" 2>/dev/null
+	@docker run --rm -v "$(shell cd .. && pwd)":/data plantuml/plantuml -tpng "/data/Claude/filling-pdf-forms/skills/extracting-form-fields/references/Nonfillable-Forms.plantuml" 2>/dev/null
 
 # Clean up temporary .plantuml files
 plantuml-clean:

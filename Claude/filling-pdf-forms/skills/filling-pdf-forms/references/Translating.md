@@ -7,7 +7,7 @@ Use this guide when the PDF form is in a language different from the user's lang
 ## Process Overview
 
 ```plantuml
-@startuml translating
+@startuml Translating
 title Translating Forms for Users
 start
 :Prerequisites: Form Data Model created\n(form language already determined);

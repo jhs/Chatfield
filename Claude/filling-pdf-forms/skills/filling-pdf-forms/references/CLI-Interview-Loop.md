@@ -48,12 +48,12 @@ In all cases, chatfield.cli will print to its stdout a message for the user.
 
 ## Interview Loop Process
 
-**CRITICAL**: When building AskUserQuestion from chatfield.cli's message, you MUST strictly follow ./AskUserQuestion-RULES.md
+**CRITICAL**: When building AskUserQuestion from chatfield.cli's message, you MUST strictly follow ./AskUserQuestion-Rules.md
 
 1. Initialize: `python -m chatfield.cli --state=<state> --interview=<interview>` (NO message)
 2. Read chatfield.cli's stdout message
 3. Recall or look up Form Data Model for multiSelect (`.as_multi()`, `.one_or_more()` → True)
-4. Build AskUserQuestion per mandatory rules: ./AskUserQuestion-RULES.md
+4. Build AskUserQuestion per mandatory rules: ./AskUserQuestion-Rules.md
 5. Present AskUserQuestion to user
 6. Handle response:
    - "Other" text → pass to chatfield.cli

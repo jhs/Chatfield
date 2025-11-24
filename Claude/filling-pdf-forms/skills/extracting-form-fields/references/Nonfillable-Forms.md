@@ -8,7 +8,7 @@ You'll need to visually determine where the data should be added as text annotat
 ## Process Overview
 
 ```plantuml
-@startuml nonfillable-forms
+@startuml Nonfillable-Forms
 title Non-fillable PDF Forms - Extraction Workflow
 start
 :Convert PDF to PNG images;
@@ -213,6 +213,6 @@ python scripts/convert_coordinates.py <basename>.chatfield/<basename>.scan.json 
 ---
 
 **See Also:**
-- ../../filling-pdf-forms/references/converting-pdf-to-chatfield.md - How the main skill builds the interview
-- ./fillable-forms.md - Alternative extraction for fillable PDFs
+- ../../filling-pdf-forms/references/Converting-PDF-To-Chatfield.md - How the main skill builds the interview
+- ./Fillable-Forms.md - Alternative extraction for fillable PDFs
 - ../../filling-pdf-forms/references/populating.md - How bounding boxes are used during PDF population

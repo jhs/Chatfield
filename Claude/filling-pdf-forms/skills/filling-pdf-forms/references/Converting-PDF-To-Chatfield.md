@@ -5,13 +5,13 @@ This guide covers how to build a Chatfield interview definition from PDF form da
 </purpose>
 
 <important>
-**Read complete API reference**: See ./data-model-api.md for all builder methods, transformations, and validation rules.
+**Read complete API reference**: See ./Data-Model-API.md for all builder methods, transformations, and validation rules.
 </important>
 
 ## Process Overview
 
 ```plantuml
-@startuml converting-pdf-to-chatfield
+@startuml Converting-PDF-To-Chatfield
 title Converting PDF Forms to Chatfield Interviews
 start
 :Prerequisites: Form extraction complete;
@@ -61,7 +61,7 @@ The chatfield object strings should virtually always match the PDF's primary lan
 - `.trait()` - Use form's language for Background content
 - `.hint()` - Use form's language
 
-**Translation happens LATER** (see ./translating.md), not during initial definition.
+**Translation happens LATER** (see ./Translating.md), not during initial definition.
 
 ## Key Rules
 
@@ -193,7 +193,7 @@ All hints must have a prefix:
 - **"Tooltip:"** - May be shared with Bob if helpful
   - Example: `.hint("Tooltip: Your employer provides this number")`
 
-**See ./data-model-api.md** for complete list of transformations (`.as_int()`, `.as_bool()`, etc.) and cardinality options (`.as_one()`, `.as_multi()`, etc.).
+**See ./Data-Model-API.md** for complete list of transformations (`.as_int()`, `.as_bool()`, etc.) and cardinality options (`.as_one()`, `.as_multi()`, etc.).
 
 ## When to Use `.conclude()`
 

@@ -7,7 +7,7 @@ After collecting data via Chatfield interview, populate the non-fillable PDF wit
 ## Process Overview
 
 ```plantuml
-@startuml populating-nonfillable
+@startuml Populating-Nonfillable
 title Populating Non-fillable PDF Forms
 start
 :Parse Chatfield output;
@@ -116,6 +116,6 @@ Non-fillable Population Validation:
 ---
 
 **See Also:**
-- ./populating-fillable.md - Population workflow for fillable PDFs
-- ../extracting-form-fields/references/nonfillable-forms.md - How bounding boxes were created
-- ./converting-pdf-to-chatfield.md - How the Form Data Model was built
+- ./Populating-Fillable.md - Population workflow for fillable PDFs
+- ../extracting-form-fields/references/Nonfillable-Forms.md - How bounding boxes were created
+- ./Converting-PDF-To-Chatfield.md - How the Form Data Model was built

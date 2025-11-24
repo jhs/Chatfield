@@ -5,7 +5,7 @@ This guide is for the "extracting-form-fields" agent performing extraction on fi
 ## Process Overview
 
 ```plantuml
-@startuml fillable-forms
+@startuml Fillable-Forms
 title Fillable PDF Forms - Extraction Workflow
 start
 :Extract form field metadata;
