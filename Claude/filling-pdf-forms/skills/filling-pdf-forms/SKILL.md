@@ -115,7 +115,7 @@ Translation creates `interview_<lang>.py` and **re-defines** the Form Data Model
 
 ### Step 4: Run Interview Loop via CLI
 
-**CRITICAL**: See `./references/CLI-INTERVIEW-LOOP.md` for complete MANDATORY execution rules.
+**CRITICAL**: See `./references/CLI-Interview-Loop.md` for complete MANDATORY execution rules.
 
 
 ### Step 5: Populate PDF
