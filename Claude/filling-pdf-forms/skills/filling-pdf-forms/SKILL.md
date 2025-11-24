@@ -11,7 +11,7 @@ license: Apache 2.0
 Complete PDF forms by collecting required data through conversational interviews and populating form fields.
 
 <purpose>
-Use when completing PDF forms with user-provided data. Your goal is to produce a `.done.pdf` corresponding to the user's starting PDF file, populated with the user-provided information, by following the below process exactly.
+Use when completing PDF forms with user-provided data. Goal: produce `.done.pdf` populated with user information by following this process exactly.
 </purpose>
 
 ## Process Overview
@@ -63,48 +63,38 @@ stop
 
 ### Step 0: Initialize Chatfield
 
-Ensure all required packages are available before proceeding.
-
-**Required packages:** Test for and install each package if missing:
+Test for and install missing packages:
 - `pypdf`
 - `pdf2image`
-- `markitdown` - To install: `pip install "markitdown[pdf]"`
-- `chatfield` - To install: `pip install ./scripts/chatfield-1.0.0a2-py3-none-any.whl` (path relative to this .md file)
+- `markitdown` → `pip install "markitdown[pdf]"`
+- `chatfield` → `pip install ./scripts/chatfield-1.0.0a2-py3-none-any.whl` (path relative to this .md)
 
 ### Step 1: Form Extraction
 
-Use the `extracting-form-fields` sub-agent to extract the PDF form into useful files.
-
-**Invoke via Task tool:**
+Extract PDF form using `extracting-form-fields` sub-agent:
 
 ```python
 Task(
     subagent_type="general-purpose",
     description="Extract PDF form fields",
-    prompt=f"""
-    Extract form field data from PDF: {pdf_path}
-
-    Use the extracting-form-fields skill to complete this task.
-    """
+    prompt=f"Extract form field data from PDF: {pdf_path}\n\nUse the extracting-form-fields skill."
 )
 ```
 
-When the task finishes, it reports whether the PDF is "fillable" or "non-fillable", because you must use this important information later.
+**Task reports**: "fillable" or "non-fillable" (needed for Step 5)
 
-The task creates (for `input.pdf`):
-- `input.chatfield/` directory
-- `input.chatfield/input.form.md` - PDF content as Markdown
-- `input.chatfield/input.form.json` - Form field definitions
-- `input.chatfield/interview.py` - Template Form Data Model file ready for editing
+**Creates** (for `input.pdf`):
+- `input.chatfield/input.form.md` - PDF as Markdown
+- `input.chatfield/input.form.json` - Field definitions
+- `input.chatfield/interview.py` - Template Form Data Model
 
 ### Step 2: Build Form Data Model
 
-**First, read entirely:** ./references/data-model-api.md to learn how to build Chatfield data models
-**Then, read entirely:** ./references/converting-pdf-to-chatfield.md for guidance on how to make the needed model.
+1. Read entirely: ./references/data-model-api.md - Learn Chatfield API
+2. Read entirely: ./references/converting-pdf-to-chatfield.md - PDF→Chatfield Form data Model guidance
+3. Edit `<basename>.chatfield/interview.py` - Define Form Data Model
 
-With those references understood, edit `[basename].chatfield/interview.py` to define the Chatfield interview.
-
-This step creates the **Form Data Model** - the faithful representation of the PDF form using the Chatfield data model API.
+**Result**: The **Form Data Model**, a faithful representation of PDF form using Chatfield API.
 
 ### Step 3: Translation (If Needed)
 
@@ -153,4 +143,4 @@ Parse server output and populate the PDF.
 
 **See:** ./references/populating-nonfillable.md
 
-**Result**: `input.done.pdf`
+**Result**: `<basename>.done.pdf`
