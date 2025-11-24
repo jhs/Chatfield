@@ -125,7 +125,25 @@ Collect once, populate multiple PDF fields via `.as_*()` casts
     .as_str("age_display", "Age formatted for display")
 ```
 
-**CRITICAL**: Cast names MUST be exact PDF field_ids from `.form.json`
+**CRITICAL**: For fan-out, cast names MUST be exact PDF field_ids from `.form.json`
+
+#### Re-representation Sub-pattern
+
+When PDF has multiple fields for the same value in different formats (numeric vs words, date vs formatted date, etc.), collect ONCE and use casts:
+
+```python
+.field("amount")
+    .desc("What is the payment amount?")
+    .as_int("amount_numeric", "Amount as number")
+    .as_str("amount_in_words", "Amount spelled out in words (e.g., 'One hundred')")
+
+.field("event_date")
+    .desc("When did the event occur?")
+    .as_str("date_iso", "Date in ISO format (YYYY-MM-DD)")
+    .as_str("date_display", "Date formatted as 'January 15, 2025'")
+```
+
+**Key principle**: Eliminate duplicate questions about the same underlying information.
 
 ### Discriminate + Split Pattern
 
@@ -285,6 +303,7 @@ Before proceeding, validate the interview definition:
 Interview Validation Checklist:
 - [ ] All field_ids from .form.json are mapped
 - [ ] No field_ids duplicated or missing
+- [ ] Re-representations (amount/amount_in_words, date/date_formatted, etc.) use single field with casts, not duplicate questions
 - [ ] .desc() describes WHAT information is needed (content), never HOW it should be formatted
 - [ ] .hint() provides context about content (e.g., "Optional", "Must match passport"), never formatting instructions
 - [ ] All formatting requirements (dates, codes, number formats, etc.) use .as_*() transformations exclusively
