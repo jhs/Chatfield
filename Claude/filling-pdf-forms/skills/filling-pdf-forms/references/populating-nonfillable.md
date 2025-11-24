@@ -10,7 +10,7 @@ After collecting data via Chatfield interview, populate the non-fillable PDF wit
 @startuml populating-nonfillable
 title Populating Non-fillable PDF Forms
 start
-:Parse server output;
+:Parse Chatfield output;
 :Create .values.json with field values;
 :Add annotations to PDF;
 :**✓ PDF POPULATION COMPLETE**;
@@ -20,9 +20,12 @@ stop
 
 ## Process
 
-### 1. Parse Server Output
+### 1. Parse Chatfield Output
 
-The server stdout contains logs of data collection and a final summary of all collected data.
+Run Chatfield with `--inspect` for a final summary of all collected data:
+```bash
+python -m chatfield.cli --state='<basename>.chatfield/interview.db' --interview='<basename>.chatfield/interview.py' --inspect
+```
 
 Extract `field_id` and value for each field from the interview results.
 
@@ -83,7 +86,7 @@ This script:
 <validation_checklist>
 ```
 Non-fillable Population Validation:
-- [ ] All field values extracted from server output
+- [ ] All field values extracted from CLI output
 - [ ] Language casts used when available (not raw values)
 - [ ] Boolean values converted to checkbox display values
 - [ ] .values.json created with correct format

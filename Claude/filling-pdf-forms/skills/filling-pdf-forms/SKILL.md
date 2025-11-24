@@ -32,18 +32,20 @@ if (User language == form language?) then (yes)
 else (no)
   :Translation Setup;
 endif
-:Step 4: Run Interview Server;
-partition "Interview Loop" {
+:Step 4: Run Interview Loop via CLI;
+partition "CLI Interview Loop" {
+  :Initialize: Run CLI without message;
   repeat
-    :Server generates question → Display to user;
+    :CLI outputs question to stdout;
+    :Present question to user via AskUserQuestion();
     |User|
     :User provides response;
     |filling-pdf-forms skill|
-    :Server validates & processes;
-  repeat while (All fields collected?) is (no)
+    :Run CLI with user's message;
+  repeat while (CLI indicates complete?) is (no)
   ->yes;
 }
-:Capture stdout output;
+:Inspect collected data via CLI --inspect;
 :Step 5: Populate PDF;
 if (Fillable form?) then (yes)
   :Populate fillable fields
@@ -90,8 +92,8 @@ Task(
 
 ### Step 2: Build Form Data Model
 
-1. Read entirely: ./references/data-model-api.md - Learn Chatfield API
-2. Read entirely: ./references/converting-pdf-to-chatfield.md - PDF→Chatfield Form data Model guidance
+1. Read entirely: `./references/data-model-api.md` - Learn Chatfield API
+2. Read entirely: `./references/converting-pdf-to-chatfield.md` - PDF→Chatfield Form Data Model guidance
 3. Edit `<basename>.chatfield/interview.py` - Define Form Data Model
 
 **Result**: The **Form Data Model**, a faithful representation of PDF form using Chatfield API.
@@ -111,29 +113,14 @@ Determine if translation is needed.
 
 Translation creates `interview_<lang>.py` and **re-defines** the Form Data Model from `interview.py` to the new `interview_<lang>.py` instead. Henceforth, use the translated file as the Form Data Model.
 
-### Step 4: Run Interview Server
+### Step 4: Run Interview Loop via CLI
 
-Run the Chatfield interview server with the Form Data Model:
+**CRITICAL**: See `./references/CLI-INTERVIEW-LOOP.md` for complete MANDATORY execution rules.
 
-```bash
-# Using base Form Data Model (same language):
-python -m chatfield.server input.chatfield/interview.py
-
-# OR using translated Form Data Model:
-python -m chatfield.server input.chatfield/interview_es.py
-```
-
-Server will:
-1. Start conversational interview
-2. Collect data from user
-3. Output results to stdout
-4. Exit when complete
-
-Capture the stdout output - you'll need it for population.
 
 ### Step 5: Populate PDF
 
-Parse server output and populate the PDF.
+Parse `--inspect` output and populate the PDF.
 
 #### If Fillable:
 

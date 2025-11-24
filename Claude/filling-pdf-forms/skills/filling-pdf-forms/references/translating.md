@@ -215,4 +215,4 @@ If any items fail:
 
 **CRITICAL**: When translation setup is complete, the **Form Data Model** is now the language-specific version (`interview_<lang>.py`), NOT the base `interview.py`.
 
-Use this file for all subsequent steps (server execution, etc.).
+Use this file for all subsequent steps (CLI execution, etc.).

@@ -10,7 +10,7 @@ After collecting data via Chatfield interview, populate fillable PDF forms with 
 @startuml populating-fillable
 title Populating Fillable PDF Forms
 start
-:Parse server output;
+:Parse Chatfield output;
 :Read <basename>.form.json for metadata;
 :Create <basename>.values.json;
 repeat
@@ -30,9 +30,12 @@ stop
 
 ## Process
 
-### 1. Parse Server Output
+### 1. Parse Chatfield Output
 
-The server stdout will contain logs of the data collection and also a final summary of all data pretty-printed.
+Run Chatfield with `--inspect` for a final summary of all collected data:
+```bash
+python -m chatfield.cli --state='<basename>.chatfield/interview.db' --interview='<basename>.chatfield/interview.py' --inspect
+```
 
 Extract `field_id` and the proper value for each field.
 

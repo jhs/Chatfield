@@ -2,7 +2,7 @@
 
 from chatfield import chatfield
 
-# The chatfield.server module will import this `interview` object.
+# The chatfield.cli module will import this `interview` object.
 # **CRITICAL** - Replace the commented examples below with the real data definition.
 interview = (chatfield()
     # .type(<form id, official name, or filename>)
