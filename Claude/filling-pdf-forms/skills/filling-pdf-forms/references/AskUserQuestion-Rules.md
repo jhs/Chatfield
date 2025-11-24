@@ -18,7 +18,7 @@ AskUserQuestion(
         "multiSelect": <True/False>,  # Based on data model
         "options": [
             # POSITION 1: REQUIRED
-            {"label": "Skip", "description": "Leave this field blank and continue"},
+            {"label": "Skip", "description": "Skip this field (negative/N/A/blank as appropriate)"},
             # POSITION 2: REQUIRED
             {"label": "Delegate", "description": "Ask Claude to look up the needed information using all available resources"},
             # POSITION 3: First option from chatfield.cli (if present)
@@ -73,11 +73,27 @@ Options:
 
 | Selection | Action |
 |-----------|--------|
-| Types via "Other" | Pass text to chatfield.cli next iteration |
-| "Skip" | Pass "skip" or paraphrase as needed to chatfield.cli next iteration |
+| Types via "Other" | If starts with `'`: strip prefix and pass verbatim to chatfield.cli. Otherwise: judge if it's a direct answer or instruction to Claude. Direct answer → pass to chatfield.cli; Request for Claude → research/process, then respond to chatfield.cli |
+| "Skip" | Context-aware response: Yes/No questions → "No"; Optional/nullable fields → "N/A"; Other fields → "Skip" |
 | "Delegate" | Research & provide answer |
 | Option 3-4 | Pass selection to CLI |
 | Multi-select | Join: "Email, Phone" to chatfield.cli next iteration |
+
+## Distinguishing Direct Answers from Claude Requests
+
+**When user types via "Other", judge intent:**
+
+**Direct answers** (pass to chatfield.cli):
+- "Find new customers in new markets" ← answer to "What is your business strategy?"
+- "123 Main St, Boston MA" ← answer to "What is your address?"
+- "Python and TypeScript" ← answer to "What programming languages?"
+
+**Requests for Claude** (research first):
+- "look up my SSN" ← asking Claude to find something
+- "research the population" ← asking Claude to look something up
+- "what's today's date" ← asking Claude a question
+
+**Edge case:** `'` prefix forces verbatim pass-through regardless of content
 
 ---
 
