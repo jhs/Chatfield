@@ -76,33 +76,6 @@ Once validation passes, run the population script (note, the `scripts` directory
 
 ```bash
 python scripts/fill_fillable_fields.py <basename>.pdf <basename>.chatfield/<basename>.values.json <basename>.done.pdf
-```
-
-## Complete Example
-
-```bash
-# 1. Parse server output (manual extraction from stdout)
-# Server printed: {'name': {'value': 'Jason Smith', 'as_lang_es': 'Jason Smith'}, 'age': {'value': '25'}, 'over_18': {'value': true}}
-
-# 2. Create values.json in the .chatfield/ directory
-# Note: Use as_lang_es for 'name' field since it exists (Spanish form)
-cat > input.chatfield/input.values.json << 'EOF'
-[
-  {"field_id": "name", "page": 1, "value": "Jason Smith"},
-  {"field_id": "age", "page": 1, "value": 25},
-  {"field_id": "over_18", "page": 1, "value": "/1"}
-]
-EOF
-
-# 3. Validate values.json (check validation checklist)
-# ✓ All field_ids present
-# ✓ Checkbox value "/1" matches checked_value from .form.json
-# ✓ Age is numeric (25, not "25")
-# ✓ Language cast used for name field
-
-# 4. Fill PDF (only after validation passes)
-python scripts/fill_fillable_fields.py input.pdf input.chatfield/input.values.json input.done.pdf
-```
 
 ## Validation Checklist
 
